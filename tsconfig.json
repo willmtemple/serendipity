@@ -1,0 +1,30 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "target": "es5",
+        "lib": [
+            "esnext",
+            "dom"
+        ],
+        "types": [
+            "node"
+        ],
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "alwaysStrict": true,
+        "removeComments": true,
+        "outDir": "dist/",
+        "sourceMap": true,
+        "declaration": true
+    },
+    "include": [
+        "src/**/*.ts",
+    ],
+    "exclude": [
+        "dist/*",
+        "node_modules/*"
+    ]
+}
