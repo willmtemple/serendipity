@@ -6,6 +6,7 @@ import { matchGlobal, Global } from "../lib/lang/syntax/surface/global";
 import { Expression, matchExpression } from "../lib/lang/syntax/surface/expression";
 import { matchStatement, Statement } from "../lib/lang/syntax/surface/statement";
 import { execModule } from "./surface_interp/eval";
+import { writeGlobal } from "../lib/printer/surface";
 
 function _curry(parameters: string[], body: Expression): Expression {
     let val: Expression;
@@ -187,6 +188,10 @@ const compiler = new Compiler({
     run: lower
 });
 
-const res = compiler.compile(surfaceExample);
+process.stdout.write(surfaceExample.globals.map((g) => writeGlobal(g)).join("\n\n") + "\n==\n");
 
-execModule(unwrap(res));
+const res = unwrap(compiler.compile(surfaceExample));
+
+process.stdout.write(res.globals.map((g) => writeGlobal(g)).join("\n\n") + "\n==\n");
+
+execModule(res);

@@ -328,6 +328,13 @@ export function execModule(m: SurfaceModule) {
         Define: ({ name, value }) => {
             scope.scope(name, value);
         },
+        DefineFunction: ({ name, parameters, body }) => {
+            scope.scope(name, {
+                exprKind: "closure",
+                parameters,
+                body
+            });
+        },
         Default: (g) => {
             throw new Error("not imlemented: " + g.globalKind);
         }
