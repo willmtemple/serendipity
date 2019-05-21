@@ -1,21 +1,21 @@
 import { surfaceExample } from "./examples";
 import { Compiler, CompilerOutput } from "../lib/compiler";
-import { SurfaceModule } from "../lib/lang/syntax/surface";
+import * as surface from "../lib/lang/syntax/surface";
+import * as abstract from '../lib/lang/syntax/abstract';
 import { ok, unwrap } from "../lib/util/Result";
-import { matchGlobal, Global } from "../lib/lang/syntax/surface/global";
-import { Expression, matchExpression } from "../lib/lang/syntax/surface/expression";
-import { matchStatement, Statement } from "../lib/lang/syntax/surface/statement";
-import { execModule } from "./surface_interp/eval";
+import { execModule } from "./interp/eval";
 import { writeGlobal } from "../lib/printer/surface";
 
-function _curry(parameters: string[], body: Expression): Expression {
-    let val: Expression;
+type SExpression = surface.expression.Expression;
+type AbsExpression = abstract.expression.Expression;
+
+function _curry(parameters: string[], body: SExpression): AbsExpression {
+    let val: AbsExpression;
 
     if (parameters.length === 0) {
         // No parameter for this closure
         val = {
             exprKind: "closure",
-            parameters: [],
             body: lowerExpr(body),
         }
     } else {
@@ -23,7 +23,7 @@ function _curry(parameters: string[], body: Expression): Expression {
         for (let p of parameters) {
             val = {
                 exprKind: "closure",
-                parameters: [p],
+                parameter: p,
                 // Stack the closures
                 body: val || lowerExpr(body),
             }
@@ -33,8 +33,11 @@ function _curry(parameters: string[], body: Expression): Expression {
     return val;
 }
 
-function lowerStatement(s: Statement): Statement {
-    return matchStatement<Statement>({
+type SStatement = surface.statement.Statement;
+type AbsStatement = abstract.statement.Statement;
+
+function lowerStatement(s: SStatement): AbsStatement {
+    return surface.statement.matchStatement<AbsStatement>({
         Print: ({ value }) => ({
             statementKind: "print",
             value: lowerExpr(value),
@@ -69,8 +72,8 @@ function lowerStatement(s: Statement): Statement {
     })(s);
 }
 
-function lowerExpr(e: Expression): Expression {
-    return matchExpression<Expression>({
+function lowerExpr(e: SExpression): AbsExpression {
+    return surface.expression.matchExpression<AbsExpression>({
         Number: (e) => e,
         String: (e) => e,
         Name: (e) => e,
@@ -91,10 +94,10 @@ function lowerExpr(e: Expression): Expression {
                 exprKind: "call",
                 callee: {
                     exprKind: "closure",
-                    parameters: [binding[0]],
+                    parameter: binding[0],
                     body: lowerExpr(expr),
                 },
-                parameters: [lowerExpr(binding[1])]
+                parameter: lowerExpr(binding[1])
             }
         },
         Call: ({ callee, parameters }) => {
@@ -103,15 +106,14 @@ function lowerExpr(e: Expression): Expression {
                 return {
                     exprKind: "call",
                     callee: calleeLowered,
-                    parameters: []
                 };
             } else {
-                let call : Expression;
+                let call : AbsExpression;
                 for (let i = parameters.length - 1; i >= 0; i--) {
                     call = {
                         exprKind: "call",
                         callee: call || calleeLowered,
-                        parameters: [lowerExpr(parameters[i])]
+                        parameter: lowerExpr(parameters[i])
                     }
                 }
                 return call;
@@ -119,7 +121,7 @@ function lowerExpr(e: Expression): Expression {
         },
         Closure: ({ parameters, body }) => _curry(parameters, body),
         List: ({ contents }) => {
-            let list: Expression = {
+            let list: AbsExpression = {
                 exprKind: "void"
             }
 
@@ -156,8 +158,11 @@ function lowerExpr(e: Expression): Expression {
     })(e);
 }
 
-function lowerGlobal(g: Global): Global {
-    return matchGlobal<Global>({
+type SGlobal = surface.global.Global;
+type AbsGlobal = abstract.global.Global;
+
+function lowerGlobal(g: SGlobal): AbsGlobal {
+    return surface.global.matchGlobal<AbsGlobal>({
         Main: ({ body }) => ({
             globalKind: "main",
             body: lowerExpr(body)
@@ -178,7 +183,7 @@ function lowerGlobal(g: Global): Global {
     })(g);
 }
 
-function lower(i: SurfaceModule): CompilerOutput<SurfaceModule> {
+function lower(i: surface.Module): CompilerOutput<abstract.Module> {
     return ok({
         globals: i.globals.map(lowerGlobal),
     });
@@ -191,7 +196,5 @@ const compiler = new Compiler({
 process.stdout.write(surfaceExample.globals.map((g) => writeGlobal(g)).join("\n\n") + "\n==\n");
 
 const res = unwrap(compiler.compile(surfaceExample));
-
-process.stdout.write(res.globals.map((g) => writeGlobal(g)).join("\n\n") + "\n==\n");
 
 execModule(res);

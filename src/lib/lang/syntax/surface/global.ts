@@ -3,7 +3,7 @@
  * declarations)
  */
 
-import { SyntaxObject } from '.';
+import { SyntaxObject } from '../';
 import { Function } from '../../../util/FuncTools';
 import { Expression } from './expression';
 

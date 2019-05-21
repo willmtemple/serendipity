@@ -2,7 +2,7 @@
  * Statement definitions for syntax.
  */
 
-import { SyntaxObject } from '.';
+import { SyntaxObject } from '../';
 import { Expression } from './expression';
 import { Function } from '../../../util/FuncTools';
 

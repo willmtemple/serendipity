@@ -1,4 +1,4 @@
-import { SyntaxObject } from "../lang/syntax/surface";
+import { SyntaxObject } from "../lang/syntax";
 
 export type Diagnostic = 
     UnboundIdentifierError;

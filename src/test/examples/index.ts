@@ -1,6 +1,6 @@
-import { SurfaceModule } from "../../lib/lang/syntax/surface";
+import { Module } from "../../lib/lang/syntax/surface";
 
-export const surfaceExample: SurfaceModule = {
+export const surfaceExample: Module = {
     globals: [
         {
             globalKind: "define",

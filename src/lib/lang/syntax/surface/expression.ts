@@ -1,6 +1,6 @@
 
 import { Function } from '../../../util/FuncTools';
-import { SyntaxObject } from '.';
+import { SyntaxObject } from '../';
 import { Statement } from './statement';
 
 export type Expression =

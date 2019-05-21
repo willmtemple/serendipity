@@ -1,26 +1,17 @@
-import { Global } from "./global";
+import * as _global from './global';
+import * as _expression from './expression';
+import * as _statement from './statement';
 
-/**
- * Defines the surface syntax of the language.
- * 
- * The surface syntax is the touchpoint for interactivity. This syntax should be
- * exactly the same as the structure that users actually interact with in the editor.
- */
-
-/**
- * All parsed nodes are SyntaxObject instances.
- */
-export interface SyntaxObject {
-    /** Generic key-value store for object metadata. For use by, e.g. the text parser. */
-    metadata?: { [k: string]: any },
-}
+export import global = _global;
+export import statement = _statement;
+export import expression = _expression;
 
 // TODO move this out to a runtime or a module package... it isn't really syntax
 
 /**
  * A module definition, containing the set of globals
  */
-export interface SurfaceModule {
+export interface Module {
     /** In our language, the global declarations are considered to be unordered. */
-    globals: Global[],
+    globals: _global.Global[],
 }
