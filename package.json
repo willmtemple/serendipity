@@ -1,14 +1,17 @@
 {
-  "name": "canvas-editor",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "proto-syntax",
+  "version": "0.1.0",
+  "description": "Defines syntax for a prototype language",
+  "repository": "git+https://github.com/willmtemple/proto-editor",
+  "files": ["dist/**/*s"], 
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@types/node": "^11.10.4"
+  "author": "William Temple <will at wtemple dot net>",
+  "license": "GPL-3.0-or-later",
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^12.0.2",
+    "typescript": "^3.0.0"
   }
 }
