@@ -17,6 +17,7 @@ svg.blocksWorkspace text {
   font-weight: 600;
   fill: white;
   pointer-events: none;
+  /* Linters mark this as unused, but it does actually change the baseline */
   dominant-baseline: hanging;
 }
 
@@ -24,6 +25,7 @@ svg.blocksWorkspace foreignObject div {
   height: 100%;
   width: 100%;
 }
+
 svg.blocksWorkspace foreignObject input {
   font-family: "Source Code Pro";
   font-weight: 600;
@@ -36,6 +38,11 @@ svg.blocksWorkspace foreignObject input {
   border: 1px solid black;
   background-color: #FFFFFFAA;
   padding: 0 0 0 6px;
+}
+svg.blocksWorkspace foreignObject input[type=number] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+  margin: 0;
 }
 
 svg.blocksWorkspace foreignObject input[type=number]::-webkit-inner-spin-button,

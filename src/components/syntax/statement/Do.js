@@ -3,17 +3,17 @@ import { observer } from 'mobx-react';
 import Expression from '../expression';
 
 @observer
-class Print extends Component {
+class Do extends Component {
     render() {
         return (
             <g>
-                <text>print</text>
-                <g transform="translate(64, 0)">
-                    <Expression parent={this.props.parent} expression={this.props.print.value} />
+                <text>do</text>
+                <g transform="translate(32, 0)">
+                    <Expression parent={this.props.parent} expression={this.props.do.body} />
                 </g>
             </g >
         );
     }
 }
 
-export default Print;
+export default Do;

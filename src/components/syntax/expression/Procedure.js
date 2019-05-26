@@ -43,7 +43,7 @@ class Procedure extends Component {
             <g>
                 <text>{"<proc>"} [</text>
                 <g ref={this.bodyRef} transform="translate(36, 22)">
-                    <SvgVertical parent={this} padding={20}>
+                    <SvgVertical parent={this} padding={5}>
                         {this.props.procedure.body.map((s, idx) =>
                             <Statement key={idx} statement={s} />
                         )}

@@ -12,6 +12,7 @@ import Call from './Call';
 import Accessor from './Accessor';
 import Procedure from './Procedure';
 import BoundingBox from '../../layout/BoundingBox';
+import List from './List';
 
 function getColor(kind) {
     switch (kind) {
@@ -22,7 +23,9 @@ function getColor(kind) {
         case "tuple":
             return "green";
         case "number":
-            return "orange";
+            return "red";
+        case "list":
+            return "darkgreen";
         case "name":
             return "darkorange";
         case "closure":
@@ -69,6 +72,8 @@ class Expression extends Component {
                     return <Accessor accessor={this.props.expression} />
                 case "procedure":
                     return <Procedure procedure={this.props.expression} />
+                case "list":
+                    return <List list={this.props.expression} />
                 default:
                     return (
                         <text fill="white" fontFamily="Source Code Pro" fontWeight="600">{this.props.expression.exprKind} (unimplemented)</text>

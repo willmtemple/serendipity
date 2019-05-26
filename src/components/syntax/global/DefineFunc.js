@@ -3,25 +3,46 @@ import { observer } from 'mobx-react';
 
 import Expression from '../expression';
 import CloseButton from '../../editor/CloseButton';
+import Binder from '../../editor/Binder';
+import { arrayEqual } from '../../../util';
+import AddButton from '../../editor/AddButton';
+import SvgHorizontal from '../../layout/SvgHorizontal';
 
 @observer
 class DefineFunc extends Component {
     constructor(props) {
         super(props);
 
+        this.cachedParameters = null;
+        this.cachedBinderLine = null;
+
         this.addParam = this.addParam.bind(this);
     }
 
-    rename(name) {
-        this.props.definefunc.name = name;
-    }
+    _getBinderLine() {
+        if (!arrayEqual(this.cachedParameters, this.props.definefunc.parameters)) {
+            // Update cache
+            this.cachedParameters = [...this.props.definefunc.parameters];
 
-    renameParam(idx, name) {
-        if (name === '') {
-            this.props.definefunc.parameters.splice(idx, 1);
-        } else {
-            this.props.definefunc.parameters[idx] = name;
+            const binderLine = [
+                <CloseButton onClick={this.props.onDelete} />,
+                <Binder bind={this.props.definefunc} bindKey="name" />,
+                <text>(</text>
+            ];
+
+            this.props.definefunc.parameters.forEach((_, idx) => {
+                binderLine.push(<Binder key={idx} bind={this.props.definefunc.parameters} bindKey={idx} />);
+                if (idx + 1 !== this.props.definefunc.parameters.length) {
+                    binderLine.push(<text key={"comma" + idx}>{", "}</text>);
+                }
+            });
+            binderLine.push(<text>)</text>)
+            binderLine.push(<AddButton onClick={this.addParam} />)
+            binderLine.push(<text>=></text>)
+
+            this.cachedBinderLine = binderLine;
         }
+        return this.cachedBinderLine
     }
 
     addParam() {
@@ -29,35 +50,12 @@ class DefineFunc extends Component {
     }
 
     render() {
-        let paramOff = 200;
-        let firstParam = true;
+        console.log("DefineFunc is rendering");
         return (
-            <g className="blockDefine">
-                <CloseButton onClick={this.props.onDelete} />
-                <text x={30} y={25} fontWeight={900}>define</text>
-                <foreignObject x={100} y={5} width={100} height={30} style={{ overflow: "visible" }}>
-                    <input type="text" value={this.props.definefunc.name} style={{ width: "80px" }} onChange={(e) => this.rename(e.target.value)} />
-                </foreignObject>
-                <text x={paramOff} y={25}>(</text>
-                {paramOff += 10}
-                {this.props.definefunc.parameters.map((p, idx) =>
-                    <g key={idx} transform={`translate(${paramOff},5)`}>
-                        {
-                            !firstParam && <text y={25}>, </text>
-                        }
-                        <foreignObject x={firstParam ? 0 : 20} width={100} height={30} style={{ overflow: "visible" }}>
-                            <input type="text" value={p} style={{ width: "60px" }} onChange={(e) => this.renameParam(idx, e.target.value)} />
-                        </foreignObject>
-                        {paramOff += firstParam ? 80 : 100}
-                        {firstParam = false}
-                    </g>
-                )}
-                <text x={paramOff} y={25}>)</text>
-                <g className="add" transform={`translate(${paramOff + 20}, 10)`} onClick={this.addParam}>
-                    <rect x={0} y={0} width={18} height={18} rx="2" fill="white" />
-                    <line x1={9} x2={9} y1={4} y2={14} stroke="black" strokeLinecap="round" strokeWidth={4} />
-                    <line x2={4} x1={14} y1={9} y2={9} stroke="black" strokeLinecap="round" strokeWidth={4} />
-                </g>
+            <g>
+                <SvgHorizontal parent={this.props.parent} padding={10}>
+                    {this._getBinderLine()}
+                </SvgHorizontal>
                 <g className="exprBox" transform="translate(30, 60)">
                     <Expression parent={this.props.parent} expression={this.props.definefunc.body} />
                 </g>

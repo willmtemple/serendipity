@@ -6,6 +6,18 @@ import BoundingBox from '../../layout/BoundingBox';
 import CloseButton from '../../editor/CloseButton';
 import { inject, observer } from 'mobx-react';
 
+
+function getColor(kind) {
+    switch (kind) {
+        case "main":
+            return "maroon";
+        case "define":
+            return "darkblue";
+        case "definefunc":
+            return "darkviolet";
+    }
+}
+
 @inject('ProjectStore')
 @observer
 class Global extends Component {
@@ -47,7 +59,7 @@ class Global extends Component {
             <BoundingBox
                 parent={this}
                 padding={10}
-                color="blue"
+                color={getColor(this.props.global.globalKind)}
                 stroke="black"
                 strokeWidth={1.5}>
                 {body}
