@@ -14,6 +14,16 @@ import Procedure from './Procedure';
 import BoundingBox from '../../layout/BoundingBox';
 import List from './List';
 
+function getPadding(kind) {
+    switch (kind) {
+        case "number":
+        case "name":
+            return 10;
+        default:
+            return 6;
+    }
+}
+
 function getColor(kind) {
     switch (kind) {
         case "if":
@@ -48,8 +58,9 @@ function getColor(kind) {
 @observer
 class Expression extends Component {
     render() {
+        const kind = this.props.expression.exprKind;
         const body = (() => {
-            switch (this.props.expression.exprKind) {
+            switch (kind) {
                 case "if":
                     return <If _if={this.props.expression} />
                 case "void":
@@ -84,8 +95,8 @@ class Expression extends Component {
         return (
             <BoundingBox
                 parent={this.props.parent}
-                padding={6}
-                color={getColor(this.props.expression.exprKind)}>
+                padding={getPadding(kind)}
+                color={getColor(kind)}>
                 {body}
             </BoundingBox>
         )

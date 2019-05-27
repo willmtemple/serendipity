@@ -25,20 +25,21 @@ class DefineFunc extends Component {
             this.cachedParameters = [...this.props.definefunc.parameters];
 
             const binderLine = [
-                <CloseButton onClick={this.props.onDelete} />,
-                <Binder bind={this.props.definefunc} bindKey="name" />,
-                <text>(</text>
+                <CloseButton key="df_close" onClick={this.props.onDelete} />,
+                <text key="df_label">define</text>,
+                <Binder key="df_name" bind={this.props.definefunc} bindKey="name" />,
+                <text key="df_open_paren">(</text>
             ];
 
             this.props.definefunc.parameters.forEach((_, idx) => {
                 binderLine.push(<Binder key={idx} bind={this.props.definefunc.parameters} bindKey={idx} />);
                 if (idx + 1 !== this.props.definefunc.parameters.length) {
-                    binderLine.push(<text key={"comma" + idx}>{", "}</text>);
+                    binderLine.push(<text key={"df_comma_" + idx}>, </text>);
                 }
             });
-            binderLine.push(<text>)</text>)
-            binderLine.push(<AddButton onClick={this.addParam} />)
-            binderLine.push(<text>=></text>)
+            binderLine.push(<text key="df_close_paren">)</text>)
+            binderLine.push(<AddButton key="df_expand" onClick={this.addParam} />)
+            binderLine.push(<text key="df_arrow">=></text>)
 
             this.cachedBinderLine = binderLine;
         }

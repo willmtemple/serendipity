@@ -15,6 +15,8 @@ function getColor(kind) {
             return "darkblue";
         case "definefunc":
             return "darkviolet";
+        default:
+            return "black";
     }
 }
 

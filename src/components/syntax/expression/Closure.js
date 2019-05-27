@@ -8,8 +8,6 @@ import AddButton from '../../editor/AddButton';
 import Indent from '../../layout/Indent';
 import { arrayEqual } from '../../../util';
 
-
-
 @observer
 class Closure extends Component {
     constructor(props) {

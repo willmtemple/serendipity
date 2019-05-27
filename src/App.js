@@ -9,6 +9,7 @@ import { unwrap } from 'proto-syntax/dist/lib/util/Result';
 import Global from './components/syntax/global';
 import { makeDraggable } from './util/Draggable';
 import { untracked } from 'mobx';
+import Header from './components/menus/Header';
 
 @inject('ProjectStore')
 @observer
@@ -50,21 +51,29 @@ class App extends Component {
 
     return (
       <div className="App">
-        <div className="header" style={{ height: "8rem" }}>
-          <h1>Program Editor</h1>
-
-          <button onClick={this.reset}>Reload Example Program</button>
-          <button onClick={this.runProgram}>Run</button>
-          <button onClick={() => this.forceUpdate()}>Redraw</button>
-          <button onClick={this.props.ProjectStore.dump.bind(this.props.ProjectStore)}>Dump AST to Console</button>
-        </div>
-
-        <svg ref={this.svg} className="blocksWorkspace" style={{ width: "100%", height: "calc(100% - 8rem)" }} xmlns="http://www.w3.org/2000/svg">
-          <filter id="f_BlockShadow">
-            <feOffset result="offOut" in="SourceAlpha" dx="3" dy="3" />
-            <feGaussianBlur result="blurOut" in="offOut" stdDeviation="2" />
-            <feBlend in="SourceGraphic" in2="blurOut" mode="normal" />
-          </filter>
+        <Header app={this} />
+        <svg  ref={this.svg}
+              className="blocksWorkspace"
+              style={{ width: "100%", height: "calc(100% - 8rem)" }}
+              preserveAspectRatio="xMidYMin slice"
+              xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="f_BlockShadow">
+              <feOffset result="offOut" in="SourceAlpha" dx="3" dy="3" />
+              <feGaussianBlur result="blurOut" in="offOut" stdDeviation="2" />
+              <feBlend in="SourceGraphic" in2="blurOut" mode="normal" />
+            </filter>
+            <pattern  id="bgPattern" x={0} y={0} width={50} height={50}
+                      patternUnits="userSpaceOnUse" >
+              <rect x={0} y={0} width={50} height={50} fill="#E8E8E8" />
+              <circle cx={25} cy={25} r={2} fill="#CCCCCC" />
+            </pattern>
+          </defs>
+          <rect id="workspaceBackground"
+                x={0} y={0}
+                width="140%" height="140%"
+                fill="url(#bgPattern)"
+                style={{height: "140%", width: "140%"}}/>
           {
             projectStore.program.globals.map((glb, idx) => (
               <g key={untracked(() => glb.metadata.editor.guid)}

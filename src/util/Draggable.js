@@ -1,15 +1,60 @@
 import projectStore from '../stores/ProjectStore';
+import prefsStore from '../stores/PrefsStore';
 
+// This code is spaghett
 export function makeDraggable(svg) {
     svg.addEventListener('mousedown', startDrag);
     svg.addEventListener('mousemove', drag);
     svg.addEventListener('mouseup', endDrag);
     svg.addEventListener('mouseleave', endDrag);
 
-    let selectedElement, offset, transform;
+    svg.addEventListener('wheel', zoom);
+
+    const bgRect = document.getElementById('workspaceBackground');
+
+    // Add a hook to resize events on the window that will adjust the
+    // SVG viewBox to keep it at the correct size
+    window.addEventListener('resize', resizeViewBox);
+
+    const initialRect = svg.getClientRects()[0];
+    let svgDims = {
+        scale: prefsStore.prefs.editorScale,
+        left: prefsStore.prefs.editorPosition.x,
+        top: prefsStore.prefs.editorPosition.y,
+        width: initialRect.width,
+        height: initialRect.height
+    }
+
+    function resizeViewBox() {
+        const rect = svg.getClientRects()[0];
+        svgDims.width = rect.width;
+        svgDims.height = rect.height;
+        setViewBox();
+    }
+
+
+    let selectedElement, offset, transform, boundCTM;
+    const background = document.getElementById('workspaceBackground');
+    const bgTranslate = svg.createSVGTransform();
+    background.transform.baseVal.insertItemBefore(bgTranslate, 0)
+
+    function setViewBox() {
+        const { left, top, width, height, scale } = svgDims;
+        svg.setAttribute(
+            "viewBox",
+            `${left} ${top} ${width * scale} ${height * scale}`
+        );
+        // Adjust for background scroll and 20% width margins
+        // (should be width margin on both top and left, as DOM
+        // calculates margins by element width)
+        const bgLeft = left - (left % 50) - (width * 0.2);
+        const bgTop = top - (top % 50) - (height * 0.2);
+        bgTranslate.setTranslate(bgLeft, bgTop);
+    }
+    resizeViewBox(svg, bgRect);
 
     function getMousePosition(evt) {
-        const ctm = svg.getScreenCTM();
+        const ctm = boundCTM || svg.getScreenCTM();
         return {
             x: (evt.clientX - ctm.e) / ctm.a,
             y: (evt.clientY - ctm.f) / ctm.d
@@ -21,13 +66,18 @@ export function makeDraggable(svg) {
         while (node && node !== svg && !node.classList.contains('draggable')) {
             node = node.parentElement
         }
-        return node === svg ? null : node;
+        return node;
     }
 
     function startDrag(evt) {
         if (evt.target.tagName !== "INPUT") {
             const node = findDragRoot(evt.target);
-            if (node) {
+            if (node === svg) {
+                // Drag the background
+                selectedElement = svg;
+                boundCTM = svg.getSCreenCTM;
+                offset = getMousePosition(evt);
+            } else if (node) {
                 selectedElement = node;
                 offset = getMousePosition(evt);
 
@@ -57,7 +107,13 @@ export function makeDraggable(svg) {
     }
 
     function drag(evt) {
-        if (selectedElement) {
+        if (selectedElement === svg) {
+            evt.preventDefault();
+            const mouse = getMousePosition(evt);
+            svgDims.left -= mouse.x - offset.x;
+            svgDims.top -= mouse.y - offset.y;
+            setViewBox();
+        } else if (selectedElement) {
             evt.preventDefault();
             const mouse = getMousePosition(evt);
             transform.setTranslate(mouse.x - offset.x, mouse.y - offset.y);
@@ -65,7 +121,9 @@ export function makeDraggable(svg) {
     }
 
     function endDrag(evt) {
-        if (selectedElement) {
+        if (selectedElement === svg) {
+            prefsStore.setPosition(svgDims.left, svgDims.top);
+        } else if (selectedElement) {
             const guid = selectedElement.getAttribute('data-guid');
             if (guid) {
                 projectStore.updatePos(guid, {
@@ -75,5 +133,27 @@ export function makeDraggable(svg) {
             }
         }
         selectedElement = undefined;
+        boundCTM = undefined;
+    }
+
+    function zoom(evt) {
+        // Don't zoom while dragging anything.
+        if (!selectedElement) {
+            const oldScale = svgDims.scale;
+            const nextScale = oldScale + (evt.deltaY / 500);
+            const ratio = nextScale / oldScale;
+            if (nextScale > 0.5 && nextScale < 2.0) {
+                svgDims.scale = nextScale;
+                prefsStore.prefs.editorScale = nextScale;
+                // Keep the mouse position fixed in SVG space
+                const mouse = getMousePosition(evt);
+                const {left, top} = svgDims;
+                // Also (1-r)mx - rl , but this uses less mults
+                svgDims.left = mouse.x - ((mouse.x - left) * ratio);
+                svgDims.top = mouse.y - ((mouse.y - top) * ratio);
+
+                setViewBox();
+            }
+        }
     }
 }

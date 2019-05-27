@@ -1,3 +1,7 @@
+html {
+  overflow: hidden;
+}
+
 html, body, #root, .App {
   padding: 0;
   margin: 0;
@@ -9,7 +13,14 @@ h1 {
 }
 
 .header {
-  padding: 1rem 1rem 0 1rem;
+  padding: 1rem 1rem 1rem 1rem;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+svg.blocksWorkspace, svg.blocksWorkspace * {
+  margin: 0;
+  padding: 0;
 }
 
 svg.blocksWorkspace text {
