@@ -70,6 +70,9 @@ export function makeDraggable(svg) {
     }
 
     function startDrag(evt) {
+        if (evt.button !== 0) {
+            return;
+        }
         if (evt.target.tagName !== "INPUT") {
             const node = findDragRoot(evt.target);
             if (node === svg) {
@@ -148,7 +151,7 @@ export function makeDraggable(svg) {
                 // Keep the mouse position fixed in SVG space
                 const mouse = getMousePosition(evt);
                 const {left, top} = svgDims;
-                // Also (1-r)mx - rl , but this uses less mults
+                // Also (1-r)m_{x} - rl , but this uses less mults
                 svgDims.left = mouse.x - ((mouse.x - left) * ratio);
                 svgDims.top = mouse.y - ((mouse.y - top) * ratio);
 

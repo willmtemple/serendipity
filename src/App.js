@@ -65,8 +65,8 @@ class App extends Component {
             </filter>
             <pattern  id="bgPattern" x={0} y={0} width={50} height={50}
                       patternUnits="userSpaceOnUse" >
-              <rect x={0} y={0} width={50} height={50} fill="#E8E8E8" />
-              <circle cx={25} cy={25} r={2} fill="#CCCCCC" />
+              <rect x={0} y={0} width={50} height={50} fill="#F0F0F0" />
+              <circle cx={25} cy={25} r={2} fill="#AAAAAA" />
             </pattern>
           </defs>
           <rect id="workspaceBackground"
