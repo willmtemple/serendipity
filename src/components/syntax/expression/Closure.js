@@ -35,16 +35,16 @@ class Closure extends Component {
             // Update cache
             this.cachedParameters = [...this.props.closure.parameters];
 
-            const binderLine = [<text>(</text>];
+            const binderLine = [<text key="clos_open_paren">(</text>];
             this.props.closure.parameters.forEach((_, idx) => {
-                binderLine.push(<Binder key={idx} bind={this.props.closure.parameters} bindKey={idx} />);
+                binderLine.push(<Binder key={"clos_param_" + idx} bind={this.props.closure.parameters} bindKey={idx} />);
                 if (idx + 1 !== this.props.closure.parameters.length) {
-                    binderLine.push(<text key={"c_" + idx}>{", "}</text>);
+                    binderLine.push(<text key={"clos_comma_" + idx}>{", "}</text>);
                 }
             });
-            binderLine.push(<text>)</text>)
-            binderLine.push(<AddButton onClick={this.addParam} />)
-            binderLine.push(<text>=></text>)
+            binderLine.push(<text key={"clos_close_paren"}>)</text>)
+            binderLine.push(<AddButton key="clos_add" onClick={this.addParam} />)
+            binderLine.push(<text key="clos_arrow">=></text>)
 
             this.cachedBinderLine = binderLine;
         }

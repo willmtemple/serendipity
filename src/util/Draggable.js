@@ -47,9 +47,9 @@ export function makeDraggable(svg) {
         // Adjust for background scroll and 20% width margins
         // (should be width margin on both top and left, as DOM
         // calculates margins by element width)
-        const bgLeft = left - (left % 50) - (width * 0.2);
-        const bgTop = top - (top % 50) - (height * 0.2);
-        bgTranslate.setTranslate(bgLeft, bgTop);
+        const bgLeft = left - (width * 0.2);
+        const bgTop = top - (height * 0.2);
+        bgTranslate.setTranslate(bgLeft - (bgLeft % 50), bgTop - (bgTop % 50));
     }
     resizeViewBox(svg, bgRect);
 

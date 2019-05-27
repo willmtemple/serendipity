@@ -1,6 +1,6 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 
-export default class Indent extends Component {
+export default class Indent extends PureComponent {
     render() {
         const children = React.Children.map(this.props.children, (c) =>
             React.cloneElement(c, {

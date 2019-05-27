@@ -4,6 +4,7 @@ import { observer } from 'mobx-react';
 import Expression from '../expression';
 import Binder from '../../editor/Binder';
 import CloseButton from '../../editor/CloseButton';
+import Indent from '../../layout/Indent';
 
 @observer
 class Define extends Component {
@@ -16,9 +17,9 @@ class Define extends Component {
                 <g transform="translate(100, 0)">
                     <Binder parent={this.props.parent} bind={this.props.define} bindKey="name" />
                 </g>
-                <g transform="translate(30, 48)">
-                    <Expression parent={this.props.parent} expression={this.props.define.value} />
-                </g>
+                <Indent parent={this.props.parent} x={36} y={48}>
+                    <Expression expression={this.props.define.value} />
+                </Indent>
             </g>
         );
     }

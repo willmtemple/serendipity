@@ -8,10 +8,6 @@ class Number extends Component {
 
         this.setValue = this.setValue.bind(this);
     }
-    componentDidMount() {
-        console.log("Number did mount");
-        this.props.parent.resize();
-    }
 
     setValue(evt) {
         const v = parseFloat(evt.target.value);

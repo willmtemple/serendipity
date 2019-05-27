@@ -39,8 +39,9 @@ class Global extends Component {
 
     render() {
         console.log("global is rendering")
+        const kind = this.props.global.globalKind;
         const body = (() => {
-            switch (this.props.global.globalKind) {
+            switch (kind) {
                 case "main":
                     return <Main onDelete={this.delete} main={this.props.global} />
                 case "define":
@@ -61,9 +62,10 @@ class Global extends Component {
             <BoundingBox
                 parent={this}
                 padding={10}
-                color={getColor(this.props.global.globalKind)}
-                stroke="black"
-                strokeWidth={1.5}>
+                color={getColor(kind)}
+                //stroke="black"
+                //strokeWidth={1.5}
+                kind={kind}>
                 {body}
             </BoundingBox>
         );

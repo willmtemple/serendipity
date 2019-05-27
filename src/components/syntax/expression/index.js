@@ -96,7 +96,8 @@ class Expression extends Component {
             <BoundingBox
                 parent={this.props.parent}
                 padding={getPadding(kind)}
-                color={getColor(kind)}>
+                color={getColor(kind)}
+                kind={kind}>
                 {body}
             </BoundingBox>
         )

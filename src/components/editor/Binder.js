@@ -9,10 +9,6 @@ class Binder extends Component {
         this.onChange = this.onChange.bind(this);
     }
 
-    componentDidMount() {
-        this.props.parent.resize();
-    }
-
     onChange(evt) {
         const newName = evt.target.value;
 

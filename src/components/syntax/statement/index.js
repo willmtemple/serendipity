@@ -19,8 +19,9 @@ function getColor(kind) {
 @observer
 class Statement extends Component {
     render() {
+        const kind = this.props.statement.statementKind;
         const body = (() => {
-            switch (this.props.statement.statementKind) {
+            switch (kind) {
                 case "print":
                     return <Print print={this.props.statement} />;
                 case "forin":
@@ -38,7 +39,8 @@ class Statement extends Component {
             <BoundingBox
             parent={this.props.parent}
             padding={6}
-            color={getColor(this.props.statement.statementKind)}>
+            color={getColor(kind)}
+            kind={kind}>
                 {body}
             </BoundingBox>
         )

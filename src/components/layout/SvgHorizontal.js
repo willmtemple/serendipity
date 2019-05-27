@@ -7,14 +7,55 @@ class SvgHorizontal extends Component {
         this.state = {
             computedOffsets: null
         }
-        this.childRefs = this.props.children.map((_) => React.createRef());
-
+        this.childRefs = null;
+        this.cachedChildren = null;
+        this.inlineChildren = null;
         this.ready = false;
+        this.mustResizeOnUpdate = false;
+
+        this.cacheChildren(this.props.children);
+    }
+
+    cacheChildren(newChildren) {
+        let idx = 0;
+        if (!arrayEqual(newChildren, this.cachedChildren)) {
+            const newRefs = []
+            this.inlineChildren = React.Children.map(
+                newChildren,
+                (c) => {
+                    const ref = (
+                        this.cachedChildren &&
+                        //eslint-disable-next-line eqeqeq
+                        c == this.cachedChildren[idx]
+                    ) ? this.childRefs[idx++]
+                        : React.createRef();
+
+                    newRefs.push(ref);
+
+                    return React.cloneElement(c, {
+                        parent: this
+                    })
+                });
+
+            this.childRefs = newRefs;
+            this.cachedChildren = [...newChildren];
+            this.mustResizeOnUpdate = true;
+        }
+
+    }
+
+    componentWillReceiveProps(newProps) {
+        this.cacheChildren(newProps.children);
     }
 
     componentDidUpdate() {
         console.log("SvgHorizontal did update")
-        this.props.parent.resize();
+        if (this.mustResizeOnUpdate) {
+            this.resize();
+            this.mustResizeOnUpdate = false;
+        } else {
+            this.props.parent.resize();
+        }
     }
 
     componentDidMount() {
@@ -29,9 +70,10 @@ class SvgHorizontal extends Component {
             const offsets = this.state.computedOffsets;
             let accumulatedOffset = 0;
             const padding = this.props.padding || 0;
+            console.log("horiz", this.childRefs);
             const newOffsets = this.childRefs.map((c) => {
                 const offset = accumulatedOffset;
-                const box = c.current.getBBox();
+                const box = c.current ? c.current.getBBox() : {width: 0};
                 accumulatedOffset += box.width + padding;
                 return offset;
             });
@@ -50,16 +92,11 @@ class SvgHorizontal extends Component {
 
     render() {
         console.log("SvgHorizontal is rendering")
-        const children = this.props.children.map((c) =>
-            React.cloneElement(c, {
-                parent: this,
-            })
-        )
         const offsets = this.state.computedOffsets;
         return (
             <g className="svg horizontal box">
                 {
-                    children.map((child, idx) => {
+                    this.inlineChildren.map((child, idx) => {
                         return (<g ref={this.childRefs[idx]} key={idx} transform={offsets && `translate(${offsets[idx]}, 0)`}>
                             {child}
                         </g>)

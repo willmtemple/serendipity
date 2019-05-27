@@ -55,7 +55,7 @@ class App extends Component {
         <svg  ref={this.svg}
               className="blocksWorkspace"
               style={{ width: "100%", height: "calc(100% - 8rem)" }}
-              preserveAspectRatio="xMidYMin slice"
+              preserveAspectRatio="xMidYMid slice"
               xmlns="http://www.w3.org/2000/svg">
           <defs>
             <filter id="f_BlockShadow">
