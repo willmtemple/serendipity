@@ -3,7 +3,7 @@ import { Expression, matchExpression, BinaryOp, BinaryOperator } from "../../lib
 import { Scope } from "./scope";
 import { Statement, matchStatement } from "../../lib/lang/syntax/abstract/statement";
 import { Module } from "../../lib/lang/syntax/abstract";
-import { matchGlobal } from "../../lib/lang/syntax/abstract/global";
+import { matchGlobal, Main } from "../../lib/lang/syntax/abstract/global";
 
 enum StatementStatus {
     NORMAL = 0,
@@ -309,20 +309,10 @@ function execStmt(s: Statement, scope: Scope): StatementStatus {
 
 export function execModule(m: Module) {
     const scope: Scope = new Scope();
+    let main: Main;
     m.globals.forEach(matchGlobal({
         Main: (m) => {
-            const bV = evalExpr(m.body, scope);
-
-            if (bV.kind !== "proc") {
-                throw new Error("main declaration must be a procedure")
-            }
-
-            const evalScope = new Scope(bV.scope);
-            for (let stmt of bV.body) {
-                if (execStmt(stmt, evalScope) === StatementStatus.BREAK) {
-                    throw new Error("Encountered `break` in non-breakable context: MAIN");
-                }
-            }
+            main = m;
         },
         Define: ({ name, value }) => {
             scope.scope(name, value);
@@ -331,4 +321,19 @@ export function execModule(m: Module) {
             throw new Error("not imlemented: " + g.globalKind);
         }
     }));
+
+    if (main) {
+        const bV = evalExpr(main.body, scope);
+
+        if (bV.kind !== "proc") {
+            throw new Error("main declaration must be a procedure")
+        }
+
+        const evalScope = new Scope(bV.scope);
+        for (let stmt of bV.body) {
+            if (execStmt(stmt, evalScope) === StatementStatus.BREAK) {
+                throw new Error("Encountered `break` in non-breakable context: MAIN");
+            }
+        }
+    }
 }
