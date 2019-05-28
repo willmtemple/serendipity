@@ -72,8 +72,8 @@ class Global extends React.Component<IGlobalProps>
                 parent={this}
                 padding={10}
                 color={getColor(glb)}
-                // stroke="black"
-                // strokeWidth={1.5}
+                stroke="black"
+                strokeWidth={1.5}
                 kind={kind}>
                 {body}
             </BoundingBox>
