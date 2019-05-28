@@ -1,6 +1,7 @@
 import { inject, IWrappedComponent } from 'mobx-react';
+import { stores as _stores } from '..';
 
-export type Stores = typeof import('../').stores;
+type Stores = typeof _stores;
 
 type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
 type Subtract<T, K> = Omit<T, keyof K>;
