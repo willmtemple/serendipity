@@ -2,6 +2,15 @@ import prefsStore from '../stores/PrefsStore';
 import projectStore from '../stores/ProjectStore';
 import { distance, IPosition } from './Position';
 
+// This module handles all of the dynamic drag operations using direct DOM
+// manipulation. We have to be careful here not to piss off React,
+// because we are directly and intentionally violating its design principles by
+// adding classes and transforms here outside of the state-management that is
+// internal to react.
+
+// I have been very careful to only change things that I have not added as
+// reactions in the components.
+
 // This code is spaghett bad typescript
 export function makeDraggable(svg: SVGSVGElement) {
     svg.addEventListener('mousedown', startDrag);
@@ -33,7 +42,7 @@ export function makeDraggable(svg: SVGSVGElement) {
 
 
     let selectedElement: SVGGraphicsElement | undefined;
-    let dragMode: "expression" | undefined;
+    let dragMode: "detach" | undefined;
     let dragStart: IPosition | undefined;
     let offset: { x: any; y: any; };
     let transform: SVGTransform;
@@ -91,10 +100,15 @@ export function makeDraggable(svg: SVGSVGElement) {
             } else if (node && node.classList.contains('expression')) {
                 // We are dragging an expression out of its container
                 selectedElement = node as SVGGraphicsElement;
-                dragMode = "expression";
+                dragMode = "detach";
                 dragStart = getMousePosition(evt);
             } else if (node) {
                 selectedElement = node as SVGGraphicsElement;
+
+                if (selectedElement.classList.contains('_editor_detachedsyntax')) {
+                    selectedElement.classList.add('nomouse');
+                }
+
                 offset = getMousePosition(evt);
 
                 const transforms = selectedElement.transform.baseVal;
@@ -159,7 +173,7 @@ export function makeDraggable(svg: SVGSVGElement) {
             svgDims.left -= mouse.x - offset.x;
             svgDims.top -= mouse.y - offset.y;
             setViewBox();
-        } else if (selectedElement && dragMode === "expression") {
+        } else if (selectedElement && dragMode === "detach") {
             if (distance(dragStart!, getMousePosition(evt)) > 7) {
                 const guid = selectedElement.getAttribute('data-parent-guid');
                 const key = selectedElement.getAttribute('data-mutation-key');

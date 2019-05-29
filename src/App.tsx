@@ -102,7 +102,7 @@ export class App extends React.Component<IAppProps> {
                 id={glb.metadata.editor.guid}
                 data-guid={glb.metadata.editor.guid}
                 data-idx={idx}
-                className="draggable global"
+                className={"draggable global " + glb.globalKind}
                 transform={untracked(() =>
                   `translate(${glb.metadata.editor.pos.x}, ${glb.metadata.editor.pos.y})`
                 )}>
