@@ -3,16 +3,28 @@ import { ReceivedProps } from 'src/util/ReceivedProps';
 import { arrayEqual } from '../../util';
 import { ISizedComponent } from './SizedComponent';
 
+// Flatten an offsets list for use with arrayEqual
+function flatten(a : Offsets) : number[] {
+    return a ? a.reduce<number[]>((o, v) => {
+        o.push(v.p);
+        o.push(v.o);
+        return o;
+    }, []) : [];
+}
+
 interface ISvgFlexProps {
     parent?: ISizedComponent,
 
     padding?: number,
 
-    direction: "horizontal" | "vertical"
+    direction: "horizontal" | "vertical",
+    align?: "beginning" | "middle" | "end" 
 }
 
+type Offsets = Array<{p: number, o: number}> | null;
+
 interface ISvgFlexState {
-    computedOffsets: number[] | null
+    computedOffsets: Array<{p: number, o: number}> | null
 }
 
 class SvgFlex extends React.Component<ISvgFlexProps, ISvgFlexState>
@@ -62,18 +74,50 @@ implements ISizedComponent {
     public resize() {
         if (this.ready && this.childRefs.every(r => r.current != null)) {
             // Need to compute new offsets and diff them all
-            const offsets = this.state.computedOffsets;
-            let accumulatedOffset = 0;
+            const offsets = flatten(this.state.computedOffsets);
+            let accumulatedPrimaryOffset = 0;
+
             const padding = this.props.padding || 0;
-            console.log("horiz", this.childRefs);
-            const newOffsets = this.childRefs.map((c) => {
-                const offset = accumulatedOffset;
-                const box = c.current ? c.current.getBBox() : { width: 0, height: 0 };
-                const nextOffset = (this.props.direction === "horizontal") ? box.width : box.height;
-                accumulatedOffset += nextOffset + padding;
-                return offset;
+            const axisDir = this.props.direction === "horizontal";
+            // Selectors for primary vs. orthogonal axis
+            const pAxis = (box : DOMRect) => axisDir ? box.width : box.height;
+            const oAxis = (box : DOMRect) => axisDir ? box.height : box.width;
+
+
+            const boxes = this.childRefs.map(c => c.current!.getBBox());
+            // length of the orthogonal axis
+            const oDim = boxes.reduce<number>((a : number, box : DOMRect) => {
+                const dim = oAxis(box)
+                return (dim > a) ? dim : a;
+            }, 0);
+
+            // Alignment helper function
+            const needsAlignment = (this.props.align && this.props.align !== "beginning");
+            const oAlign = needsAlignment ? (box: DOMRect) => {
+                const o = oAxis(box);
+                if (this.props.align === "middle") {
+                    return (oDim - o) / 2;
+                } else if (this.props.align === "end") {
+                    return (oDim - o);
+                } else {
+                    return 0;
+                }
+            } : () => 0;
+
+            const flatNewOffsets : number[] = [];
+            const newOffsets = boxes.map((box) => {
+                const pOffset = accumulatedPrimaryOffset;
+                const nextPrimaryOffset = pAxis(box);
+                const oOffset = oAlign(box);
+                accumulatedPrimaryOffset += nextPrimaryOffset + padding;
+                flatNewOffsets.push(pOffset);
+                flatNewOffsets.push(oOffset);
+                return {
+                    p : pOffset,
+                    o : oOffset
+                };
             });
-            if (!offsets || !arrayEqual(offsets, newOffsets)) {
+            if (!arrayEqual(offsets, flatNewOffsets)) {
                 // First sizing
                 console.log("SvgHorizontal will be resized!")
                 this.setState({
@@ -88,7 +132,7 @@ implements ISizedComponent {
     }
 
     public render() {
-        console.log("SvgHorizontal is rendering")
+        console.log("SvgFlex is rendering", this.props.direction, this.props.align)
         const offsets = this.state.computedOffsets;
         return (
             <g className="svg horizontal box">
@@ -96,9 +140,10 @@ implements ISizedComponent {
                     this.inlineChildren.map((child, idx) => {
                         let translation;
                         if (offsets) {
+                            console.log(offsets[idx])
                             translation = (this.props.direction === "horizontal") ?
-                            `translate(${offsets[idx]},0)` :
-                            `translate(0,${offsets[idx]})`;
+                            `translate(${offsets[idx].p},${offsets[idx].o})` :
+                            `translate(${offsets[idx].o},${offsets[idx].p})`;
                         }
                         return (<g ref={this.childRefs[idx]} key={idx} transform={translation}>
                             {child}

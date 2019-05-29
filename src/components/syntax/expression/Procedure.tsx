@@ -60,14 +60,14 @@ implements ISizedComponent {
         return (
             <g>
                 <text>{"<proc>"} [</text>
-                <g ref={this.bodyRef} transform="translate(36, 22)">
+                <g ref={this.bodyRef} transform="translate(36, 32)">
                     <SvgFlex direction="vertical" parent={this} padding={5}>
                         {this.props.procedure.body.map((s, idx) =>
                             <Statement key={idx} statement={s} />
                         )}
                     </SvgFlex>
                 </g>
-                <text y={this.state.bodyHeight && (this.state.bodyHeight + 22)}>]</text>
+                <text y={this.state.bodyHeight && (this.state.bodyHeight + 38)}>]</text>
             </g>
         )
     }

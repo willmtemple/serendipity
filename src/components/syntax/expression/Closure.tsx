@@ -33,7 +33,7 @@ class Closure extends React.Component<IClosureProps> {
         console.log("Closure is rendering.")
         return (
             <SvgFlex direction="vertical" parent={this.props.parent} padding={20}>
-                <SvgFlex direction="horizontal" padding={10} children={this._getBinderLine()} />
+                <SvgFlex direction="horizontal" align="middle" padding={10} children={this._getBinderLine()} />
                 <Indent x={36}>
                     <Expression expression={this.props.closure.body} />
                 </Indent>

@@ -2,8 +2,9 @@ import { action, autorun, computed, observable, set, toJS } from 'mobx';
 
 import { surfaceExample } from 'proto-syntax/dist/test/examples';
 
-import * as uuid from 'uuid/v4';
+import * as guid from 'uuid/v4';
 
+import { SyntaxObject } from 'proto-syntax/dist/lib/lang/syntax';
 import { Module } from 'proto-syntax/dist/lib/lang/syntax/surface';
 import { Expression } from 'proto-syntax/dist/lib/lang/syntax/surface/expression';
 import { Define, DefineFunction, Global, Main } from 'proto-syntax/dist/lib/lang/syntax/surface/global';
@@ -22,8 +23,8 @@ export interface IEditorMetadata {
 }
 
 interface IEditorMetadataWrapper {
-        editor: IEditorMetadata,
-        [k: string] : any
+    editor: IEditorMetadata,
+    [k: string]: any
 }
 
 export interface IEditorMain extends Main {
@@ -84,10 +85,7 @@ export class ProjectStore {
             set(this.program, surfaceExample);
         }
 
-        this.program.globals.forEach((glb, idx) => {
-            this.initMetadata(idx);
-            this.byGUID[glb.metadata.editor.guid] = glb;
-        });
+        this.loadGUIDTable();
 
         let firstRun = true;
         autorun(() => {
@@ -103,9 +101,9 @@ export class ProjectStore {
      * Returns the "clean" AST with no detached syntax objects,
      * suitable for passing into the compiler.
      */
-    @computed get canonicalProgram() : Module {
+    @computed get canonicalProgram(): Module {
         return {
-            globals : (this.program.globals.filter((g) =>
+            globals: (this.program.globals.filter((g) =>
                 g.globalKind !== "_editor_detachedsyntax"
             )) as Global[]
         }
@@ -135,22 +133,18 @@ export class ProjectStore {
      * Delete a node from the AST by its GUID
      * @param guid the unique id of the global node to remove
      */
-    @action public rmNodeByGUID(guid: string) {
+    @action public rmNodeByGUID(id: string) {
         this.program.globals = this.program.globals.filter((glb) =>
-            glb.metadata.editor.guid !== guid
+            glb.metadata.editor.guid !== id
         );
-        delete this.byGUID[guid];
+        delete this.byGUID[id];
     }
 
     @action public reset() {
         // TODO find some way to get rid of distinction between editor module
         // and stx module
         this.program = surfaceExample as IEditorModule;
-        this.byGUID = {};
-        this.program.globals.forEach((glb, idx) => {
-            this.initMetadata(idx);
-            this.byGUID[glb.metadata.editor.guid] = glb;
-        });
+        this.loadGUIDTable();
     }
 
     @action public dump() {
@@ -164,44 +158,73 @@ export class ProjectStore {
         }
     }
 
-    @action public initMetadata(idx: number) {
-        const glb = this.program.globals[idx];
-        if (glb) {
-            if (!glb.metadata) {
-                glb.metadata = {
-                    editor: {
-                        guid: uuid(),
-                        pos: {
-                            x: 0,
-                            y: 0
-                        }
+    @action public initMetadata(g: IEditorGlobal) {
+        if (!g.metadata) {
+            g.metadata = {
+                editor: {
+                    guid: guid(),
+                    pos: {
+                        x: 0,
+                        y: 0
                     }
-                };
-            }
+                }
+            };
         }
     }
 
-    @action public updatePos(guid: string, pos: IPos) {
-        const glb = this.byGUID[guid];
+    @action public updatePos(id: string, pos: IPos) {
+        const glb = this.byGUID[id];
         if (glb) {
             glb.metadata.editor.pos = pos;
         }
     }
 
-    @action public insNodeDev(pos: IPos) {
-        this.program.globals.push({
-            globalKind: "_editor_detachedsyntax",
-            syntaxKind: "expression",
-            element: {
-                exprKind: "number",
-                value: 10
-            },
-            metadata: {
+    public metadataFor(node: SyntaxObject) {
+        return node.metadata!.editor as IEditorMetadata
+    }
+
+    private loadGUID(node: SyntaxObject): string {
+        if (!node.metadata) {
+            node.metadata = {
                 editor: {
-                    guid: uuid(),
-                    pos
+                    guid: guid(),
                 }
             }
+        }
+
+        return node.metadata.editor.guid;
+    }
+
+    private loadGUIDTable() {
+
+        this.byGUID = {};
+
+        // TODO: This is going to be some technical debt
+        // I want to traverse the AST and dynamically figure out which
+        // nodes are SyntaxObjects based on their ownprops and recursively
+        // loadguid on all of them.
+        const that = this;
+        function considerSyntaxObject(v: any) {
+            if (typeof v === "object") {
+                if (v.hasOwnProperty("exprKind") || v.hasOwnProperty("statementKind")) {
+                    that.loadGUID(v);
+                }
+
+                Object.keys(v).filter((k) => (
+                    k !== "exprKind" && k !== "statementKind" && k !== "metadata"
+                )).forEach((k) => {
+                    if (v.hasOwnProperty) {
+                        considerSyntaxObject(v[k]);
+                    }
+                })
+            }
+        }
+
+        // Bootstrap the process with the globals.
+        this.program.globals.forEach((g) => {
+            this.initMetadata(g);
+            this.byGUID[this.loadGUID(g)] = g;
+            considerSyntaxObject(g);
         })
     }
 }

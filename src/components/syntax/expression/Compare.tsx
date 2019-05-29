@@ -16,7 +16,7 @@ interface ICompareProps {
 class Compare extends React.Component<ICompareProps> {
     public render() {
         return (
-            <SvgFlex direction="horizontal" parent={this.props.parent} padding={20}>
+            <SvgFlex direction="horizontal" align="middle" parent={this.props.parent} padding={20}>
                 <Expression expression={this.props.compare.left} />
                 <text>{this.props.compare.op}</text>
                 <Expression expression={this.props.compare.right} />

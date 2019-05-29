@@ -18,7 +18,7 @@ class Call extends React.Component<ICallProps> {
     public render() {
         return (
             <SvgFlex direction="vertical" parent={this.props.parent} padding={10}>
-                <SvgFlex direction="horizontal" padding={20}>
+                <SvgFlex direction="horizontal" align="end" padding={20}>
                     <Expression expression={this.props.call.callee} />
                     <text>(</text>
                 </SvgFlex>
