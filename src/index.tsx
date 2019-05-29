@@ -11,13 +11,13 @@ export const stores = {
     ProjectStore: programStore
 }
 
-const Root = (
+const root = (
     <Provider {...stores}>
         <App />
     </Provider>
 )
 
-ReactDOM.render(Root, document.getElementById('root'));
+ReactDOM.render(root, document.getElementById('root'));
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.

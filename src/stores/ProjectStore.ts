@@ -1,10 +1,13 @@
-import { action, autorun, observable, set, toJS } from 'mobx';
+import { action, autorun, computed, observable, set, toJS } from 'mobx';
 
 import { surfaceExample } from 'proto-syntax/dist/test/examples';
 
 import * as uuid from 'uuid/v4';
 
-import { Define, DefineFunction, Main } from 'proto-syntax/dist/lib/lang/syntax/surface/global';
+import { Module } from 'proto-syntax/dist/lib/lang/syntax/surface';
+import { Expression } from 'proto-syntax/dist/lib/lang/syntax/surface/expression';
+import { Define, DefineFunction, Global, Main } from 'proto-syntax/dist/lib/lang/syntax/surface/global';
+import { Statement } from 'proto-syntax/dist/lib/lang/syntax/surface/statement';
 
 const P_NAME = 'userProject';
 
@@ -18,7 +21,7 @@ export interface IEditorMetadata {
     pos: IPos
 }
 
-export interface IEditorMetadataWrapper {
+interface IEditorMetadataWrapper {
         editor: IEditorMetadata,
         [k: string] : any
 }
@@ -33,7 +36,31 @@ export interface IEditorDefineFunction extends DefineFunction {
     metadata: IEditorMetadataWrapper
 }
 
-export type IEditorGlobal = IEditorMain | IEditorDefine | IEditorDefineFunction;
+interface IEditorDetachedSyntaxBase {
+    globalKind: "_editor_detachedsyntax"
+    metadata: IEditorMetadataWrapper,
+}
+
+export interface IEditorDetachedExpression extends IEditorDetachedSyntaxBase {
+    syntaxKind: "expression",
+    element: Expression
+}
+
+export interface IEditorDetachedStatement extends IEditorDetachedSyntaxBase {
+    syntaxKind: "statement",
+    element: Statement
+}
+
+export type IEditorDetachedSyntax =
+    IEditorDetachedStatement
+    | IEditorDetachedExpression;
+
+export type IEditorGlobal =
+    IEditorMain
+    | IEditorDefine
+    | IEditorDefineFunction
+    | IEditorDetachedExpression
+    | IEditorDetachedStatement;
 
 export interface IEditorModule {
     globals: IEditorGlobal[]
@@ -72,24 +99,54 @@ export class ProjectStore {
         });
     }
 
-    @action public delete() {
+    /**
+     * Returns the "clean" AST with no detached syntax objects,
+     * suitable for passing into the compiler.
+     */
+    @computed get canonicalProgram() : Module {
+        return {
+            globals : (this.program.globals.filter((g) =>
+                g.globalKind !== "_editor_detachedsyntax"
+            )) as Global[]
+        }
+    }
+
+    /**
+     * Clear the entire program
+     */
+    @action public clear() {
         this.program.globals = [];
+        this.byGUID = {};
     }
 
+    /**
+     * Delete a node from the AST by integer index
+     * @param idx the index of the global to remove
+     */
     @action public rmNode(idx: number) {
-        this.program.globals.splice(idx, 1);
+        const glb = this.program.globals[idx];
+        if (glb) {
+            this.program.globals.splice(idx, 1);
+            delete this.byGUID[glb.metadata.editor.guid];
+        }
     }
 
+    /**
+     * Delete a node from the AST by its GUID
+     * @param guid the unique id of the global node to remove
+     */
     @action public rmNodeByGUID(guid: string) {
         this.program.globals = this.program.globals.filter((glb) =>
             glb.metadata.editor.guid !== guid
         );
+        delete this.byGUID[guid];
     }
 
     @action public reset() {
         // TODO find some way to get rid of distinction between editor module
         // and stx module
         this.program = surfaceExample as IEditorModule;
+        this.byGUID = {};
         this.program.globals.forEach((glb, idx) => {
             this.initMetadata(idx);
             this.byGUID[glb.metadata.editor.guid] = glb;
@@ -129,6 +186,23 @@ export class ProjectStore {
         if (glb) {
             glb.metadata.editor.pos = pos;
         }
+    }
+
+    @action public insNodeDev(pos: IPos) {
+        this.program.globals.push({
+            globalKind: "_editor_detachedsyntax",
+            syntaxKind: "expression",
+            element: {
+                exprKind: "number",
+                value: 10
+            },
+            metadata: {
+                editor: {
+                    guid: uuid(),
+                    pos
+                }
+            }
+        })
     }
 }
 

@@ -3,12 +3,13 @@ import * as surface from 'proto-syntax/dist/lib/lang/syntax/surface';
 import { matchGlobal } from 'proto-syntax/dist/lib/lang/syntax/surface/global';
 import * as React from 'react';
 import { ISizedComponent } from 'src/components/layout/SizedComponent';
-import { IEditorGlobal, ProjectStore } from 'src/stores/ProjectStore';
+import { IEditorDetachedSyntax, IEditorGlobal, ProjectStore } from 'src/stores/ProjectStore';
 import withStores from 'src/util/withStores';
 import CloseButton from '../../editor/CloseButton';
 import BoundingBox from '../../layout/BoundingBox';
 import Define from './Define';
 import DefineFunc from './DefineFunc';
+import Detached from './Detached';
 import Main from './Main';
 
 
@@ -49,6 +50,13 @@ class Global extends React.Component<IGlobalProps>
         console.log("global is rendering")
         const glb = this.props.global;
         const kind = glb.globalKind;
+
+        if (kind === "_editor_detachedsyntax") {
+            return <Detached parent={this}
+                        onDelete={this.delete}
+                        global={glb as IEditorDetachedSyntax} />;
+        }
+
         const body = (() => {
             switch (kind) {
                 case "main":

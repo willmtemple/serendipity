@@ -4,7 +4,6 @@ import * as React from 'react';
 import './App.css';
 
 import { untracked } from 'mobx';
-import { Module } from 'proto-syntax/dist/lib/lang/syntax/surface';
 import { unwrap } from 'proto-syntax/dist/lib/util/Result';
 import { execModule } from 'proto-syntax/dist/test/interp/eval';
 import { createLoweringCompiler } from 'proto-syntax/dist/test/lower';
@@ -43,7 +42,8 @@ export class App extends React.Component<IAppProps> {
     console.log("=== EXECUTING ===")
     const compiler = createLoweringCompiler();
     // TODO : uncast this, provide actual compiler API
-    execModule(unwrap(compiler.compile(this.props.ProjectStore.program as Module)))
+    const p = this.props.ProjectStore.canonicalProgram;
+    execModule(unwrap(compiler.compile(p)))
     console.log("=== DONE ===")
   }
 
@@ -70,6 +70,10 @@ export class App extends React.Component<IAppProps> {
               <feOffset result="offOut" in="SourceAlpha" dx="3" dy="3" />
               <feGaussianBlur result="blurOut" in="offOut" stdDeviation="2" />
               <feBlend in="SourceGraphic" in2="blurOut" mode="normal" />
+            </filter>
+            <filter id="detachedElement">
+              <feColorMatrix in="SourceGraphic"
+                type="saturate" values="0.2"/>
             </filter>
             <pattern  id="bgPattern" x={0} y={0} width={50} height={50}
                       patternUnits="userSpaceOnUse" >

@@ -71,6 +71,12 @@ export function makeDraggable(svg : SVGSVGElement) {
     }
 
     function startDrag(evt : MouseEvent) {
+
+        if (evt.button === 2) {
+            evt.preventDefault();
+            projectStore.insNodeDev(getMousePosition(evt));
+        }
+
         if (evt.button !== 0) {
             return;
         }
