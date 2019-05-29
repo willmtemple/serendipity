@@ -20,7 +20,7 @@ class Main extends React.Component<IMainProps> {
                 <CloseButton onClick={this.props.onDelete} />
                 <text x={30} fontWeight={900}>when the program starts, do</text>
                 <g className="exprBox" transform="translate(30, 30)">
-                    <Expression parent={this.props.parent} expression={this.props.main.body} />
+                    <Expression parent={this.props.parent} bind={this.props.main} bindKey="body" />
                 </g>
             </g>
         );

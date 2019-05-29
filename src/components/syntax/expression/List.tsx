@@ -23,7 +23,7 @@ class List extends React.Component<IListProps> {
                 <Indent x={36}>
                     <SvgFlex direction="vertical" padding={10}>
                         {this.props.list.contents.map((v, idx) =>
-                            <Expression key={idx} expression={v} />
+                            <Expression key={idx} bind={this.props.list} bindKey="contents" bindIdx={idx} />
                         )}
                     </SvgFlex>
                 </Indent>

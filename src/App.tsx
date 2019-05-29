@@ -63,7 +63,7 @@ export class App extends React.Component<IAppProps> {
         <svg  ref={this.svg}
               className="blocksWorkspace"
               style={{ width: "100%", height: "calc(100% - 8rem)" }}
-              preserveAspectRatio="xMidYMid slice"
+              preserveAspectRatio="xMinYMin slice"
               xmlns="http://www.w3.org/2000/svg">
           <defs>
             <filter id="f_BlockShadow">
@@ -73,7 +73,17 @@ export class App extends React.Component<IAppProps> {
             </filter>
             <filter id="detachedElement">
               <feColorMatrix in="SourceGraphic"
-                type="saturate" values="0.2"/>
+                type="saturate" values="0.12"/>
+            </filter>
+            <filter id="dropGlow">
+              <feFlood result="flood" floodColor="#FFFFFF" floodOpacity={1} />
+              <feComposite in="flood" result="mask" in2="SourceGraphic" operator="in" />
+              <feMorphology in="mask" result="dilated" operator="dilate" radius="2" />
+              <feGaussianBlur in="dilated" result="blurred" stdDeviation={5} />
+              <feMerge>
+                <feMergeNode in="blurred"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
             </filter>
             <pattern  id="bgPattern" x={0} y={0} width={50} height={50}
                       patternUnits="userSpaceOnUse" >
@@ -89,9 +99,10 @@ export class App extends React.Component<IAppProps> {
           {
             projectStore.program.globals.map((glb, idx) => (
               <g key={untracked(() => glb.metadata.editor.guid)}
-                data-guid={untracked(() => glb.metadata.editor.guid)}
+                id={glb.metadata.editor.guid}
+                data-guid={glb.metadata.editor.guid}
                 data-idx={idx}
-                className="global draggable"
+                className="draggable global"
                 transform={untracked(() =>
                   `translate(${glb.metadata.editor.pos.x}, ${glb.metadata.editor.pos.y})`
                 )}>

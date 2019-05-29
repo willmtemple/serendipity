@@ -19,15 +19,15 @@ class If extends React.Component<IIfProps> {
             <SvgFlex direction="vertical" parent={this.props.parent} padding={20}>
                 <SvgFlex direction="horizontal" padding={20}>
                     <text>if</text>
-                    <Expression parent={this.props.parent} expression={this.props._if.cond} />
+                    <Expression parent={this.props.parent} bind={this.props._if} bindKey={"cond"} />
                 </SvgFlex>
                 <SvgFlex direction="horizontal" padding={20}>
                     <text>? then</text>
-                    <Expression parent={this.props.parent} expression={this.props._if.then} />
+                    <Expression parent={this.props.parent} bind={this.props._if} bindKey={"then"} />
                 </SvgFlex>
                 <SvgFlex direction="horizontal" padding={20}>
                     <text>: else</text>
-                    <Expression parent={this.props.parent} expression={this.props._if._else} />
+                    <Expression parent={this.props.parent} bind={this.props._if} bindKey={"_else"} />
                 </SvgFlex>
             </SvgFlex>
         )

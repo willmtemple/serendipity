@@ -1,4 +1,5 @@
 import * as React from 'react';
+
 import { ReceivedProps } from 'src/util/ReceivedProps';
 import { ISizedComponent } from './SizedComponent';
 
@@ -10,7 +11,10 @@ interface IBoundingBoxProps {
     rx? : number,
     ry? : number,
     stroke?: string,
-    strokeWidth?: number
+    strokeWidth?: number,
+
+    // Set extra props on the top-level g element
+    containerProps?: any,
 
     // TODO: This is for debugging purposes
     kind? : string
@@ -73,7 +77,7 @@ implements ISizedComponent {
         const pad = this.props.padding || 0;
         const extent = this.state.extent;
         return (
-            <g>
+            <g {...this.props.containerProps}>
                 {
                     extent &&
                     <rect fill={this.props.color || "black"}

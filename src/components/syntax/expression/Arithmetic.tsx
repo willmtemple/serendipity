@@ -17,9 +17,9 @@ class Arithmetic extends React.Component<IArithmeticProps> {
         console.log("Arithmetic is rendering")
         return (
             <SvgFlex direction="horizontal" align="middle" parent={this.props.parent} padding={20}>
-                <Expression expression={this.props.arithmetic.left} />
+                <Expression bind={this.props.arithmetic} bindKey={"left"} />
                 <text>{this.props.arithmetic.op}</text>
-                <Expression expression={this.props.arithmetic.right} />
+                <Expression bind={this.props.arithmetic} bindKey={"right"} />
             </SvgFlex>
         )
     }

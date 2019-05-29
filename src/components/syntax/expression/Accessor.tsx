@@ -17,9 +17,9 @@ class Accessor extends React.Component<IAccessorProps> {
     public render() {
         return (
             <SvgFlex direction="horizontal" align="middle" parent={this.props.parent} padding={20}>
-                <Expression expression={this.props.accessor.accessee} />
+                <Expression bind={this.props.accessor} bindKey={"accessee"} />
                 <text>.</text>
-                <Expression expression={this.props.accessor.index} />
+                <Expression bind={this.props.accessor} bindKey={"index"} />
             </SvgFlex>
         )
     }

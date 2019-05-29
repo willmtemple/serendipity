@@ -19,13 +19,13 @@ class Call extends React.Component<ICallProps> {
         return (
             <SvgFlex direction="vertical" parent={this.props.parent} padding={10}>
                 <SvgFlex direction="horizontal" align="end" padding={20}>
-                    <Expression expression={this.props.call.callee} />
+                    <Expression bind={this.props.call} bindKey={"callee"} />
                     <text>(</text>
                 </SvgFlex>
                 <Indent x={36}>
                     <SvgFlex direction="vertical" padding={20}>
-                        {this.props.call.parameters.map((p, idx) =>
-                            <Expression key={idx} expression={p} />
+                        {this.props.call.parameters.map((_, idx) =>
+                            <Expression key={idx} bind={this.props.call} bindKey={"parameters"} bindIdx={idx} />
                         )}
                     </SvgFlex>
                 </Indent>

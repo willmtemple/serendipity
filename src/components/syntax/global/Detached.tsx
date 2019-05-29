@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import { observer } from 'mobx-react';
 
-import { expression, statement } from 'proto-syntax/dist/lib/lang/syntax/surface';
+import { statement } from 'proto-syntax/dist/lib/lang/syntax/surface';
 import { ISizedComponent } from 'src/components/layout/SizedComponent';
 import { IEditorDetachedSyntax } from 'src/stores/ProjectStore';
 import Expression from '../expression';
@@ -26,7 +26,9 @@ class Detached extends React.Component<IDetachedProps> {
                 case "expression":
                     return <Expression
                         parent={this.props.parent}
-                        expression={element as expression.Expression} />
+                        fixed={true}
+                        bind={this.props.global}
+                        bindKey="element" />
                 case "statement":
                     return <Statement
                         parent={this.props.parent}
@@ -39,7 +41,7 @@ class Detached extends React.Component<IDetachedProps> {
         })();
 
         return (
-            <g filter="url(#detachedElement)">
+            <g filter="url(#detachedElement)" opacity="0.8">
                 {body}
             </g>
         );

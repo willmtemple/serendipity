@@ -6,20 +6,16 @@ import * as guid from 'uuid/v4';
 
 import { SyntaxObject } from 'proto-syntax/dist/lib/lang/syntax';
 import { Module } from 'proto-syntax/dist/lib/lang/syntax/surface';
-import { Expression } from 'proto-syntax/dist/lib/lang/syntax/surface/expression';
+import { Expression, Hole } from 'proto-syntax/dist/lib/lang/syntax/surface/expression';
 import { Define, DefineFunction, Global, Main } from 'proto-syntax/dist/lib/lang/syntax/surface/global';
 import { Statement } from 'proto-syntax/dist/lib/lang/syntax/surface/statement';
+import { IPosition } from 'src/util/Position';
 
 const P_NAME = 'userProject';
 
-export interface IPos {
-    x: number,
-    y: number,
-}
-
 export interface IEditorMetadata {
     guid: string,
-    pos: IPos
+    pos: IPosition
 }
 
 interface IEditorMetadataWrapper {
@@ -73,11 +69,10 @@ export class ProjectStore {
         globals: []
     };
 
-    private byGUID: { [k: string]: IEditorGlobal };
+    private byGUID: { [k: string]: SyntaxObject };
 
     constructor() {
         const that = this;
-        this.byGUID = {};
         const storedData = localStorage.getItem(P_NAME);
         if (storedData) {
             set(this.program, JSON.parse(storedData));
@@ -147,6 +142,69 @@ export class ProjectStore {
         this.loadGUIDTable();
     }
 
+    @action public detachExpression(id: string, key: string, pos: IPosition, idx?: number) : string {
+        const parent = this.byGUID[id];
+        const node = (() => {
+            const v = parent && parent[key];
+            if (idx !== undefined) {
+                return v[idx];
+            } else {
+                return v;
+            }
+        })();
+
+        console.log(id, key, pos, idx);
+        console.log("Before: ", parent);
+
+        if (!node) { throw new Error("No such key(s) on that object during 'get'"); }
+
+        const setNode = action((n: Expression) => {
+            const v = parent && parent[key];
+            if (v) {
+                if (idx !== undefined && v[idx]) {
+                    v[idx] = n;
+                    return;
+                } else if (idx === undefined) {
+                    parent[key] = n;
+                    return;
+                }
+            }
+
+            throw new Error("No such key(s) on that object")
+        });
+
+        const newGlobalObject: IEditorGlobal = observable({
+            globalKind: "_editor_detachedsyntax",
+            syntaxKind: "expression",
+            element: node as Expression,
+            metadata: {
+                editor: {
+                    guid: guid(),
+                    pos : {...pos}
+                }
+            }
+        });
+
+        const newHole: Hole = {
+            exprKind: "@hole",
+            metadata: {
+                editor: {
+                    guid: guid()
+                }
+            }
+        };
+        setNode(newHole);
+        this.byGUID[newHole.metadata!.editor.guid] = newHole;
+
+        console.log("after: ", parent);
+
+        // Put the clone onto the globals stack
+        this.byGUID[newGlobalObject.metadata.editor.guid] = newGlobalObject;
+        this.program.globals.push(newGlobalObject);
+
+        return newGlobalObject.metadata.editor.guid;
+    }
+
     @action public dump() {
         console.log(toJS(this.program))
     }
@@ -172,10 +230,12 @@ export class ProjectStore {
         }
     }
 
-    @action public updatePos(id: string, pos: IPos) {
+    @action public updatePos(id: string, pos: IPosition) {
         const glb = this.byGUID[id];
         if (glb) {
-            glb.metadata.editor.pos = pos;
+            this.metadataFor(glb).pos = pos;
+        } else {
+            console.warn("No such guid exists", guid, pos);
         }
     }
 
@@ -183,7 +243,7 @@ export class ProjectStore {
         return node.metadata!.editor as IEditorMetadata
     }
 
-    private loadGUID(node: SyntaxObject): string {
+    @action private loadGUID(node: SyntaxObject): string {
         if (!node.metadata) {
             node.metadata = {
                 editor: {
@@ -191,6 +251,8 @@ export class ProjectStore {
                 }
             }
         }
+
+        this.byGUID[node.metadata.editor.guid] = node;
 
         return node.metadata.editor.guid;
     }

@@ -22,8 +22,8 @@ class Tuple extends React.Component<ITupleProps> {
                 <text>(</text>
                 <Indent x={36}>
                     <SvgFlex direction="vertical" padding={20}>
-                        {this.props.tuple.values.map((v, idx) =>
-                            <Expression key={idx} expression={v} />
+                        {this.props.tuple.values.map((_, idx) =>
+                            <Expression key={idx} bind={this.props.tuple} bindKey="values" bindIdx={idx} />
                         )}
                     </SvgFlex>
                 </Indent>

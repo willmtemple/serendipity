@@ -1,4 +1,5 @@
 import * as React from 'react';
+
 import { ISizedComponent } from './SizedComponent';
 
 interface IIndentProps {

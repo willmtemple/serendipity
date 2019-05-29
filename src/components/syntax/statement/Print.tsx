@@ -17,7 +17,7 @@ class Print extends React.Component<IPrintProps> {
             <g>
                 <text>print</text>
                 <g transform="translate(64, 0)">
-                    <Expression parent={this.props.parent} expression={this.props.print.value} />
+                    <Expression parent={this.props.parent} bind={this.props.print} bindKey="value" />
                 </g>
             </g >
         );

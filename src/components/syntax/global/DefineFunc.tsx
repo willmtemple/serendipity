@@ -38,7 +38,7 @@ class DefineFunc extends React.Component<IDefineFuncProps> {
                     {this._getBinderLine()}
                 </SvgFlex>
                 <g className="exprBox" transform="translate(30, 60)">
-                    <Expression parent={this.props.parent} expression={this.props.definefunc.body} />
+                    <Expression parent={this.props.parent} bind={this.props.definefunc} bindKey="body" />
                 </g>
             </g>
         );

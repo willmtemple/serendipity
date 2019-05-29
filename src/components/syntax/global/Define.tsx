@@ -27,7 +27,7 @@ class Define extends React.Component<IDefineProps> {
                     <Binder bind={this.props.define} bindKey="name" />
                 </g>
                 <Indent parent={this.props.parent} x={36} y={48}>
-                    <Expression expression={this.props.define.value} />
+                    <Expression bind={this.props.define} bindKey="value" />
                 </Indent>
             </g>
         );

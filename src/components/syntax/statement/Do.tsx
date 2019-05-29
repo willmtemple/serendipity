@@ -18,7 +18,7 @@ class Do extends React.Component<IDoProps> {
             <g>
                 <text>do</text>
                 <g transform="translate(32, 0)">
-                    <Expression parent={this.props.parent} expression={this.props.do.body} />
+                    <Expression parent={this.props.parent} bind={this.props.do} bindKey="body" />
                 </g>
             </g >
         );

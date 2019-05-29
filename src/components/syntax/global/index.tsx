@@ -75,6 +75,8 @@ class Global extends React.Component<IGlobalProps>
             }
         })();
 
+        const guid = this.props.ProjectStore.metadataFor(glb).guid;
+
         return (
             <BoundingBox
                 parent={this}
@@ -82,7 +84,8 @@ class Global extends React.Component<IGlobalProps>
                 color={getColor(glb)}
                 stroke="black"
                 strokeWidth={1.5}
-                kind={kind}>
+                kind={kind}
+                containerProps={{ id: guid }}>
                 {body}
             </BoundingBox>
         );

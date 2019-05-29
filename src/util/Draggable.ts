@@ -1,8 +1,9 @@
 import prefsStore from '../stores/PrefsStore';
 import projectStore from '../stores/ProjectStore';
+import { distance, IPosition } from './Position';
 
 // This code is spaghett bad typescript
-export function makeDraggable(svg : SVGSVGElement) {
+export function makeDraggable(svg: SVGSVGElement) {
     svg.addEventListener('mousedown', startDrag);
     svg.addEventListener('mousemove', drag);
     svg.addEventListener('mouseup', endDrag);
@@ -31,10 +32,13 @@ export function makeDraggable(svg : SVGSVGElement) {
     }
 
 
-    let selectedElement : SVGGraphicsElement | undefined;
+    let selectedElement: SVGGraphicsElement | undefined;
+    let dragMode: "expression" | undefined;
+    let dragStart: IPosition | undefined;
     let offset: { x: any; y: any; };
-    let transform : SVGTransform;
-    const background : HTMLElement | null = document.getElementById('workspaceBackground');
+    let transform: SVGTransform;
+    let resume : string | undefined;
+    const background: HTMLElement | null = document.getElementById('workspaceBackground');
     const svgBackground = background as unknown as SVGGraphicsElement;
     const bgTranslate = svg.createSVGTransform();
     svgBackground.transform.baseVal.insertItemBefore(bgTranslate, 0)
@@ -54,7 +58,7 @@ export function makeDraggable(svg : SVGSVGElement) {
     }
     resizeViewBox();
 
-    function getMousePosition(evt : MouseEvent) {
+    function getMousePosition(evt: MouseEvent): IPosition {
         const ctm = svg.getScreenCTM() as DOMMatrix;
         return {
             x: (evt.clientX - ctm.e) / ctm.a,
@@ -63,14 +67,14 @@ export function makeDraggable(svg : SVGSVGElement) {
     }
 
     function findDragRoot(e: Element) {
-        let node : Element | null = e;
+        let node: Element | null = e;
         while (node && node !== svg && !node.classList.contains('draggable')) {
             node = node.parentElement
         }
         return node;
     }
 
-    function startDrag(evt : MouseEvent) {
+    function startDrag(evt: MouseEvent) {
 
         if (evt.button !== 0) {
             return;
@@ -84,6 +88,11 @@ export function makeDraggable(svg : SVGSVGElement) {
                 // Drag the background
                 selectedElement = svg;
                 offset = getMousePosition(evt);
+            } else if (node && node.classList.contains('expression')) {
+                // We are dragging an expression out of its container
+                selectedElement = node as SVGGraphicsElement;
+                dragMode = "expression";
+                dragStart = getMousePosition(evt);
             } else if (node) {
                 selectedElement = node as SVGGraphicsElement;
                 offset = getMousePosition(evt);
@@ -115,16 +124,73 @@ export function makeDraggable(svg : SVGSVGElement) {
         }
     }
 
-    function drag(evt : MouseEvent) {
+    function drag(evt: MouseEvent) {
+        // Resume the drag after a previous detach
+        if (resume !== undefined) {
+            const e =  document.getElementById(resume);
+            if (e != null) {
+                selectedElement = e as unknown as SVGGraphicsElement;
+                selectedElement.classList.add('nomouse');
+
+                const transforms = selectedElement.transform.baseVal;
+
+                // numberOfItems ???????
+                if (transforms.numberOfItems === 0 ||
+                    transforms.getItem(0).type !== SVGTransform.SVG_TRANSFORM_TRANSLATE) {
+                    const translate = svg.createSVGTransform();
+                    translate.setTranslate(0, 0);
+
+                    selectedElement.transform.baseVal.insertItemBefore(translate, 0);
+                }
+
+                transform = transforms.getItem(0);
+
+                offset.x -= transform.matrix.e;
+                offset.y -= transform.matrix.f;
+
+            }
+            resume = undefined;
+            return;
+        }
+
+        const mouse = getMousePosition(evt);
         if (selectedElement === svg) {
             evt.preventDefault();
-            const mouse = getMousePosition(evt);
             svgDims.left -= mouse.x - offset.x;
             svgDims.top -= mouse.y - offset.y;
             setViewBox();
+        } else if (selectedElement && dragMode === "expression") {
+            if (distance(dragStart!, getMousePosition(evt)) > 7) {
+                const guid = selectedElement.getAttribute('data-parent-guid');
+                const key = selectedElement.getAttribute('data-mutation-key');
+                const idx = selectedElement.getAttribute('data-mutation-idx') || undefined;
+
+                const eltPos = selectedElement.getBoundingClientRect();
+
+                const ctm = svg.getScreenCTM()!;
+                const eltX = (eltPos.left - ctm.e) / ctm.a;
+                const eltY = (eltPos.top - ctm.f) / ctm.d;
+
+                const newPosition = {
+                    x: eltX + (mouse.x - dragStart!.x),
+                    y: eltY + (mouse.y - dragStart!.y)
+                }
+                console.log("POS: ", newPosition, "FROM", eltPos, "BY", mouse, dragStart)
+
+                if (guid && key) {
+                    const newGuid = projectStore.detachExpression(guid, key, newPosition, idx ? parseInt(idx, 10) : undefined);
+                    dragMode = undefined;
+                    offset = {
+                        x: mouse.x,
+                        y: mouse.y
+                    };
+                    resume = newGuid;
+                } else {
+                    console.warn("Tried to detach an element that is marked 'draggable expression' but did not have access info", selectedElement);
+                }
+            }
         } else if (selectedElement) {
             evt.preventDefault();
-            const mouse = getMousePosition(evt);
             transform.setTranslate(mouse.x - offset.x, mouse.y - offset.y);
         }
     }
@@ -135,16 +201,21 @@ export function makeDraggable(svg : SVGSVGElement) {
         } else if (selectedElement) {
             const guid = selectedElement.getAttribute('data-guid');
             if (guid) {
+                console.log("Saving element position: ", guid, transform.matrix);
                 projectStore.updatePos(guid, {
                     x: transform.matrix.e,
                     y: transform.matrix.f
                 })
+            } else {
+                console.warn("Element did not save: ", guid, selectedElement);
             }
+            selectedElement.classList.remove('nomouse');
+            dragMode = undefined;
         }
         selectedElement = undefined;
     }
 
-    function zoom(evt : MouseWheelEvent) {
+    function zoom(evt: MouseWheelEvent) {
         // Don't zoom while dragging anything.
         if (!selectedElement) {
             const oldScale = svgDims.scale;
@@ -155,7 +226,7 @@ export function makeDraggable(svg : SVGSVGElement) {
                 prefsStore.prefs.editorScale = nextScale;
                 // Keep the mouse position fixed in SVG space
                 const mouse = getMousePosition(evt);
-                const {left, top} = svgDims;
+                const { left, top } = svgDims;
                 // Also (1-r)m_{x} - rl , but this uses less mults
                 svgDims.left = mouse.x - ((mouse.x - left) * ratio);
                 svgDims.top = mouse.y - ((mouse.y - top) * ratio);
