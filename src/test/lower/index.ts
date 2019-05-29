@@ -1,7 +1,7 @@
 import { Compiler, CompilerOutput } from "../../lib/compiler";
 import * as surface from "../../lib/lang/syntax/surface";
 import * as abstract from '../../lib/lang/syntax/abstract';
-import { ok } from "../../lib/util/Result";
+import { ok, error } from "../../lib/util/Result";
 
 type SExpression = surface.expression.Expression;
 type AbsExpression = abstract.expression.Expression;
@@ -149,6 +149,9 @@ function lowerExpr(e: SExpression): AbsExpression {
             right: lowerExpr(right),
         }),
         Void: (e) => e,
+        Hole: () => {
+            throw new Error("encountered a hole in the program")
+        },
         Default: (_) => {
             throw new Error("not implemented");
         }
@@ -181,9 +184,13 @@ function lowerGlobal(g: SGlobal): AbsGlobal {
 }
 
 function lower(i: surface.Module): CompilerOutput<abstract.Module> {
-    return ok({
-        globals: i.globals.map(lowerGlobal),
-    });
+    try {
+        return ok({
+            globals: i.globals.map(lowerGlobal),
+        });
+    } catch (e) {
+        return error(e)
+    }
 }
 
 export function createLoweringCompiler() {

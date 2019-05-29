@@ -67,7 +67,11 @@ export function writeExpression(e: Expression, level: number) : string {
         accum += "("
             + [wx(left), op, wx(right)].join(" ")
             + ")";
-    }
+    },
+    Hole: () => {
+        // @ is the representation of a hole
+        accum += "@"
+    },
     })(e);
     return accum;
 }

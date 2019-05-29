@@ -17,7 +17,8 @@ export type Expression =
     | Procedure
     | If
     | Compare
-    | Void;
+    | Void
+    | Hole;
 
 export interface Number extends SyntaxObject {
     exprKind: "number",
@@ -100,7 +101,7 @@ export interface Void extends SyntaxObject {
 }
 
 export interface Hole extends SyntaxObject {
-    exprKind: "~hole"
+    exprKind: "@hole"
 }
 
 // Expression tools
@@ -122,7 +123,8 @@ export interface ExpressionPattern<T> {
     Procedure: Function<Procedure, T>,
     Void: Function<Void, T>,
     If: Function<If, T>,
-    Compare: Function<Compare, T>
+    Compare: Function<Compare, T>,
+    Hole: Function<Hole, T>
 }
 
 export interface ExhaustiveExpressionPattern<T> extends ExpressionPattern<T> {
@@ -171,6 +173,8 @@ export function matchExpression<T>(p: ExpressionMatcher<T>): (e: Expression) => 
                 return p.If ? p.If(e as If) : p.Default(e);
             case "compare":
                 return p.Compare ? p.Compare(e as Compare) : p.Default(e);
+            case "@hole":
+                return p.Hole ? p.Hole(e as Hole) : p.Default(e);
             default:
                 const __exhaust: never = e;
                 return __exhaust;

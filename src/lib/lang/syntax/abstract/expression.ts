@@ -94,10 +94,6 @@ export interface Void extends SyntaxObject {
     exprKind: "void",
 }
 
-export interface Hole extends SyntaxObject {
-    exprKind: "~hole"
-}
-
 // Expression tools
 
 /**
