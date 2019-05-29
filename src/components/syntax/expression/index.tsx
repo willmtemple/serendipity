@@ -1,6 +1,8 @@
 import { observer } from 'mobx-react';
-import { expression } from 'proto-syntax/dist/lib/lang/syntax/surface';
 import * as React from 'react';
+
+import { expression } from 'proto-syntax/dist/lib/lang/syntax/surface';
+import SyntaxHole from 'src/components/editor/SyntaxHole';
 import { ISizedComponent } from 'src/components/layout/SizedComponent';
 import BoundingBox from '../../layout/BoundingBox';
 import Accessor from './Accessor';
@@ -16,7 +18,7 @@ import Procedure from './Procedure';
 import Tuple from './Tuple';
 import Void from './Void';
 
-function getPadding(kind : string) {
+function getPadding(kind: string) {
     switch (kind) {
         case "number":
         case "name":
@@ -26,7 +28,7 @@ function getPadding(kind : string) {
     }
 }
 
-function getColor(kind : string) {
+function getColor(kind: string) {
     switch (kind) {
         case "if":
             return "mediumvioletred";
@@ -58,7 +60,7 @@ function getColor(kind : string) {
 }
 
 interface IExpressionProps {
-    parent? : ISizedComponent,
+    parent?: ISizedComponent,
     expression: expression.Expression,
 }
 
@@ -66,6 +68,11 @@ interface IExpressionProps {
 class Expression extends React.Component<IExpressionProps> {
     public render() {
         const kind = this.props.expression.exprKind;
+
+        if (kind === "@hole") {
+            return <SyntaxHole binder={this.props.expression} />
+        }
+
         const body = (() => {
             switch (kind) {
                 case "if":
