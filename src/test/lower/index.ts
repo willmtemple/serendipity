@@ -30,6 +30,61 @@ function _curry(parameters: string[], body: SExpression): AbsExpression {
     return val;
 }
 
+/**
+ * Y Combinator constructor function, used to recursively bind `c` to itself
+ * @param c The lambda to bind into the y combinator for external renaming
+ */
+function Y(c: abstract.expression.Closure) : abstract.expression.Call {
+    return {
+        exprKind: "call",
+        parameter: c,
+        callee: {
+            exprKind: "closure",
+            parameter: "f",
+            body: {
+                exprKind: "call",
+                callee: {
+                    exprKind: "closure",
+                    parameter: "x",
+                    body: {
+                        exprKind: "call",
+                        callee: {
+                            exprKind: "name",
+                            name: "x"
+                        },
+                        parameter: {
+                            exprKind: "name",
+                            name: "x"
+                        }
+                    }
+                },
+                parameter: {
+                    exprKind: "closure",
+                    parameter: "x",
+                    body: {
+                        exprKind: "call",
+                        callee: {
+                            exprKind: "name",
+                            name: "f"
+                        },
+                        parameter: {
+                            exprKind: "call",
+                            callee: {
+                                exprKind: "name",
+                                name: "x"
+                            },
+                            parameter: {
+                                exprKind: "name",
+                                name: "x"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 type SStatement = surface.statement.Statement;
 type AbsStatement = abstract.statement.Statement;
 
@@ -86,7 +141,14 @@ function lowerExpr(e: SExpression): AbsExpression {
             right: lowerExpr(right)
         }),
         With: ({ binding, expr }) => {
-            // Just transform this into an in-place call.
+            // Use a Y combinator to get letrec semantics
+
+            const almost : AbsExpression = {
+                exprKind: "closure",
+                parameter: binding[0],
+                body: lowerExpr(binding[1])
+            };
+
             return {
                 exprKind: "call",
                 callee: {
@@ -94,7 +156,7 @@ function lowerExpr(e: SExpression): AbsExpression {
                     parameter: binding[0],
                     body: lowerExpr(expr),
                 },
-                parameter: lowerExpr(binding[1])
+                parameter: Y(almost)
             }
         },
         Call: ({ callee, parameters }) => {
