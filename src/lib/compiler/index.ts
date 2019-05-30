@@ -33,7 +33,7 @@ export class Compiler<Input, Output> {
                     state = value;
                 },
                 Error: ({error}) => {
-                    return err(error);
+                    throw err(error);
                 }
             })(pass.run(state));
         }
