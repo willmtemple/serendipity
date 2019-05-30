@@ -77,7 +77,10 @@ export function makeDraggable(svg: SVGSVGElement) {
 
     function findDragRoot(e: Element) {
         let node: Element | null = e;
-        while (node && node !== svg && !node.classList.contains('draggable')) {
+        while (node &&
+            node !== svg &&
+            !node.classList.contains('draggable') &&
+            !node.classList.contains('button')) {
             node = node.parentElement
         }
         return node;
@@ -90,9 +93,13 @@ export function makeDraggable(svg: SVGSVGElement) {
         }
 
         const t = evt.target as Element;
+        const node = findDragRoot(evt.target as Element);
+
+        if (node && node.classList.contains('button')) {
+            return;
+        }
 
         if (t.tagName !== "INPUT") {
-            const node = findDragRoot(t);
             if (node === svg) {
                 // Drag the background
                 selectedElement = svg;
