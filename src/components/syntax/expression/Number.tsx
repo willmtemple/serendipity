@@ -1,8 +1,10 @@
 import { observer } from 'mobx-react';
 import { expression } from 'proto-syntax/dist/lib/lang/syntax/surface';
 import * as React from 'react';
+import { ISizedComponent } from 'src/components/layout/SizedComponent';
 
 interface INumberProps {
+    parent? : ISizedComponent,
     number: expression.Number
 }
 
@@ -12,6 +14,10 @@ class Number extends React.Component<INumberProps> {
         super(props);
 
         this.setValue = this.setValue.bind(this);
+    }
+
+    public componentDidMount() {
+        this.props.parent!.resize();
     }
 
     public render() {

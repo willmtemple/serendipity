@@ -113,6 +113,7 @@ implements ISizedComponent {
                 })
             } else {
                 console.log("BoundingBox will _not_ resize");
+                this.props.parent!.resize();
             }
         }
     }

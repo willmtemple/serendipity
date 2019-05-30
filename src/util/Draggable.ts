@@ -46,7 +46,7 @@ export function makeDraggable(svg: SVGSVGElement) {
     let dragStart: IPosition | undefined;
     let offset: { x: any; y: any; };
     let transform: SVGTransform;
-    let resume : string | undefined;
+    let resume: string | undefined;
     const background: HTMLElement | null = document.getElementById('workspaceBackground');
     const svgBackground = background as unknown as SVGGraphicsElement;
     const bgTranslate = svg.createSVGTransform();
@@ -141,7 +141,7 @@ export function makeDraggable(svg: SVGSVGElement) {
     function drag(evt: MouseEvent) {
         // Resume the drag after a previous detach
         if (resume !== undefined) {
-            const e =  document.getElementById(resume);
+            const e = document.getElementById(resume);
             if (e != null) {
                 selectedElement = e as unknown as SVGGraphicsElement;
                 selectedElement.classList.add('nomouse');
@@ -189,7 +189,6 @@ export function makeDraggable(svg: SVGSVGElement) {
                     x: eltX + (mouse.x - dragStart!.x),
                     y: eltY + (mouse.y - dragStart!.y)
                 }
-                console.log("POS: ", newPosition, "FROM", eltPos, "BY", mouse, dragStart)
 
                 if (guid && key) {
                     const newGuid = projectStore.detachExpression(guid, key, newPosition, idx ? parseInt(idx, 10) : undefined);
@@ -209,19 +208,34 @@ export function makeDraggable(svg: SVGSVGElement) {
         }
     }
 
-    function endDrag() {
+    function endDrag(evt: MouseEvent) {
         if (selectedElement === svg) {
             prefsStore.setPosition(svgDims.left, svgDims.top);
         } else if (selectedElement) {
-            const guid = selectedElement.getAttribute('data-guid');
-            if (guid) {
-                console.log("Saving element position: ", guid, transform.matrix);
-                projectStore.updatePos(guid, {
-                    x: transform.matrix.e,
-                    y: transform.matrix.f
-                })
-            } else {
-                console.warn("Element did not save: ", guid, selectedElement);
+            const mouseOver = evt.target as SVGElement;
+            const draggedGuid = selectedElement.getAttribute('data-guid');
+
+            if (draggedGuid) {
+                if (mouseOver && mouseOver.classList.contains('dropExpression')) {
+                    // We are dropping an element into this target
+
+                    const overGuid = mouseOver.getAttribute('data-parent-guid');
+                    const overKey = mouseOver.getAttribute('data-mutation-key');
+                    const overIdxS = mouseOver.getAttribute('data-mutation-idx');
+
+                    if (overGuid != null && overKey != null) {
+                        const overIdx = (overIdxS != null) ? parseInt(overIdxS, 10) : undefined;
+
+                        projectStore.insertInto(draggedGuid, overGuid, overKey, overIdx);
+                    }
+                } else {
+
+                    projectStore.updatePos(draggedGuid, {
+                        x: transform.matrix.e,
+                        y: transform.matrix.f
+                    })
+                }
+
             }
             selectedElement.classList.remove('nomouse');
             dragMode = undefined;

@@ -31,11 +31,13 @@ class SyntaxHole extends React.Component<ISyntaxHoleProps> {
         }
         return (
             <rect className="dropExpression"
-                data-guid={projects.metadataFor(expr).guid}
-                fill="#FFFFFFC0"
+                data-parent-guid={projects.metadataFor(this.props.bind).guid}
+                data-mutation-key={this.props.bindKey}
+                data-mutation-idx={this.props.bindIdx}
+                fill="#FFFFFFE0"
                 rx={5}
-                width={100}
-                height={30}/>
+                width={90}
+                height={48}/>
         );
     }
 }

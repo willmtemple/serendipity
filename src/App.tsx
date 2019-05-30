@@ -43,7 +43,10 @@ export class App extends React.Component<IAppProps> {
     const compiler = createLoweringCompiler();
     // TODO : uncast this, provide actual compiler API
     const p = this.props.ProjectStore.canonicalProgram;
-    execModule(unwrap(compiler.compile(p)))
+    console.log(p);
+    const compiledP = unwrap(compiler.compile(p));
+    console.log(compiledP);
+    execModule(compiledP);
     console.log("=== DONE ===")
   }
 

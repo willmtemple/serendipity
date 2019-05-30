@@ -98,10 +98,10 @@ export class ProjectStore {
      */
     @computed get canonicalProgram(): Module {
         return {
-            globals: (this.program.globals.filter((g) =>
+            globals: (toJS(this.program).globals.filter((g) =>
                 g.globalKind !== "_editor_detachedsyntax"
             )) as Global[]
-        }
+        };
     }
 
     /**
@@ -142,7 +142,38 @@ export class ProjectStore {
         this.loadGUIDTable();
     }
 
-    @action public detachExpression(id: string, key: string, pos: IPosition, idx?: number) : string {
+    @action public insertInto(vid: string, into: string, key: string, idx?: number) {
+        const parent = this.byGUID[into];
+        console.log(parent);
+        const setNode = action((n: Expression) => {
+            const l = parent && parent[key];
+            console.log(l);
+            if (l) {
+                if (idx !== undefined && l[idx]) {
+                    l[idx] = n;
+                    return
+                } else if (idx === undefined) {
+                    parent[key] = n;
+                    return
+                }
+            }
+
+            console.log(into, key, idx);
+            throw new Error("No such key(s) on that object");
+        });
+
+        const v = this.byGUID[vid];
+        if (!v || !v.hasOwnProperty("syntaxKind")) {
+            throw new Error("No such node to be inserted " + v);
+        }
+
+        const e = (v as IEditorDetachedExpression).element;
+
+        setNode(e);
+        this.rmNodeByGUID(this.metadataFor(v).guid);
+    }
+
+    @action public detachExpression(id: string, key: string, pos: IPosition, idx?: number): string {
         const parent = this.byGUID[id];
         const node = (() => {
             const v = parent && parent[key];
@@ -152,9 +183,6 @@ export class ProjectStore {
                 return v;
             }
         })();
-
-        console.log(id, key, pos, idx);
-        console.log("Before: ", parent);
 
         if (!node) { throw new Error("No such key(s) on that object during 'get'"); }
 
@@ -180,7 +208,7 @@ export class ProjectStore {
             metadata: {
                 editor: {
                     guid: guid(),
-                    pos : {...pos}
+                    pos: { ...pos }
                 }
             }
         });
@@ -195,8 +223,6 @@ export class ProjectStore {
         };
         setNode(newHole);
         this.byGUID[newHole.metadata!.editor.guid] = newHole;
-
-        console.log("after: ", parent);
 
         // Put the clone onto the globals stack
         this.byGUID[newGlobalObject.metadata.editor.guid] = newGlobalObject;

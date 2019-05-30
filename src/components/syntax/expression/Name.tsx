@@ -13,6 +13,10 @@ interface INameProps {
 
 @observer
 class Name extends React.Component<INameProps> {
+    public componentDidMount() {
+        this.props.parent!.resize()
+    }
+
     public render() {
         console.log("Name is rendering")
         return (
