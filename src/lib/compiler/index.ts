@@ -27,15 +27,11 @@ export class Compiler<Input, Output> {
         let state = input as any;
 
         for (const pass of this.passes) {
-            const err = error;
-            matchResult({
-                Ok: ({value}) => {
-                    state = value;
-                },
-                Error: ({error}) => {
-                    throw err(error);
-                }
-            })(pass.run(state));
+            const res = pass.run(state) as CompilerOutput<any>;
+            if (res.kind === "error") {
+                return res;
+            }
+            state = res.value;
         }
 
         return ok(state as Output);
