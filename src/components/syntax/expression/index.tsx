@@ -20,6 +20,7 @@ import Number from './Number';
 import Procedure from './Procedure';
 import Tuple from './Tuple';
 import Void from './Void';
+import With from './With';
 
 function getPadding(kind: string) {
     switch (kind) {
@@ -57,6 +58,8 @@ function getColor(kind: string) {
             return "blueviolet";
         case "procedure":
             return "firebrick";
+        case "with":
+            return "palevioletred"
         default:
             return "black";
     }
@@ -111,6 +114,8 @@ class Expression extends React.Component<IExpressionProps> {
                     return <Procedure procedure={expr as expression.Procedure} />
                 case "list":
                     return <List list={expr as expression.List} />
+                case "with":
+                    return <With with={expr as expression.With} />
                 default:
                     return (
                         <text fill="white" fontFamily="Source Code Pro" fontWeight="600">{expr.exprKind} (unimplemented)</text>
@@ -118,10 +123,12 @@ class Expression extends React.Component<IExpressionProps> {
             }
         })();
 
+        // Set up node metadata for DOM access
         const containerProps : {[k: string] : any} = {};
         const guid = this.props.ProjectStore.metadataFor(expr).guid;
         containerProps.id = guid;
         containerProps.className = this.props.fixed ? "expression" : "draggable expression";
+        containerProps["data-guid"] = this.props.ProjectStore.metadataFor(expr);
         containerProps["data-parent-guid"] = this.props.ProjectStore.metadataFor(this.props.bind).guid;
         containerProps["data-mutation-key"] = this.props.bindKey;
         if (this.props.bindIdx !== undefined) {
