@@ -34,7 +34,7 @@ class DefineFunc extends React.Component<IDefineFuncProps> {
         console.log("DefineFunc is rendering");
         return (
             <g>
-                <SvgFlex direction="horizontal" parent={this.props.parent} padding={10}>
+                <SvgFlex direction="horizontal" align="middle" parent={this.props.parent} padding={10}>
                     {this._getBinderLine()}
                 </SvgFlex>
                 <g className="exprBox" transform="translate(30, 60)">
