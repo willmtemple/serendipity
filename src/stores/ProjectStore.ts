@@ -231,6 +231,27 @@ export class ProjectStore {
         return newGlobalObject.metadata.editor.guid;
     }
 
+    @action public addNode(o : Expression, pos? : IPosition) {
+        const id = guid();
+        this.loadGUID(o);
+        const globalWrapper : IEditorDetachedSyntax = {
+            globalKind: "_editor_detachedsyntax",
+            syntaxKind: "expression",
+            element: o,
+            metadata: {
+                editor: {
+                    guid: id,
+                    pos: pos || {
+                        x: 0,
+                        y: 0
+                    }
+                }
+            }
+        }
+        this.byGUID[id] = globalWrapper;
+        this.program.globals.push(globalWrapper);
+    }
+
     @action public dump() {
         console.log(toJS(this.program))
     }

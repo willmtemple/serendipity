@@ -5,6 +5,8 @@ import { App } from 'src/App';
 import { ProjectStore } from 'src/stores/ProjectStore';
 import withStores from 'src/util/withStores';
 
+import { writeGlobal } from 'proto-syntax/dist/lib/printer/surface';
+
 interface IHeaderProps {
     app: App
     ProjectStore: ProjectStore
@@ -13,6 +15,13 @@ interface IHeaderProps {
 @inject('ProjectStore')
 @observer
 class Header extends React.Component<IHeaderProps> {
+    constructor(props : IHeaderProps) {
+        super(props);
+
+        this.addWithDev = this.addWithDev.bind(this);
+        this.dumpSyntax = this.dumpSyntax.bind(this);
+    }
+
     public render() {
         return (
             <div className="header" style={{ height: "8rem" }}>
@@ -21,8 +30,25 @@ class Header extends React.Component<IHeaderProps> {
                 <button onClick={this.props.app.reset}>Reload Example Program</button>
                 <button onClick={this.props.app.runProgram}>Run</button>
                 <button onClick={this.props.ProjectStore.dump.bind(this.props.ProjectStore)}>Dump AST to Console</button>
+                <button onClick={this.dumpSyntax}>Print program in console</button>
+                <button onClick={this.addWithDev}>Add A "With"</button>
             </div>
         )
+    }
+
+    private dumpSyntax() {
+        const p = this.props.ProjectStore.canonicalProgram;
+
+        const s = p.globals.map(writeGlobal).join('\n\n');
+        console.log(s);
+    }
+
+    private addWithDev() {
+        this.props.ProjectStore.addNode({
+            exprKind: "with",
+            binding: ["x", { exprKind: "@hole" } ],
+            expr: { exprKind: "@hole" }
+        })
     }
 }
 
