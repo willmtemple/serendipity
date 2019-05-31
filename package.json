@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "description": "Defines syntax for a prototype language",
   "repository": "git+https://github.com/willmtemple/proto-editor",
-  "files": ["dist/**/*s"], 
+  "files": [
+    "dist/**/*s"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -11,7 +13,7 @@
   "license": "GPL-3.0-or-later",
   "dependencies": {},
   "devDependencies": {
-    "@types/node": "^12.0.2",
-    "typescript": "^3.0.0"
+    "@types/node": "^12.0.4",
+    "typescript": "^3.5.1"
   }
 }
