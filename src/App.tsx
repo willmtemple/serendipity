@@ -50,16 +50,27 @@ export class App extends React.Component<IAppProps> {
     const compiler = createLoweringCompiler();
     // TODO : uncast this, provide actual compiler API
     const program = this.props.ProjectStore.canonicalProgram;
-    const compiled = unwrap(compiler.compile(program));
     const println = (s : string) => {
       this.props.PrefsStore.eventBus.dispatchEvent(
         new CustomEvent('data', { detail: { message: s + '\n\r' } })
       );
     };
+    let compiled;
+    try {
+      compiled = unwrap(compiler.compile(program));
+    } catch (e) {
+      println('\x1B[1;31m[Compiler Error]\x1B[0m ' + e.message)
+      return;
+    }
+
     const interp = new Interpreter(println);
-    println('[Program Starting]\n');
-    interp.execModule(compiled);
-    println('\r\n[Program Terminated]');
+    println('\x1B[1m[Program Starting]\x1B[0m\n');
+    try {
+      interp.execModule(compiled);
+      println('\r\n\x1B[1;32m[Program Terminated]\x1B[0m');
+    } catch (e) {
+      println('\x1B[1;31m[Runtime Error]\x1B[0m ' + e.message);
+    }
   }
 
   public componentDidMount() {
@@ -134,7 +145,8 @@ export class App extends React.Component<IAppProps> {
                 left: 0,
                 bottom: 0,
                 right: 0,
-                height: "30%"
+                height: "30%",
+                background: "black",
               }
             }} />
           )

@@ -2,6 +2,8 @@ import prefsStore from '../stores/PrefsStore';
 import projectStore from '../stores/ProjectStore';
 import { distance, IPosition } from './Position';
 
+import normalizeWheel from 'normalize-wheel';
+
 // This module handles all of the dynamic drag operations using direct DOM
 // manipulation. We have to be careful here not to piss off React,
 // because we are directly and intentionally violating its design principles by
@@ -250,17 +252,18 @@ export function makeDraggable(svg: SVGSVGElement) {
         selectedElement = undefined;
     }
 
-    function zoom(evt: MouseWheelEvent) {
+    function zoom(bEvt: WheelEvent) {
+        const evt = normalizeWheel(bEvt);
         // Don't zoom while dragging anything.
         if (!selectedElement) {
             const oldScale = svgDims.scale;
-            const nextScale = oldScale + (evt.deltaY / 500);
+            const nextScale = oldScale + (evt.spinY / 10);
             const ratio = nextScale / oldScale;
             if (nextScale > 0.5 && nextScale < 2.0) {
                 svgDims.scale = nextScale;
                 prefsStore.prefs.editorScale = nextScale;
                 // Keep the mouse position fixed in SVG space
-                const mouse = getMousePosition(evt);
+                const mouse = getMousePosition(bEvt);
                 const { left, top } = svgDims;
                 // Also (1-r)m_{x} - rl , but this uses less mults
                 svgDims.left = mouse.x - ((mouse.x - left) * ratio);
