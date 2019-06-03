@@ -1,22 +1,29 @@
+import { untracked } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import * as React from 'react';
+import withStores from './util/withStores';
 
 import './App.css';
 
-import { untracked } from 'mobx';
-import { unwrap } from 'proto-syntax/dist/lib/util/Result';
-import { execModule } from 'proto-syntax/dist/test/interp/eval';
-import { createLoweringCompiler } from 'proto-syntax/dist/test/lower';
-import Header from './components/menus/Header';
-import Global from './components/syntax/global';
+import { PrefsStore } from './stores/PrefsStore';
 import { ProjectStore } from './stores/ProjectStore';
+
+import { unwrap } from 'proto-syntax/dist/lib/util/Result';
+import { Interpreter } from 'proto-syntax/dist/test/interp/eval';
+import { createLoweringCompiler } from 'proto-syntax/dist/test/lower';
+
+import Navbar from './components/menus/Navbar';
+import Toolbar from './components/menus/Toolbar';
+import Global from './components/syntax/global';
+import Terminal from './components/Terminal';
 import { makeDraggable } from './util/Draggable';
-import withStores from './util/withStores';
 
 interface IAppProps {
-  ProjectStore: ProjectStore;
+  PrefsStore: PrefsStore,
+  ProjectStore: ProjectStore,
 }
 
+@inject('PrefsStore')
 @inject('ProjectStore')
 @observer
 export class App extends React.Component<IAppProps> {
@@ -39,15 +46,20 @@ export class App extends React.Component<IAppProps> {
   }
 
   public runProgram() {
-    console.log("=== EXECUTING ===")
+    this.props.PrefsStore.prefs.terminal = true;
     const compiler = createLoweringCompiler();
     // TODO : uncast this, provide actual compiler API
-    const p = this.props.ProjectStore.canonicalProgram;
-    console.log(p);
-    const compiledP = unwrap(compiler.compile(p));
-    console.log(compiledP);
-    execModule(compiledP);
-    console.log("=== DONE ===")
+    const program = this.props.ProjectStore.canonicalProgram;
+    const compiled = unwrap(compiler.compile(program));
+    const println = (s : string) => {
+      this.props.PrefsStore.eventBus.dispatchEvent(
+        new CustomEvent('data', { detail: { message: s + '\n\r' } })
+      );
+    };
+    const interp = new Interpreter(println);
+    println('[Program Starting]\n');
+    interp.execModule(compiled);
+    println('\r\n[Program Terminated]');
   }
 
   public componentDidMount() {
@@ -62,12 +74,11 @@ export class App extends React.Component<IAppProps> {
 
     return (
       <div className="App">
-        <Header app={this} />
-        <svg  ref={this.svg}
-              className="blocksWorkspace"
-              style={{ width: "100%", height: "calc(100% - 8rem)" }}
-              preserveAspectRatio="xMinYMin slice"
-              xmlns="http://www.w3.org/2000/svg">
+        <Navbar app={this} />
+        <svg ref={this.svg}
+          className="blocksWorkspace"
+          preserveAspectRatio="xMinYMin slice"
+          xmlns="http://www.w3.org/2000/svg">
           <defs>
             <filter id="f_BlockShadow">
               <feOffset result="offOut" in="SourceAlpha" dx="3" dy="3" />
@@ -76,7 +87,7 @@ export class App extends React.Component<IAppProps> {
             </filter>
             <filter id="detachedElement">
               <feColorMatrix in="SourceGraphic"
-                type="saturate" values="0.12"/>
+                type="saturate" values="0.12" />
             </filter>
             <filter id="dropGlow">
               <feFlood result="flood" floodColor="#FFFFFF" floodOpacity={1} />
@@ -84,21 +95,21 @@ export class App extends React.Component<IAppProps> {
               <feMorphology in="mask" result="dilated" operator="dilate" radius="2" />
               <feGaussianBlur in="dilated" result="blurred" stdDeviation={5} />
               <feMerge>
-                <feMergeNode in="blurred"/>
-                <feMergeNode in="SourceGraphic"/>
+                <feMergeNode in="blurred" />
+                <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
-            <pattern  id="bgPattern" x={0} y={0} width={50} height={50}
-                      patternUnits="userSpaceOnUse" >
+            <pattern id="bgPattern" x={0} y={0} width={50} height={50}
+              patternUnits="userSpaceOnUse" >
               <rect x={0} y={0} width={50} height={50} fill="#F0F0F0" />
               <circle cx={25} cy={25} r={2} fill="#AAAAAA" />
             </pattern>
           </defs>
           <rect id="workspaceBackground"
-                x={0} y={0}
-                width="140%" height="140%"
-                fill="url(#bgPattern)"
-                style={{height: "140%", width: "140%"}}/>
+            x={0} y={0}
+            width="140%" height="140%"
+            fill="url(#bgPattern)"
+            style={{ height: "140%", width: "140%" }} />
           {
             projectStore.program.globals.map((glb, idx) => (
               <g key={untracked(() => glb.metadata.editor.guid)}
@@ -114,9 +125,24 @@ export class App extends React.Component<IAppProps> {
             ))
           }
         </svg>
+        {
+          this.props.PrefsStore.prefs.terminal && (
+            <Terminal termDivProps={{
+              id: "terminal",
+              style: {
+                position: "absolute",
+                left: 0,
+                bottom: 0,
+                right: 0,
+                height: "30%"
+              }
+            }} />
+          )
+        }
+        <Toolbar app={this} />
       </div>
     );
   }
 }
 
-export default withStores('ProjectStore')(App);
+export default withStores('PrefsStore', 'ProjectStore')(App);

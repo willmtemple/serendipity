@@ -7,18 +7,21 @@ const defaultPrefs = {
         x: 0,
         y: 0
     },
-    editorScale: 1.0
+    editorScale: 1.0,
+    terminal: false
 };
 
-class PrefsStore {
+export class PrefsStore {
     @observable public prefs = defaultPrefs;
+
+    public eventBus = new EventTarget();
 
     constructor() {
         const that = this;
         const storedData = localStorage.getItem(LOCAL_STORE_KEY);
         if (storedData) {
             const storedPrefs = JSON.parse(storedData);
-            set(this.prefs, Object.assign(this.prefs, storedPrefs));
+            set(this.prefs, {...defaultPrefs, ...storedPrefs});
         }
 
         let firstRun = true;
@@ -34,6 +37,10 @@ class PrefsStore {
     @action public setPosition(x : number, y : number) {
         this.prefs.editorPosition.x = x;
         this.prefs.editorPosition.y = y;
+    }
+
+    @action public toggleTerminal() {
+        this.prefs.terminal = !this.prefs.terminal;
     }
 
 }

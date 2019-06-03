@@ -21,7 +21,8 @@ export default class With extends React.Component<IWithProps> {
             <SvgFlex parent={this.props.parent} direction="vertical" padding={20}>
                 <SvgFlex direction="horizontal" align="middle" padding={20} >
                     <text>with</text>
-                    <Binder bind={this.props.with.binding} bindKey={0} />
+                    {/* Really don't change bindKey below to a number */}
+                    <Binder bind={this.props.with.binding} bindKey="0" />
                     <text>=</text>
                     <Expression bind={this.props.with} bindKey="binding" bindIdx={1} />
                 </SvgFlex>
