@@ -1,6 +1,6 @@
 import { surfaceExample } from "./examples";
 import { unwrap } from "../lib/util/Result";
-import { execModule } from "./interp/eval";
+import { Interpreter } from "./interp/eval";
 import { writeGlobal } from "../lib/printer/surface";
 import { createLoweringCompiler } from "./lower";
 
@@ -10,4 +10,6 @@ process.stdout.write(surfaceExample.globals.map((g) => writeGlobal(g)).join("\n\
 
 const res = unwrap(compiler.compile(surfaceExample));
 
-execModule(res);
+const interpreter = new Interpreter();
+
+interpreter.execModule(res);

@@ -1,6 +1,5 @@
 import { Expression } from "../../lib/lang/syntax/abstract/expression";
 import { Value } from "./value";
-import { evalExpr } from "./eval";
 
 export type Binder = {
     expr: Expression,
@@ -21,11 +20,15 @@ export interface CachedBinder {
 
 export type ScopedObject = CachedExpression | CachedBinder;
 
+type Evaluator = (e: Expression, s: Scope) => Value;
+
 export class Scope {
+    evaluator : Evaluator;
     parent?: Scope;
     bindings: { [k: string]: ScopedObject };
 
-    constructor(parent?: Scope) {
+    constructor(evaluator: Evaluator, parent?: Scope) {
+        this.evaluator = evaluator;
         this.parent = parent;
         this.bindings = {};
     }
@@ -39,7 +42,7 @@ export class Scope {
     }
 
     bind(expr: Expression): Binder {
-        const scope = new Scope(this);
+        const scope = new Scope(this.evaluator, this);
         return {
             expr,
             scope,
@@ -65,11 +68,11 @@ export class Scope {
             let res;
             switch (cexpr.kind) {
                 case "expression":
-                    res = evalExpr(cexpr.expr, this);
+                    res = this.evaluator(cexpr.expr, this);
                     delete cexpr.expr;
                     break;
                 case "binder":
-                    res = evalExpr(cexpr.bind.expr, cexpr.bind.scope);
+                    res = this.evaluator(cexpr.bind.expr, cexpr.bind.scope);
                     delete cexpr.bind;
                     break;
                 default:

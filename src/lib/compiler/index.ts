@@ -1,4 +1,4 @@
-import { error, Result, matchResult, ok } from "../util/Result";
+import { Result, ok } from "../util/Result";
 import { Diagnostic } from "./diagnostic";
 
 
