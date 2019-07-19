@@ -12,6 +12,7 @@ import { unwrap } from 'proto-syntax/dist/lib/util/Result';
 import { Interpreter } from 'proto-syntax/dist/test/interp/eval';
 import { createLoweringCompiler } from 'proto-syntax/dist/test/lower';
 
+import BlocksPalette from './components/menus/BlocksPalette';
 import Navbar from './components/menus/Navbar';
 import Toolbar from './components/menus/Toolbar';
 import Global from './components/syntax/global';
@@ -28,6 +29,7 @@ interface IAppProps {
 @observer
 export class App extends React.Component<IAppProps> {
   private svg: React.RefObject<SVGSVGElement>;
+  private deferredRun : boolean = false;
   constructor(props: any) {
     super(props);
 
@@ -46,7 +48,12 @@ export class App extends React.Component<IAppProps> {
   }
 
   public runProgram() {
-    this.props.PrefsStore.prefs.terminal = true;
+    if (!this.props.PrefsStore.prefs.terminal) {
+      this.props.PrefsStore.prefs.terminal = true;
+      this.deferredRun = true;
+      return;
+    }
+
     const compiler = createLoweringCompiler();
     // TODO : uncast this, provide actual compiler API
     const program = this.props.ProjectStore.canonicalProgram;
@@ -79,6 +86,13 @@ export class App extends React.Component<IAppProps> {
     }
   }
 
+  public componentDidUpdate() {
+    if (this.deferredRun) {
+      this.deferredRun = false;
+      this.runProgram();
+    }
+  }
+
   public render() {
     const projectStore = this.props.ProjectStore;
     console.log("App is rendering");
@@ -86,6 +100,7 @@ export class App extends React.Component<IAppProps> {
     return (
       <div className="App">
         <Navbar app={this} />
+        <BlocksPalette />
         <svg ref={this.svg}
           className="blocksWorkspace"
           preserveAspectRatio="xMinYMin slice"
