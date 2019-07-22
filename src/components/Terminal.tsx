@@ -7,6 +7,8 @@ import withStores from 'src/util/withStores';
 import { Terminal as XTerm } from 'xterm';
 import * as fit from 'xterm/lib/addons/fit/fit';
 
+import 'xterm/dist/xterm.css';
+
 interface ITermDetailedProps {
     termDivProps: TermDivProps
 

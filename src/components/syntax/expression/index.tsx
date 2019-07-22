@@ -27,6 +27,8 @@ function getPadding(kind: string) {
         case "number":
         case "name":
             return 10;
+        case "void":
+            return 20;
         default:
             return 6;
     }
@@ -85,7 +87,11 @@ class Expression extends React.Component<IExpressionProps> {
         const kind = expr.exprKind;
 
         if (kind === "@hole") {
-            return <SyntaxHole parent={this.props.parent} bind={this.props.bind} bindKey={this.props.bindKey} bindIdx={this.props.bindIdx} />
+            return <SyntaxHole  parent={this.props.parent}
+                                bind={this.props.bind}
+                                bindKey={this.props.bindKey}
+                                bindIdx={this.props.bindIdx}
+                                kind="expression" />
         }
 
         const body = (() => {
@@ -127,7 +133,7 @@ class Expression extends React.Component<IExpressionProps> {
         const containerProps : {[k: string] : any} = {};
         const guid = this.props.ProjectStore.metadataFor(expr).guid;
         containerProps.id = guid;
-        containerProps.className = this.props.fixed ? "expression" : "draggable expression";
+        containerProps.className = this.props.fixed ? "expression" : "draggable syntax expression";
         containerProps["data-guid"] = this.props.ProjectStore.metadataFor(expr);
         containerProps["data-parent-guid"] = this.props.ProjectStore.metadataFor(this.props.bind).guid;
         containerProps["data-mutation-key"] = this.props.bindKey;

@@ -5,8 +5,6 @@ import App from './App';
 import './index.css';
 import './vendor/semantic/dist/semantic.min.css';
 
-import 'xterm/dist/xterm.css';
-
 import * as serviceWorker from './serviceWorker';
 
 import {Provider} from 'mobx-react';

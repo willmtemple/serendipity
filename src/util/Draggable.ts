@@ -49,6 +49,7 @@ export function makeDraggable(svg: SVGSVGElement) {
     let offset: { x: any; y: any; };
     let transform: SVGTransform;
     let resume: string | undefined;
+    let heldItemKind: "expression" | "statement" | undefined;
     const background: HTMLElement | null = document.getElementById('workspaceBackground');
     const svgBackground = background as unknown as SVGGraphicsElement;
     const bgTranslate = svg.createSVGTransform();
@@ -106,7 +107,7 @@ export function makeDraggable(svg: SVGSVGElement) {
                 // Drag the background
                 selectedElement = svg;
                 offset = getMousePosition(evt);
-            } else if (node && node.classList.contains('expression')) {
+            } else if (node && node.classList.contains('syntax')) {
                 // We are dragging an expression out of its container
                 selectedElement = node as SVGGraphicsElement;
                 dragMode = "detach";
@@ -116,6 +117,7 @@ export function makeDraggable(svg: SVGSVGElement) {
 
                 if (selectedElement.classList.contains('_editor_detachedsyntax')) {
                     selectedElement.classList.add('nomouse');
+                    heldItemKind = selectedElement.getAttribute('data-port-compatibility') as any;
                 }
 
                 offset = getMousePosition(evt);
@@ -200,7 +202,14 @@ export function makeDraggable(svg: SVGSVGElement) {
                 }
 
                 if (guid && key) {
-                    const newGuid = projectStore.detachExpression(guid, key, newPosition, idx ? parseInt(idx, 10) : undefined);
+                    let newGuid;
+                    if (selectedElement.classList.contains("expression")) {
+                        heldItemKind = "expression"
+                        newGuid = projectStore.detachExpression(guid, key, newPosition, idx ? parseInt(idx, 10) : undefined);
+                    } else { // statement
+                        heldItemKind = "statement";
+                        newGuid = projectStore.detachStatement(guid, key, newPosition, idx ? parseInt(idx, 10): undefined);
+                    }
                     dragMode = undefined;
                     offset = {
                         x: mouse.x,
@@ -225,17 +234,26 @@ export function makeDraggable(svg: SVGSVGElement) {
             const draggedGuid = selectedElement.getAttribute('data-guid');
 
             if (draggedGuid) {
-                if (mouseOver && mouseOver.classList.contains('dropExpression')) {
+                if (mouseOver && mouseOver.classList.contains('drop')) {
                     // We are dropping an element into this target
 
-                    const overGuid = mouseOver.getAttribute('data-parent-guid');
-                    const overKey = mouseOver.getAttribute('data-mutation-key');
-                    const overIdxS = mouseOver.getAttribute('data-mutation-idx');
+                    // If the element doesn't match the drop target, then don't drop it there
+                    if (heldItemKind && !mouseOver.classList.contains(heldItemKind)) {
+                        projectStore.updatePos(draggedGuid, {
+                            x: transform.matrix.e,
+                            y: transform.matrix.f
+                        });
+                    } else {
 
-                    if (overGuid != null && overKey != null) {
-                        const overIdx = (overIdxS != null) ? parseInt(overIdxS, 10) : undefined;
+                        const overGuid = mouseOver.getAttribute('data-parent-guid');
+                        const overKey = mouseOver.getAttribute('data-mutation-key');
+                        const overIdxS = mouseOver.getAttribute('data-mutation-idx');
 
-                        projectStore.insertInto(draggedGuid, overGuid, overKey, overIdx);
+                        if (overGuid != null && overKey != null) {
+                            const overIdx = (overIdxS != null) ? parseInt(overIdxS, 10) : undefined;
+
+                            projectStore.insertInto(draggedGuid, overGuid, overKey, overIdx);
+                        }
                     }
                 } else {
 
@@ -248,6 +266,7 @@ export function makeDraggable(svg: SVGSVGElement) {
             }
             selectedElement.classList.remove('nomouse');
             dragMode = undefined;
+            heldItemKind = undefined;
         }
         selectedElement = undefined;
     }
@@ -259,7 +278,7 @@ export function makeDraggable(svg: SVGSVGElement) {
             const oldScale = svgDims.scale;
             const nextScale = oldScale + (evt.spinY / 10);
             const ratio = nextScale / oldScale;
-            if (nextScale > 0.5 && nextScale < 2.0) {
+            if (nextScale > 0.8 && nextScale < 3.0) {
                 svgDims.scale = nextScale;
                 prefsStore.prefs.editorScale = nextScale;
                 // Keep the mouse position fixed in SVG space

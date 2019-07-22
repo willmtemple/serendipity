@@ -4,9 +4,12 @@ import { surfaceExample } from 'proto-syntax/dist/test/examples';
 
 import * as guid from 'uuid/v4';
 
+import * as expr from 'proto-syntax/dist/lib/lang/syntax/surface/expression';
+import * as stmt from 'proto-syntax/dist/lib/lang/syntax/surface/statement';
+
 import { SyntaxObject } from 'proto-syntax/dist/lib/lang/syntax';
 import { Module } from 'proto-syntax/dist/lib/lang/syntax/surface';
-import { Expression, Hole } from 'proto-syntax/dist/lib/lang/syntax/surface/expression';
+import { Expression } from 'proto-syntax/dist/lib/lang/syntax/surface/expression';
 import { Define, DefineFunction, Global, Main } from 'proto-syntax/dist/lib/lang/syntax/surface/global';
 import { Statement } from 'proto-syntax/dist/lib/lang/syntax/surface/statement';
 import { IPosition } from 'src/util/Position';
@@ -213,8 +216,66 @@ export class ProjectStore {
             }
         });
 
-        const newHole: Hole = {
+        const newHole: expr.Hole = {
             exprKind: "@hole",
+            metadata: {
+                editor: {
+                    guid: guid()
+                }
+            }
+        };
+        setNode(newHole);
+        this.byGUID[newHole.metadata!.editor.guid] = newHole;
+
+        // Put the clone onto the globals stack
+        this.byGUID[newGlobalObject.metadata.editor.guid] = newGlobalObject;
+        this.program.globals.push(newGlobalObject);
+
+        return newGlobalObject.metadata.editor.guid;
+    }
+
+    @action public detachStatement(id: string, key: string, pos: IPosition, idx?: number): string {
+        const parent = this.byGUID[id];
+        const node = (() => {
+            const v = parent && parent[key];
+            if (idx !== undefined) {
+                return v[idx];
+            } else {
+                return v;
+            }
+        })();
+
+        if (!node) { throw new Error("No such key(s) on that object during 'get'"); }
+
+        const setNode = action((n: Statement) => {
+            const v = parent && parent[key];
+            if (v) {
+                if (idx !== undefined && v[idx]) {
+                    v[idx] = n;
+                    return;
+                } else if (idx === undefined) {
+                    parent[key] = n;
+                    return;
+                }
+            }
+
+            throw new Error("No such key(s) on that object")
+        });
+
+        const newGlobalObject: IEditorGlobal = observable({
+            globalKind: "_editor_detachedsyntax",
+            syntaxKind: "statement",
+            element: node as Statement,
+            metadata: {
+                editor: {
+                    guid: guid(),
+                    pos: { ...pos }
+                }
+            }
+        });
+
+        const newHole: stmt.Hole = {
+            statementKind: "@hole",
             metadata: {
                 editor: {
                     guid: guid()

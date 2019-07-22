@@ -27,7 +27,7 @@ class ForIn extends React.Component<IForInProps> {
                     <Expression bind={this.props.forin} bindKey="value" />
                 </SvgFlex>
                 <Indent x={36}>
-                    <Statement statement={this.props.forin.body} />
+                    <Statement bind={this.props.forin} bindKey="body" />
                 </Indent>
             </SvgFlex>
         );

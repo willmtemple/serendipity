@@ -62,8 +62,8 @@ implements ISizedComponent {
                 <text>{"<proc>"} [</text>
                 <g ref={this.bodyRef} transform="translate(36, 32)">
                     <SvgFlex direction="vertical" parent={this} padding={5}>
-                        {this.props.procedure.body.map((s, idx) =>
-                            <Statement key={idx} statement={s} />
+                        {this.props.procedure.body.map((_, idx) =>
+                            <Statement bind={this.props.procedure} bindKey="body" bindIdx={idx} key={idx} />
                         )}
                     </SvgFlex>
                 </g>

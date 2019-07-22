@@ -101,8 +101,6 @@ implements ISizedComponent {
             const box = this.bodyRef.current.getBBox();
             const cur = this.state.extent;
 
-            console.log(this.props, box, cur);
-
             if (!cur || box.height !== cur.height || box.width !== cur.width) {
                 console.log("BoundingBox will resize");
                 this.setState({

@@ -2,7 +2,6 @@ import * as React from 'react';
 
 import { observer } from 'mobx-react';
 
-import { statement } from 'proto-syntax/dist/lib/lang/syntax/surface';
 import { ISizedComponent } from 'src/components/layout/SizedComponent';
 import { IEditorDetachedSyntax } from 'src/stores/ProjectStore';
 import Expression from '../expression';
@@ -19,7 +18,6 @@ interface IDetachedProps {
 class Detached extends React.Component<IDetachedProps> {
     public render() {
         const kind = this.props.global.syntaxKind;
-        const element = this.props.global.element;
 
         const body = (() => {
             switch (kind) {
@@ -32,7 +30,9 @@ class Detached extends React.Component<IDetachedProps> {
                 case "statement":
                     return <Statement
                         parent={this.props.parent}
-                        statement={element as statement.Statement} />
+                        fixed={true}
+                        bind={this.props.global}
+                        bindKey="element" />
                 default:
                     const _exhaust: never = kind;
                     return _exhaust;

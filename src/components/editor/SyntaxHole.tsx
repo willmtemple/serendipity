@@ -10,7 +10,9 @@ interface ISyntaxHoleProps {
     parent? : ISizedComponent,
     bind : SyntaxObject,
     bindKey : string | number,
-    bindIdx? : number 
+    bindIdx? : number,
+
+    kind: "expression" | "statement",
     
     // Injected
     ProjectStore: ProjectStore
@@ -25,12 +27,13 @@ class SyntaxHole extends React.Component<ISyntaxHoleProps> {
     }
     public render() {
         const projects = this.props.ProjectStore;
-        let expr = this.props.bind[this.props.bindKey];
+        let stx = this.props.bind[this.props.bindKey];
         if (this.props.bindIdx !== undefined) {
-            expr = expr[this.props.bindIdx];
+            stx = stx[this.props.bindIdx];
         }
+
         return (
-            <rect className="dropExpression"
+            <rect className={"drop " + this.props.kind}
                 data-parent-guid={projects.metadataFor(this.props.bind).guid}
                 data-mutation-key={this.props.bindKey}
                 data-mutation-idx={this.props.bindIdx}
