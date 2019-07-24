@@ -70,7 +70,7 @@ class Statement extends React.Component<IStatementProps> {
         const guid = this.props.ProjectStore.metadataFor(stmt).guid;
         containerProps.id = guid;
         containerProps.className = this.props.fixed ? "statement" : "draggable syntax statement";
-        containerProps["data-guid"] = this.props.ProjectStore.metadataFor(stmt);
+        containerProps["data-guid"] = this.props.ProjectStore.metadataFor(stmt).guid;
         containerProps["data-parent-guid"] = this.props.ProjectStore.metadataFor(this.props.bind).guid;
         containerProps["data-mutation-key"] = this.props.bindKey;
         if (this.props.bindIdx !== undefined) {

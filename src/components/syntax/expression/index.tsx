@@ -134,7 +134,7 @@ class Expression extends React.Component<IExpressionProps> {
         const guid = this.props.ProjectStore.metadataFor(expr).guid;
         containerProps.id = guid;
         containerProps.className = this.props.fixed ? "expression" : "draggable syntax expression";
-        containerProps["data-guid"] = this.props.ProjectStore.metadataFor(expr);
+        containerProps["data-guid"] = this.props.ProjectStore.metadataFor(expr).guid;
         containerProps["data-parent-guid"] = this.props.ProjectStore.metadataFor(this.props.bind).guid;
         containerProps["data-mutation-key"] = this.props.bindKey;
         if (this.props.bindIdx !== undefined) {

@@ -122,19 +122,20 @@ export class App extends React.Component<IAppProps> {
             fill="url(#bgPattern)"
             style={{ height: "140%", width: "140%" }} />
           {
-            projectStore.program.globals.map((glb, idx) => (
-              <g key={untracked(() => glb.metadata.editor.guid)}
-                id={glb.metadata.editor.guid}
-                data-guid={glb.metadata.editor.guid}
+            projectStore.program.globals.map((glb, idx) => {
+              const meta = this.props.ProjectStore.metadataFor(glb);
+              return <g key={untracked(() => meta.guid)}
+                id={meta.guid}
+                data-guid={meta.guid}
                 data-idx={idx}
                 data-port-compatibility={glb.globalKind === "_editor_detachedsyntax" ? glb.syntaxKind : undefined}
                 className={"draggable global " + glb.globalKind}
                 transform={untracked(() =>
-                  `translate(${glb.metadata.editor.pos.x}, ${glb.metadata.editor.pos.y})`
+                  `translate(${meta.pos.x}, ${meta.pos.y})`
                 )}>
                 <Global global={glb} />
               </g>
-            ))
+            })
           }
         </svg>
         {
