@@ -292,7 +292,7 @@ export class ProjectStore {
         return newGlobalObject.metadata.editor.guid;
     }
 
-    @action public addNode(o : Expression, pos? : IPosition) {
+    @action public addExpr(o : Expression, pos? : IPosition) {
         const id = guid();
         this.loadGUID(o);
         const globalWrapper : IEditorDetachedSyntax = {
@@ -351,7 +351,7 @@ export class ProjectStore {
         return node.metadata!.editor as IEditorMetadata
     }
 
-    @action private loadGUID(node: SyntaxObject): string {
+    @action public loadGUID(node: SyntaxObject): string {
         if (!node.metadata) {
             node.metadata = {
                 editor: {

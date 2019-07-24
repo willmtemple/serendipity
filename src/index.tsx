@@ -11,6 +11,15 @@ import {Provider} from 'mobx-react';
 import prefsStore from './stores/PrefsStore';
 import programStore from './stores/ProjectStore';
 
+import * as debug from './util/Debug';
+
+declare global {
+    // tslint:disable-next-line: interface-name
+    interface Window { Debug : typeof debug }
+}
+
+window.Debug = debug;
+
 export const stores = {
     PrefsStore: prefsStore,
     ProjectStore: programStore
