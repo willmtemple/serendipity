@@ -69,6 +69,10 @@ svg.blocksWorkspace foreignObject input[type="text"]:focus {
   outline-width: 0;
 }
 
+svg.blocksWorkspace rect.expression:hover {
+  filter: url(#dropGlow);
+}
+
 svg.blocksWorkspace rect.drop:hover {
   filter: url(#dropGlow);
 }

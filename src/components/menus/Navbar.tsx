@@ -25,7 +25,7 @@ class Navbar extends React.Component<INavbarProps> {
                     size="massive"
                     fixed="top"
                     color="violet">
-                <Menu.Item header={true}>Program Editor</Menu.Item>
+                <Menu.Item header={true}>λ &middot; Program Editor</Menu.Item>
                 <Menu.Menu position="right">
                     <Menu.Item icon={true} onClick={this.props.app.runProgram}>
                         <Icon name="play" color="green" />
