@@ -106,3 +106,10 @@ export namespace spawn {
         ProjectStore.addExpr(s);
     }
 }
+
+// tslint:disable-next-line: no-namespace
+export namespace project {
+    export function reset() {
+        ProjectStore.reset();
+    }
+}

@@ -1,36 +1,23 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
 
-import { expression } from 'proto-syntax/dist/lib/lang/syntax/surface';
-import { ISizedComponent } from 'src/components/layout/SizedComponent';
+import { List } from 'proto-syntax/dist/lib/lang/syntax/surface/expression';
 import SvgFlex from 'src/components/layout/SvgFlex';
 import Expression from '.';
 import Indent from '../../layout/Indent';
 
-interface IListProps {
-    parent? : ISizedComponent,
-
-    list: expression.List
-}
-
-@observer
-class List extends React.Component<IListProps> {
-    public render() {
-        console.log("List is rendering")
-        return (
-            <SvgFlex direction="vertical" parent={this.props.parent} padding={10}>
-                <text>[</text>
-                <Indent x={36}>
-                    <SvgFlex direction="vertical" padding={10}>
-                        {this.props.list.contents.map((v, idx) =>
-                            <Expression key={idx} bind={this.props.list} bindKey="contents" bindIdx={idx} />
-                        )}
-                    </SvgFlex>
-                </Indent>
-                <text>]</text>
+const List = React.forwardRef<any, { list: List }>((props, ref) => (
+    <SvgFlex ref={ref} direction="vertical" padding={10}>
+        <text>[</text>
+        <Indent x={32}>
+            <SvgFlex direction="vertical" padding={10}>
+                {props.list.contents.map((v, idx) =>
+                    <Expression key={idx} bind={props.list} bindKey="contents" bindIdx={idx} />
+                )}
             </SvgFlex>
-        )
-    }
-}
+        </Indent>
+        <text>]</text>
+    </SvgFlex>
+))
 
-export default List;
+export default observer(List);

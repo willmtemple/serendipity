@@ -1,28 +1,17 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
 
-import { statement } from 'proto-syntax/dist/lib/lang/syntax/surface';
-import { ISizedComponent } from 'src/components/layout/SizedComponent';
+import { Do } from 'proto-syntax/dist/lib/lang/syntax/surface/statement';
+import Indent from 'src/components/layout/Indent';
 import Expression from '../expression';
 
-interface IDoProps {
-    parent? : ISizedComponent,
+const Do = React.forwardRef<SVGGElement, { do: Do }>((props, ref) => (
+    <g ref={ref}>
+        <text>do</text>
+        <Indent x={32}>
+            <Expression bind={props.do} bindKey="body" />
+        </Indent>
+    </g>
+))
 
-    do : statement.Do
-}
-
-@observer
-class Do extends React.Component<IDoProps> {
-    public render() {
-        return (
-            <g>
-                <text>do</text>
-                <g transform="translate(32, 0)">
-                    <Expression parent={this.props.parent} bind={this.props.do} bindKey="body" />
-                </g>
-            </g >
-        );
-    }
-}
-
-export default Do;
+export default observer(Do);

@@ -1,42 +1,33 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
+import { useResizeParentEffect } from 'src/hooks/measure';
 
 interface IBinderProps {
     bind: any,
-    bindKey: string | number
+    bindKey: number | string
 }
 
-@observer
-class Binder extends React.Component<IBinderProps> {
-    constructor(props : IBinderProps) {
-        super(props);
+const Binder = React.forwardRef<SVGForeignObjectElement, IBinderProps>((props, ref) => {
+    useResizeParentEffect();
 
-        this.onChange = this.onChange.bind(this);
-    }
+    function change(evt: React.ChangeEvent<HTMLInputElement>) {
+        const v = evt.target.value;
 
-    public render() {
-        return (
-            <foreignObject width={67} height={30}>
-                <input  type="text"
-                        value={this.props.bind[this.props.bindKey]}
-                        onChange={this.onChange} />
-            </foreignObject>
-        );
-    }
-
-    private onChange(evt : React.ChangeEvent<HTMLInputElement>) {
-        const newName = evt.target.value;
-
-        if (newName === '') {
-            // Delete if we have a number key
-            if ((typeof this.props.bindKey) === "number") {
-                this.props.bind.splice(this.props.bindKey, 1);
-                return;
-            }
+        if (v === '' && typeof props.bindKey === 'number') {
+            props.bind.splice(props.bindKey, 1);
+            return;
         }
 
-        this.props.bind[this.props.bindKey] = newName;
+        props.bind[props.bindKey] = v;
     }
-}
 
-export default Binder;
+    return (
+        <foreignObject ref={ref} width={67} height={30}>
+            <input type="text"
+                value={props.bind[props.bindKey]}
+                onChange={change} />
+        </foreignObject>
+    );
+})
+
+export default observer(Binder);

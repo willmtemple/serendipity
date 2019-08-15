@@ -1,28 +1,16 @@
 import { observer } from 'mobx-react';
-import { expression } from 'proto-syntax/dist/lib/lang/syntax/surface';
-import * as React from 'react'
-import { ISizedComponent } from 'src/components/layout/SizedComponent';
+import * as React from 'react';
+
+import { Arithmetic } from 'proto-syntax/dist/lib/lang/syntax/surface/expression';
 import SvgFlex from 'src/components/layout/SvgFlex';
 import Expression from '.';
 
-interface IArithmeticProps {
-    parent? : ISizedComponent,
+const Arithmetic = React.forwardRef<any, { arithmetic: Arithmetic }>((props, ref) => (
+    <SvgFlex ref={ref} direction="horizontal" align="middle" padding={20}>
+        <Expression bind={props.arithmetic} bindKey="left" />
+        <text>{props.arithmetic.op}</text>
+        <Expression bind={props.arithmetic} bindKey="right" />
+    </SvgFlex>
+))
 
-    arithmetic: expression.Arithmetic
-}
-
-@observer
-class Arithmetic extends React.Component<IArithmeticProps> {
-    public render() {
-        console.log("Arithmetic is rendering")
-        return (
-            <SvgFlex direction="horizontal" align="middle" parent={this.props.parent} padding={20}>
-                <Expression bind={this.props.arithmetic} bindKey={"left"} />
-                <text>{this.props.arithmetic.op}</text>
-                <Expression bind={this.props.arithmetic} bindKey={"right"} />
-            </SvgFlex>
-        )
-    }
-}
-
-export default Arithmetic;
+export default observer(Arithmetic);

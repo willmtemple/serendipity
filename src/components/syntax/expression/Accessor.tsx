@@ -1,28 +1,16 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
 
-import { expression } from 'proto-syntax/dist/lib/lang/syntax/surface';
-import { ISizedComponent } from 'src/components/layout/SizedComponent';
+import { Accessor } from 'proto-syntax/dist/lib/lang/syntax/surface/expression';
 import SvgFlex from 'src/components/layout/SvgFlex';
 import Expression from '.';
 
-interface IAccessorProps {
-    parent?: ISizedComponent
+const Accessor = React.forwardRef<any, { accessor: Accessor }>((props, ref) => (
+    <SvgFlex ref={ref} direction="horizontal" align="end" padding={20}>
+        <Expression bind={props.accessor} bindKey="accessee" />
+        <text>.</text>
+        <Expression bind={props.accessor} bindKey="index" />
+    </SvgFlex>
+))
 
-    accessor: expression.Accessor
-}
-
-@observer
-class Accessor extends React.Component<IAccessorProps> {
-    public render() {
-        return (
-            <SvgFlex direction="horizontal" align="end" parent={this.props.parent} padding={20}>
-                <Expression bind={this.props.accessor} bindKey={"accessee"} />
-                <text>.</text>
-                <Expression bind={this.props.accessor} bindKey={"index"} />
-            </SvgFlex>
-        )
-    }
-}
-
-export default Accessor;
+export default observer(Accessor);

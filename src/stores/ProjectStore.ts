@@ -147,10 +147,8 @@ export class ProjectStore {
 
     @action public insertInto(vid: string, into: string, key: string, idx?: number) {
         const parent = this.byGUID[into];
-        console.log(parent);
         const setNode = action((n: Expression) => {
             const l = parent && parent[key];
-            console.log(l);
             if (l) {
                 if (idx !== undefined && l[idx]) {
                     l[idx] = n;
@@ -313,12 +311,12 @@ export class ProjectStore {
         this.program.globals.push(globalWrapper);
     }
 
-    @action public dump() {
+    public dump() {
         console.log(toJS(this.program))
     }
 
     @action public bump(idx: number) {
-        if (idx + 1 !== this.program.globals.length) {
+        if ((idx + 1) < this.program.globals.length) {
             const g = this.program.globals.splice(idx, 1);
             this.program.globals.push(g[0])
         }

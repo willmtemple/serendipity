@@ -1,39 +1,28 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+
 import App from './App';
 
 import './index.css';
 import './vendor/semantic/dist/semantic.min.css';
 
-import * as serviceWorker from './serviceWorker';
-
-import {Provider} from 'mobx-react';
-import prefsStore from './stores/PrefsStore';
-import programStore from './stores/ProjectStore';
-
 import * as debug from './util/Debug';
 
+import { StoreProvider } from './hooks/stores';
+
+// The debug module exports a namespace on the window, so we declare it
+//   globally here to be able to use it anywhere
 declare global {
     // tslint:disable-next-line: interface-name
-    interface Window { Debug : typeof debug }
+    interface Window { Debug: typeof debug }
 }
 
 window.Debug = debug;
 
-export const stores = {
-    PrefsStore: prefsStore,
-    ProjectStore: programStore
-}
-
 const root = (
-    <Provider {...stores}>
-        <App />
-    </Provider>
+    <StoreProvider>
+            <App />
+    </StoreProvider>
 )
 
 ReactDOM.render(root, document.getElementById('root'));
-
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://bit.ly/CRA-PWA
-serviceWorker.unregister();

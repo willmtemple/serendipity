@@ -12,7 +12,6 @@ import { unwrap } from 'proto-syntax/dist/lib/util/Result';
 import { Interpreter } from 'proto-syntax/dist/test/interp/eval';
 import { createLoweringCompiler } from 'proto-syntax/dist/test/lower';
 
-import BlocksPalette from './components/menus/BlocksPalette';
 import Navbar from './components/menus/Navbar';
 import Toolbar from './components/menus/Toolbar';
 import Global from './components/syntax/global';
@@ -95,12 +94,11 @@ export class App extends React.Component<IAppProps> {
 
   public render() {
     const projectStore = this.props.ProjectStore;
-    console.log("App is rendering");
 
     return (
       <div className="App">
         <Navbar app={this} />
-        <BlocksPalette />
+        {/* <BlocksPalette /> */}
         <svg ref={this.svg}
           className="blocksWorkspace"
           preserveAspectRatio="xMinYMin slice"

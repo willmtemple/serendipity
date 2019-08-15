@@ -1,42 +1,27 @@
 import { observer } from 'mobx-react';
-import { expression } from 'proto-syntax/dist/lib/lang/syntax/surface';
 import * as React from 'react';
-import { ISizedComponent } from 'src/components/layout/SizedComponent';
 
-interface INumberProps {
-    parent? : ISizedComponent,
-    number: expression.Number
-}
+import { Number } from 'proto-syntax/dist/lib/lang/syntax/surface/expression';
+import { useResizeParentEffect } from 'src/hooks/measure';
 
-@observer
-class Number extends React.Component<INumberProps> {
-    constructor(props : INumberProps) {
-        super(props);
+// tslint:disable-next-line: variable-name ban-types
+const Number = React.forwardRef<SVGForeignObjectElement, { number: Number }>((props, ref) => {
+    useResizeParentEffect();
 
-        this.setValue = this.setValue.bind(this);
-    }
-
-    public componentDidMount() {
-        this.props.parent!.resize();
-    }
-
-    public render() {
-        console.log("Number is rendering");
-        return (
-            <foreignObject width={67} height={30}>
-                <div {...{xmlns: "http://www.w3.org/1999/xhtml"}}>
-                    <input type="number" placeholder="0" value={this.props.number.value} onChange={this.setValue} />
-                </div>
-            </foreignObject>
-        )
-    }
-
-    private setValue(evt : React.ChangeEvent<HTMLInputElement>) {
+    function setValue(evt: React.ChangeEvent<HTMLInputElement>) {
         const v = parseFloat(evt.target.value);
         if (v !== undefined && !isNaN(v)) {
-            this.props.number.value = v;
+            props.number.value = v;
         }
     }
-}
 
-export default Number;
+    return (
+        <foreignObject ref={ref} width={67} height={30}>
+            <div {...{ xmlns: "http://www.w3.org/1999/xhtml" }}>
+                <input type="number" placeholder="0" value={props.number.value} onChange={setValue} />
+            </div>
+        </foreignObject>
+    )
+})
+
+export default observer(Number);

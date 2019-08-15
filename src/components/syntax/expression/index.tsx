@@ -1,13 +1,11 @@
-import { inject, observer } from 'mobx-react';
+import { observer } from 'mobx-react';
 import * as React from 'react';
 
-import { SyntaxObject } from 'proto-syntax/dist/lib/lang/syntax';
 import { expression } from 'proto-syntax/dist/lib/lang/syntax/surface';
-import SyntaxHole from 'src/components/editor/SyntaxHole';
-import { ISizedComponent } from 'src/components/layout/SizedComponent';
-import { ProjectStore } from 'src/stores/ProjectStore';
-import withStores from 'src/util/withStores';
+import { useStores } from 'src/hooks/stores';
 import BoundingBox from '../../layout/BoundingBox';
+
+import SyntaxHole from 'src/components/editor/SyntaxHole';
 import Accessor from './Accessor';
 import Arithmetic from './Arithmetic';
 import Call from './Call';
@@ -68,90 +66,89 @@ function getColor(kind: string) {
 }
 
 interface IExpressionProps {
-    parent?: ISizedComponent,
-    bind: SyntaxObject,
+    bind: any,
     bindKey: string,
-    bindIdx? : number
+    bindIdx?: number
 
-    fixed? : boolean,
-
-    // Injected
-    ProjectStore: ProjectStore
+    fixed?: boolean,
 }
 
-@inject('ProjectStore')
-@observer
-class Expression extends React.Component<IExpressionProps> {
-    public render() {
-        const expr = (this.props.bindIdx === undefined) ? this.props.bind[this.props.bindKey] : this.props.bind[this.props.bindKey][this.props.bindIdx];
-        const kind = expr.exprKind;
+type CompleteProps = React.PropsWithChildren<IExpressionProps>;
 
-        if (kind === "@hole") {
-            return <SyntaxHole  parent={this.props.parent}
-                                bind={this.props.bind}
-                                bindKey={this.props.bindKey}
-                                bindIdx={this.props.bindIdx}
-                                kind="expression" />
-        }
+const Expression = React.forwardRef<any, CompleteProps>((props, ref) => {
+    const { ProjectStore } = useStores();
 
-        const body = (() => {
-            switch (kind) {
-                case "if":
-                    return <If _if={expr as expression.If} />
-                case "void":
-                    return <Void />
-                case "tuple":
-                    return <Tuple tuple={expr as expression.Tuple} />
-                case "number":
-                    return <Number number={expr as expression.Number} />
-                case "closure":
-                    return <Closure closure={expr as expression.Closure} />
-                case "compare":
-                    return <Compare compare={expr as expression.Compare} />
-                case "name":
-                    return <Name name={expr as expression.Name} />
-                case "arithmetic":
-                    return <Arithmetic arithmetic={expr as expression.Arithmetic} />
-                case "call":
-                    return <Call call={expr as expression.Call} />
-                case "accessor":
-                    return <Accessor accessor={expr as expression.Accessor} />
-                case "procedure":
-                    return <Procedure procedure={expr as expression.Procedure} />
-                case "list":
-                    return <List list={expr as expression.List} />
-                case "with":
-                    return <With with={expr as expression.With} />
-                default:
-                    return (
-                        <text fill="white" fontFamily="Source Code Pro" fontWeight="600">{expr.exprKind} (unimplemented)</text>
-                    );
-            }
-        })();
+    const expr = (
+        (props.bindIdx === undefined)
+            ? props.bind[props.bindKey]
+            : props.bind[props.bindKey][props.bindIdx]
+    ) as expression.Expression;
 
-        // Set up node metadata for DOM access
-        const containerProps : {[k: string] : any} = {};
-        const guid = this.props.ProjectStore.metadataFor(expr).guid;
-        containerProps.id = guid;
-        containerProps.className = this.props.fixed ? "expression" : "draggable syntax expression";
-        containerProps["data-guid"] = this.props.ProjectStore.metadataFor(expr).guid;
-        containerProps["data-parent-guid"] = this.props.ProjectStore.metadataFor(this.props.bind).guid;
-        containerProps["data-mutation-key"] = this.props.bindKey;
-        if (this.props.bindIdx !== undefined) {
-            containerProps["data-mutation-idx"] = this.props.bindIdx;
-        }
+    const kind = expr.exprKind;
 
-        return (
-            <BoundingBox
-                parent={this.props.parent}
-                padding={getPadding(kind)}
-                color={getColor(kind)}
-                kind={kind}
-                containerProps={containerProps}>
-                {body}
-            </BoundingBox>
-        )
+    if (kind === "@hole") {
+        return <SyntaxHole ref={ref}
+            bind={props.bind}
+            bindKey={props.bindKey}
+            bindIdx={props.bindIdx}
+            kind="expression" />
     }
-}
 
-export default withStores('ProjectStore')(Expression);
+    const body = (() => {
+        switch (kind) {
+            case "if":
+                return <If _if={expr as expression.If} />
+            case "void":
+                return <Void />
+            case "tuple":
+                return <Tuple tuple={expr as expression.Tuple} />
+            case "number":
+                return <Number number={expr as expression.Number} />
+            case "closure":
+                return <Closure closure={expr as expression.Closure} />
+            case "compare":
+                return <Compare compare={expr as expression.Compare} />
+            case "name":
+                return <Name name={expr as expression.Name} />
+            case "arithmetic":
+                return <Arithmetic arithmetic={expr as expression.Arithmetic} />
+            case "call":
+                return <Call call={expr as expression.Call} />
+            case "accessor":
+                return <Accessor accessor={expr as expression.Accessor} />
+            case "procedure":
+                return <Procedure procedure={expr as expression.Procedure} />
+            case "list":
+                return <List list={expr as expression.List} />
+            case "with":
+                return <With with={expr as expression.With} />
+            default:
+                return (
+                    <text ref={ref} fill="white" fontFamily="Source Code Pro" fontWeight="600">{expr.exprKind} (unimplemented)</text>
+                );
+        }
+    })();
+
+    // Set up node metadata for DOM access
+    const containerProps: { [k: string]: any } = {};
+    const guid = ProjectStore.metadataFor(expr).guid;
+    containerProps.id = guid;
+    containerProps.className = props.fixed ? "expression" : "draggable syntax expression";
+    containerProps["data-guid"] = ProjectStore.metadataFor(expr).guid;
+    containerProps["data-parent-guid"] = ProjectStore.metadataFor(props.bind).guid;
+    containerProps["data-mutation-key"] = props.bindKey;
+    if (props.bindIdx !== undefined) {
+        containerProps["data-mutation-idx"] = props.bindIdx;
+    }
+
+    return (
+        <BoundingBox ref={ref}
+            padding={getPadding(kind)}
+            color={getColor(kind)}
+            containerProps={containerProps}>
+            {body}
+        </BoundingBox>
+    )
+})
+
+export default observer(Expression);

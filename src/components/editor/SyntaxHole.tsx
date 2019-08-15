@@ -1,48 +1,35 @@
-import { inject, observer } from 'mobx-react';
+import { observer } from 'mobx-react';
 import * as React from 'react';
 
 import { SyntaxObject } from 'proto-syntax/dist/lib/lang/syntax';
-import { ProjectStore } from 'src/stores/ProjectStore';
-import withStores from 'src/util/withStores';
-import { ISizedComponent } from '../layout/SizedComponent';
+
+import { useResizeParentEffect } from 'src/hooks/measure';
+import { useStores } from 'src/hooks/stores';
 
 interface ISyntaxHoleProps {
-    parent? : ISizedComponent,
-    bind : SyntaxObject,
-    bindKey : string | number,
-    bindIdx? : number,
+    bind: SyntaxObject,
+    bindKey: string | number,
+    bindIdx?: number,
 
     kind: "expression" | "statement",
-    
-    // Injected
-    ProjectStore: ProjectStore
 }
 
-@inject('ProjectStore')
-@observer
-class SyntaxHole extends React.Component<ISyntaxHoleProps> {
-    // When a syntax hole mounts, it should trigger an upwards resize
-    public componentDidMount() {
-        this.props.parent!.resize()
-    }
-    public render() {
-        const projects = this.props.ProjectStore;
-        let stx = this.props.bind[this.props.bindKey];
-        if (this.props.bindIdx !== undefined) {
-            stx = stx[this.props.bindIdx];
-        }
+const SyntaxHole = React.forwardRef<SVGRectElement, ISyntaxHoleProps>((props, ref) => {
+    const { ProjectStore } = useStores();
 
-        return (
-            <rect className={"drop " + this.props.kind}
-                data-parent-guid={projects.metadataFor(this.props.bind).guid}
-                data-mutation-key={this.props.bindKey}
-                data-mutation-idx={this.props.bindIdx}
-                fill="#FFFFFFE0"
-                rx={5}
-                width={90}
-                height={48}/>
-        );
-    }
-}
+    useResizeParentEffect();
 
-export default withStores('ProjectStore')(SyntaxHole);
+    return (
+        <rect ref={ref}
+            className={"drop " + props.kind}
+            data-parent-guid={ProjectStore.metadataFor(props.bind).guid}
+            data-mutation-key={props.bindKey}
+            data-mutation-idx={props.bindIdx}
+            fill="#FFFFFFE0"
+            rx={5}
+            width={90}
+            height={48} />
+    )
+})
+
+export default observer(SyntaxHole);

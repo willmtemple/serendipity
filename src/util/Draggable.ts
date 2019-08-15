@@ -140,7 +140,7 @@ export function makeDraggable(svg: SVGSVGElement) {
 
                 const dataIdx = selectedElement.getAttribute('data-idx');
                 const idx = dataIdx && parseInt(dataIdx, 10);
-                if (idx && !isNaN(idx)) {
+                if (typeof idx === 'number' && !isNaN(idx)) {
                     projectStore.bump(idx);
                 } else {
                     console.warn("Selected global draggable does not have an index.")

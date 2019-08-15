@@ -1,30 +1,14 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
 
-import { expression } from 'proto-syntax/dist/lib/lang/syntax/surface';
-import { ISizedComponent } from 'src/components/layout/SizedComponent';
+import { Name } from 'proto-syntax/dist/lib/lang/syntax/surface/expression';
+import { useResizeParentEffect } from 'src/hooks/measure';
 import Binder from '../../editor/Binder';
 
-interface INameProps {
-    parent? : ISizedComponent,
+const Name = React.forwardRef<any, { name: Name }> ((props, ref) => {
+    useResizeParentEffect();
 
-    name: expression.Name
-}
+    return <Binder ref={ref} bind={props.name} bindKey="name" />;
+})
 
-@observer
-class Name extends React.Component<INameProps> {
-    public componentDidMount() {
-        this.props.parent!.resize()
-    }
-
-    public render() {
-        console.log("Name is rendering")
-        return (
-            <Binder
-                bind={this.props.name}
-                bindKey="name" />
-        )
-    }
-}
-
-export default Name;
+export default observer(Name);

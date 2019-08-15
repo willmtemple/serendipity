@@ -1,5 +1,5 @@
 import { inject, IWrappedComponent } from 'mobx-react';
-import { stores as _stores } from '..';
+import { stores as _stores } from '../hooks/stores';
 
 type Stores = typeof _stores;
 
@@ -12,7 +12,7 @@ export default function withStores<TInjectedProps extends keyof Stores>(
     function injected<TComponentProps extends Pick<Stores, TInjectedProps>>(
         c: React.ComponentType<TComponentProps>
     ) {
-        return (inject(...stores)(c) as any) as
+        return (inject(... stores)(c) as any) as
             React.FC<
                 Subtract<TComponentProps, Pick<Stores, TInjectedProps>> &
                 Partial<Pick<Stores, TInjectedProps>>

@@ -2,78 +2,57 @@ import { observer } from 'mobx-react';
 import * as React from 'react';
 
 import { global } from 'proto-syntax/dist/lib/lang/syntax/surface';
-import { ISizedComponent } from 'src/components/layout/SizedComponent';
+import Indent from 'src/components/layout/Indent';
 import SvgFlex from 'src/components/layout/SvgFlex';
-import { arrayEqual } from '../../../util';
 import AddButton from '../../editor/AddButton';
 import Binder from '../../editor/Binder';
 import CloseButton from '../../editor/CloseButton';
 import Expression from '../expression';
 
 interface IDefineFuncProps {
-    parent?: ISizedComponent,
     definefunc: global.DefineFunction,
 
-    onDelete() : void
+    onDelete(): void
 }
 
-@observer
-class DefineFunc extends React.Component<IDefineFuncProps> {
-    private cachedParameters : string[] | null;
-    private cachedBinderLine : JSX.Element[] | null;
-    constructor(props : IDefineFuncProps) {
-        super(props);
+const DefineFunc = React.forwardRef<SVGGElement, IDefineFuncProps>((props, ref) => {
 
-        this.cachedParameters = null;
-        this.cachedBinderLine = null;
-
-        this.addParam = this.addParam.bind(this);
+    function addParam() {
+        props.definefunc.parameters.push('new');
     }
 
-    public render() {
-        console.log("DefineFunc is rendering");
-        return (
-            <g>
-                <SvgFlex direction="horizontal" align="middle" parent={this.props.parent} padding={10}>
-                    {this._getBinderLine()}
-                </SvgFlex>
-                <g className="exprBox" transform="translate(30, 60)">
-                    <Expression parent={this.props.parent} bind={this.props.definefunc} bindKey="body" />
-                </g>
-            </g>
-        );
-    }
+    let binderLine = [
+        <text>define</text>,
+        <Binder bind={props.definefunc} bindKey="name" />,
+        <text>(</text>
+    ];
 
-    private _getBinderLine() {
-        if (!arrayEqual(this.cachedParameters, this.props.definefunc.parameters)) {
-            // Update cache
-            this.cachedParameters = [...this.props.definefunc.parameters];
-
-            const binderLine = [
-                <CloseButton key="df_close" onClick={this.props.onDelete} />,
-                <text key="df_label">define</text>,
-                <Binder key="df_name" bind={this.props.definefunc} bindKey="name" />,
-                <text key="df_open_paren">(</text>
-            ];
-
-            this.props.definefunc.parameters.forEach((_, idx) => {
-                binderLine.push(<Binder key={idx} bind={this.props.definefunc.parameters} bindKey={idx} />);
-                if (idx + 1 !== this.props.definefunc.parameters.length) {
-                    binderLine.push(<text key={"df_comma_" + idx}>, </text>);
-                }
-            });
-            binderLine.push(<text key="df_close_paren">)</text>)
-            binderLine.push(<AddButton key="df_expand" onClick={this.addParam} />)
-            binderLine.push(<text key="df_arrow">=></text>)
-
-            this.cachedBinderLine = binderLine;
+    props.definefunc.parameters.forEach((_, idx) => {
+        binderLine.push(<Binder bind={props.definefunc.parameters} bindKey={idx} />);
+        if (idx < props.definefunc.parameters.length - 1) {
+            binderLine.push(<text>,</text>);
         }
-        return this.cachedBinderLine
-    }
+    });
 
-    private addParam() {
-        this.props.definefunc.parameters.push('new');
-    }
-}
+    binderLine = binderLine.concat([
+        <text>)</text>,
+        <AddButton onClick={addParam} />,
+        <text>=></text>
+    ])
 
-export default DefineFunc;
+    return (
+        <g ref={ref}>
+            <CloseButton onClick={props.onDelete} />
+            <Indent x={32}>
+                <SvgFlex direction="horizontal" align="middle" padding={10}>
+                    {binderLine}
+                </SvgFlex>
+            </Indent>
+            <Indent x={32} y={64}>
+                <Expression bind={props.definefunc} bindKey="body" />
+            </Indent>
+        </g>
+    );
+})
+
+export default observer(DefineFunc);

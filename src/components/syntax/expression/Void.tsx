@@ -1,19 +1,10 @@
 import * as React from 'react';
-import { ISizedComponent } from 'src/components/layout/SizedComponent';
+import { useResizeParentEffect } from 'src/hooks/measure';
 
-interface IVoidProps {
-    parent? : ISizedComponent
-}
+const Void = React.forwardRef<SVGTextElement>((_, ref) => {
+    useResizeParentEffect();
 
-class Void extends React.Component<IVoidProps> {
-    public componentDidMount() {
-        this.props.parent!.resize();
-    }
-    public render() {
-        return (
-            <text style={{fontWeight: 900}}>void</text>
-        )
-    }
-}
+    return <text ref={ref}>void</text>
+})
 
 export default Void;
