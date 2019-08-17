@@ -12,14 +12,14 @@ const Number = React.forwardRef<SVGForeignObjectElement, { number: Number }>((pr
         const v = parseFloat(evt.target.value);
         if (v !== undefined && !isNaN(v)) {
             props.number.value = v;
+        } else if (evt.target.value === "") {
+            props.number.value = 0;
         }
     }
 
     return (
         <foreignObject ref={ref} width={67} height={30}>
-            <div {...{ xmlns: "http://www.w3.org/1999/xhtml" }}>
-                <input type="number" placeholder="0" value={props.number.value} onChange={setValue} />
-            </div>
+            <input type="number" placeholder="0" value={props.number.value} onChange={setValue} />
         </foreignObject>
     )
 })

@@ -3,9 +3,9 @@ import * as React from 'react';
 
 import { SyntaxObject } from 'proto-syntax/dist/lib/lang/syntax';
 import { statement } from 'proto-syntax/dist/lib/lang/syntax/surface';
-import SyntaxHole from 'src/components/editor/SyntaxHole';
+import SyntaxHole from 'src/components/editor/StatementHole';
+import StatementBlock from 'src/components/layout/StatementBlock';
 import { useStores } from 'src/hooks/stores';
-import BoundingBox from '../../layout/BoundingBox';
 import Do from './Do';
 import ForIn from './ForIn';
 import Print from './Print';
@@ -13,7 +13,7 @@ import Print from './Print';
 function getColor(kind: string) {
     switch (kind) {
         case "print":
-            return "darkgrey";
+            return "#1F75FE";
         case "forin":
             return "grey";
         default:
@@ -65,7 +65,7 @@ const Statement = React.forwardRef<any, IStatementProps>((props, ref) => {
     const containerProps: { [k: string]: any } = {};
     const guid = ProjectStore.metadataFor(stmt).guid;
     containerProps.id = guid;
-    containerProps.className = props.fixed ? "statement" : "draggable syntax statement";
+    containerProps.className = (props.fixed ? "statement" : "draggable syntax statement") + " " + stmt.statementKind;
     containerProps["data-guid"] = guid;
     containerProps["data-parent-guid"] = ProjectStore.metadataFor(props.bind).guid;
     containerProps["data-mutation-key"] = props.bindKey;
@@ -74,12 +74,11 @@ const Statement = React.forwardRef<any, IStatementProps>((props, ref) => {
     }
 
     return (
-        <BoundingBox ref={ref}
-            padding={6}
+        <StatementBlock ref={ref}
             color={getColor(stmt.statementKind)}
             containerProps={containerProps}>
             {body}
-        </BoundingBox>
+        </StatementBlock>
     )
 })
 

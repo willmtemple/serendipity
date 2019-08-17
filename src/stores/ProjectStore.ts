@@ -5,7 +5,6 @@ import { surfaceExample } from 'proto-syntax/dist/test/examples';
 import * as guid from 'uuid/v4';
 
 import * as expr from 'proto-syntax/dist/lib/lang/syntax/surface/expression';
-import * as stmt from 'proto-syntax/dist/lib/lang/syntax/surface/statement';
 
 import { SyntaxObject } from 'proto-syntax/dist/lib/lang/syntax';
 import { Module } from 'proto-syntax/dist/lib/lang/syntax/surface';
@@ -233,6 +232,7 @@ export class ProjectStore {
     }
 
     @action public detachStatement(id: string, key: string, pos: IPosition, idx?: number): string {
+        const that = this;
         const parent = this.byGUID[id];
         const node = (() => {
             const v = parent && parent[key];
@@ -245,14 +245,36 @@ export class ProjectStore {
 
         if (!node) { throw new Error("No such key(s) on that object during 'get'"); }
 
-        const setNode = action((n: Statement) => {
+        const killNode = action(() => {
             const v = parent && parent[key];
             if (v) {
                 if (idx !== undefined && v[idx]) {
-                    v[idx] = n;
+                    const l = v as any[];
+                    if (l.length > 1) {
+                        (v as any[]).splice(idx, 1);
+                    } else {
+                        const g = guid();
+                        v[idx] = {
+                            statementKind: "@hole",
+                            metadata: {
+                                editor: {
+                                    guid: g
+                                }
+                            }
+                        };
+                    }
                     return;
                 } else if (idx === undefined) {
-                    parent[key] = n;
+                    const g = guid();
+                    parent[key] = {
+                        statementKind: "@hole",
+                        metadata: {
+                            editor: {
+                                guid: g
+                            }
+                        }
+                    };
+                    that.byGUID[g] = parent[key];
                     return;
                 }
             }
@@ -272,16 +294,7 @@ export class ProjectStore {
             }
         });
 
-        const newHole: stmt.Hole = {
-            statementKind: "@hole",
-            metadata: {
-                editor: {
-                    guid: guid()
-                }
-            }
-        };
-        setNode(newHole);
-        this.byGUID[newHole.metadata!.editor.guid] = newHole;
+        killNode();
 
         // Put the clone onto the globals stack
         this.byGUID[newGlobalObject.metadata.editor.guid] = newGlobalObject;
@@ -290,10 +303,10 @@ export class ProjectStore {
         return newGlobalObject.metadata.editor.guid;
     }
 
-    @action public addExpr(o : Expression, pos? : IPosition) {
+    @action public addExpr(o: Expression, pos?: IPosition) {
         const id = guid();
         this.loadGUID(o);
-        const globalWrapper : IEditorDetachedSyntax = {
+        const globalWrapper: IEditorDetachedSyntax = {
             globalKind: "_editor_detachedsyntax",
             syntaxKind: "expression",
             element: o,

@@ -8,7 +8,9 @@ import Expression from '../expression';
 
 const Print = React.forwardRef<SVGGElement, { print: Print }>((props, ref) => (
     <g ref={ref}>
-        <text>print</text>
+        <Indent y={18}>
+            <text>print</text>
+        </Indent>
         <Indent x={60}>
             <Expression bind={props.print} bindKey="value" />
         </Indent>

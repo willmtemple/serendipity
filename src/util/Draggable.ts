@@ -208,7 +208,7 @@ export function makeDraggable(svg: SVGSVGElement) {
                         newGuid = projectStore.detachExpression(guid, key, newPosition, idx ? parseInt(idx, 10) : undefined);
                     } else { // statement
                         heldItemKind = "statement";
-                        newGuid = projectStore.detachStatement(guid, key, newPosition, idx ? parseInt(idx, 10): undefined);
+                        newGuid = projectStore.detachStatement(guid, key, newPosition, idx ? parseInt(idx, 10) : undefined);
                     }
                     dragMode = undefined;
                     offset = {
@@ -276,20 +276,22 @@ export function makeDraggable(svg: SVGSVGElement) {
         // Don't zoom while dragging anything.
         if (!selectedElement) {
             const oldScale = svgDims.scale;
-            const nextScale = oldScale + (evt.spinY / 10);
-            const ratio = nextScale / oldScale;
-            if (nextScale > 0.8 && nextScale < 3.0) {
-                svgDims.scale = nextScale;
-                prefsStore.prefs.editorScale = nextScale;
-                // Keep the mouse position fixed in SVG space
-                const mouse = getMousePosition(bEvt);
-                const { left, top } = svgDims;
-                // Also (1-r)m_{x} - rl , but this uses less mults
-                svgDims.left = mouse.x - ((mouse.x - left) * ratio);
-                svgDims.top = mouse.y - ((mouse.y - top) * ratio);
+            let nextScale = oldScale + (evt.spinY / 10);
+            nextScale = nextScale < 0.8 ? 0.8 : nextScale;
+            nextScale = nextScale > 3.0 ? 3.0 : nextScale;
 
-                setViewBox();
-            }
+            const ratio = nextScale / oldScale;
+            svgDims.scale = nextScale;
+            prefsStore.prefs.editorScale = nextScale;
+            // Keep the mouse position fixed in SVG space
+            const mouse = getMousePosition(bEvt);
+            const { left, top } = svgDims;
+            svgDims.left = mouse.x - ((mouse.x - left) * ratio);
+            svgDims.top = mouse.y - ((mouse.y - top) * ratio);
+
+            prefsStore.setPosition(svgDims.left, svgDims.top);
+
+            setViewBox();
         }
     }
 }

@@ -2,10 +2,10 @@ import { observer } from 'mobx-react';
 import * as React from 'react';
 
 import { expression } from 'proto-syntax/dist/lib/lang/syntax/surface';
+import ExpressionBlock from 'src/components/layout/ExpressionBlock';
 import { useStores } from 'src/hooks/stores';
-import BoundingBox from '../../layout/BoundingBox';
 
-import SyntaxHole from 'src/components/editor/SyntaxHole';
+import SyntaxHole from 'src/components/editor/ExpressionHole';
 import Accessor from './Accessor';
 import Arithmetic from './Arithmetic';
 import Call from './Call';
@@ -20,7 +20,7 @@ import Tuple from './Tuple';
 import Void from './Void';
 import With from './With';
 
-function getPadding(kind: string) {
+/*function getPadding(kind: string) {
     switch (kind) {
         case "number":
         case "name":
@@ -30,7 +30,7 @@ function getPadding(kind: string) {
         default:
             return 6;
     }
-}
+}*/
 
 function getColor(kind: string) {
     switch (kind) {
@@ -142,12 +142,11 @@ const Expression = React.forwardRef<any, CompleteProps>((props, ref) => {
     }
 
     return (
-        <BoundingBox ref={ref}
-            padding={getPadding(kind)}
+        <ExpressionBlock ref={ref}
             color={getColor(kind)}
             containerProps={containerProps}>
             {body}
-        </BoundingBox>
+        </ExpressionBlock>
     )
 })
 
