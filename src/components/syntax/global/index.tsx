@@ -60,10 +60,7 @@ const Global = React.forwardRef<any, { global : IEditorGlobal }>((props, ref) =>
 
         return (
             <BoundingBox ref={ref}
-                padding={10}
                 color={getColor(glb)}
-                stroke="black"
-                strokeWidth={1.5}
                 containerProps={{ id: guid }}>
                 {body}
             </BoundingBox>

@@ -1,14 +1,11 @@
 import * as React from 'react';
 
+import * as Color from 'color';
+
 import { IMeasurementProps, measureChildren } from 'src/hooks/measure';
 
 interface IBoundingBoxProps {
     color?: string,
-    padding?: number,
-    rx?: number,
-    ry?: number,
-    stroke?: string,
-    strokeWidth?: number,
 
     // Set extra props on the top-level g element
     containerProps?: any,
@@ -17,18 +14,18 @@ interface IBoundingBoxProps {
 type CompleteProps = IMeasurementProps & React.PropsWithChildren<IBoundingBoxProps>;
 
 const BoundingBox = measureChildren(React.forwardRef<SVGGElement, CompleteProps>((props, ref) => {
-    const pad = props.padding || 0;
+
+    const color = Color(props.color);
 
     return (
         <g {...props.containerProps} ref={ref}>
-            <rect fill={props.color || "black"}
-                rx={props.rx || 6}
-                ry={props.ry}
-                stroke={props.stroke}
-                strokeWidth={props.strokeWidth}
-                width={props.sizes[0].width + (pad * 2)}
-                height={props.sizes[0].height + (pad * 2)} />
-            <g transform={pad ? `translate(${pad},${pad})` : undefined}>
+            <rect fill={color.string()}
+                rx={5}
+                stroke={color.darken(0.5).string()}
+                strokeWidth={1.5}
+                width={props.sizes[0].width + 20}
+                height={props.sizes[0].height + 20} />
+            <g transform="translate(10,10)">
                 {props.children}
             </g>
         </g>

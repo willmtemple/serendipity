@@ -76,7 +76,7 @@ const ExpressionBlock = measureChildren(React.forwardRef<SVGGElement, CompletePr
 
     return (
         <g {...props.containerProps} ref={ref}>
-            <path stroke={color.darken(0.5).string()} fill={color.string()} d={pathDetails} />
+            <path stroke={color.darken(0.35).string()} fill={color.string()} d={pathDetails} />
             <g transform={`translate(${PADX+CAP_INDENT + CAP_EXTENT},${PADY})`}>
                 {props.children}
             </g>
