@@ -114,6 +114,9 @@ export function writeStatement(s: Statement, level: number, skipIndent: boolean)
         Break: (_) => {
             accum += "break";
         },
+        Hole: (_) => {
+            accum += "<@>";
+        }
     })(s);
     return accum;
 }

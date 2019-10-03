@@ -31,7 +31,7 @@ function _curry(parameters: string[], body: SExpression): AbsExpression {
 }
 
 /**
- * Y Combinator constructor function, used to recursively bind `c` to itself
+ * Fixed-point Y Combinator constructor function, used to recursively bind `c` to itself
  * @param c The lambda to bind into the y combinator for external renaming
  */
 function Y(c: abstract.expression.Closure) : abstract.expression.Call {

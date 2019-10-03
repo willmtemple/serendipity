@@ -6,7 +6,15 @@ import { SyntaxObject } from '../';
 import { Expression } from './expression';
 import { Function } from '../../../util/FuncTools';
 
-export type Statement = Print | Let | If | ForIn | Forever | Do | Break;
+export type Statement =
+      Print
+    | Let
+    | If
+    | ForIn
+    | Forever
+    | Do
+    | Break
+    | Hole;
 
 export interface Print extends SyntaxObject {
     statementKind: "print",
@@ -47,6 +55,10 @@ export interface Break extends SyntaxObject {
     statementKind: "break"
 }
 
+export interface Hole extends SyntaxObject {
+    statementKind: "@hole"
+}
+
 // Statement tools
 
 export interface StatementPattern<T> {
@@ -57,6 +69,7 @@ export interface StatementPattern<T> {
     Forever: Function<Forever, T>,
     Do: Function<Do, T>,
     Break: Function<Break, T>,
+    Hole: Function<Hole, T>
 }
 
 export interface ExhaustiveStatementPattern<T>  extends StatementPattern<T>{
@@ -84,6 +97,7 @@ export function matchStatement<T>(p: StatementMatcher<T>): Function<Statement, T
             case "forever": return p.Forever ? p.Forever(s as Forever) : p.Default(s);
             case "do": return p.Do ? p.Do(s as Do) : p.Default(s);
             case "break": return p.Break ? p.Break(s as Break) : p.Default(s);
+            case "@hole": return p.Hole ? p.Hole(s as Hole) : p.Default(s);
             default:
                 const __exhaust : never = s;
                 return __exhaust;
