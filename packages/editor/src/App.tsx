@@ -8,9 +8,9 @@ import './App.css';
 import { PrefsStore } from './stores/PrefsStore';
 import { ProjectStore } from './stores/ProjectStore';
 
-import { unwrap } from 'proto-syntax/dist/lib/util/Result';
-import { Interpreter } from 'proto-syntax/dist/test/interp/eval';
-import { createLoweringCompiler } from 'proto-syntax/dist/test/lower';
+import { unwrap } from '@serendipity/syntax/dist/lib/util/Result';
+import { Interpreter } from '@serendipity/syntax/dist/test/interp/eval';
+import { createLoweringCompiler } from '@serendipity/syntax/dist/test/lower';
 
 import Navbar from './components/menus/Navbar';
 import Toolbar from './components/menus/Toolbar';
@@ -97,7 +97,7 @@ export class App extends React.Component<IAppProps> {
 
     return (
       <div className="App">
-        <Navbar app={this} />
+        {/* <Navbar app={this} /> */}
         {/* <BlocksPalette /> */}
         <svg ref={this.svg}
           className="blocksWorkspace"
@@ -151,7 +151,7 @@ export class App extends React.Component<IAppProps> {
             })
           }
         </svg>
-        {
+        {/*
           this.props.PrefsStore.prefs.terminal && (
             <Terminal termDivProps={{
               id: "terminal",
@@ -165,8 +165,8 @@ export class App extends React.Component<IAppProps> {
               }
             }} />
           )
-        }
-        <Toolbar app={this} />
+        */}
+        {/* <Toolbar app={this} /> */}
       </div>
     );
   }

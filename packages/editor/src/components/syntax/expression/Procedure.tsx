@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
 
-import { Procedure } from 'proto-syntax/dist/lib/lang/syntax/surface/expression';
+import { Procedure } from '@serendipity/syntax/dist/lib/lang/syntax/surface/expression';
 import Indent from 'components/layout/Indent';
 import SvgFlex from 'components/layout/SvgFlex';
 import { useStores } from 'hooks/stores';

@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
 
-import { expression } from 'proto-syntax/dist/lib/lang/syntax/surface';
+import { expression } from '@serendipity/syntax/dist/lib/lang/syntax/surface';
 import ExpressionBlock from 'components/layout/ExpressionBlock';
 import { useStores } from 'hooks/stores';
 

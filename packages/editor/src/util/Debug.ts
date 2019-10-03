@@ -1,6 +1,6 @@
-import { Expression } from 'proto-syntax/dist/lib/lang/syntax/surface/expression';
-import { Global } from 'proto-syntax/dist/lib/lang/syntax/surface/global';
-import { Statement } from 'proto-syntax/dist/lib/lang/syntax/surface/statement';
+import { Expression } from '@serendipity/syntax/dist/lib/lang/syntax/surface/expression';
+import { Global } from '@serendipity/syntax/dist/lib/lang/syntax/surface/global';
+import { Statement } from '@serendipity/syntax/dist/lib/lang/syntax/surface/statement';
 
 import ProjectStore from 'stores/ProjectStore';
 

@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
 
-import { global } from 'proto-syntax/dist/lib/lang/syntax/surface';
+import { global } from '@serendipity/syntax/dist/lib/lang/syntax/surface';
 import Binder from '../../editor/Binder';
 import CloseButton from '../../editor/CloseButton';
 import Indent from '../../layout/Indent';

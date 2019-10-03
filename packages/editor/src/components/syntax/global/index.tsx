@@ -1,8 +1,8 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
 
-import * as surface from 'proto-syntax/dist/lib/lang/syntax/surface';
-import { matchGlobal } from 'proto-syntax/dist/lib/lang/syntax/surface/global';
+import * as surface from '@serendipity/syntax/dist/lib/lang/syntax/surface';
+import { matchGlobal } from '@serendipity/syntax/dist/lib/lang/syntax/surface/global';
 import { useStores } from 'hooks/stores';
 import { IEditorDetachedSyntax, IEditorGlobal } from 'stores/ProjectStore';
 import CloseButton from '../../editor/CloseButton';

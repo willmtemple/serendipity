@@ -1,8 +1,8 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
 
-import { SyntaxObject } from 'proto-syntax/dist/lib/lang/syntax';
-import { statement } from 'proto-syntax/dist/lib/lang/syntax/surface';
+import { SyntaxObject } from '@serendipity/syntax/dist/lib/lang/syntax';
+import { statement } from '@serendipity/syntax/dist/lib/lang/syntax/surface';
 import SyntaxHole from 'components/editor/StatementHole';
 import StatementBlock from 'components/layout/StatementBlock';
 import { useStores } from 'hooks/stores';

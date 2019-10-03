@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
 
-import { Number } from 'proto-syntax/dist/lib/lang/syntax/surface/expression';
+import { Number } from '@serendipity/syntax/dist/lib/lang/syntax/surface/expression';
 import { useResizeParentEffect } from 'hooks/measure';
 
 // tslint:disable-next-line: variable-name ban-types

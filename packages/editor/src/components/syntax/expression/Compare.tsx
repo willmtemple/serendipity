@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react';
 import * as React from 'react'
 
-import { Compare } from 'proto-syntax/dist/lib/lang/syntax/surface/expression';
+import { Compare } from '@serendipity/syntax/dist/lib/lang/syntax/surface/expression';
 import SvgFlex from 'components/layout/SvgFlex';
 import Expression from '.';
 

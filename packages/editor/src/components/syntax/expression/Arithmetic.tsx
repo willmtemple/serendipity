@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
 
-import { Arithmetic } from 'proto-syntax/dist/lib/lang/syntax/surface/expression';
+import { Arithmetic } from '@serendipity/syntax/dist/lib/lang/syntax/surface/expression';
 import SvgFlex from 'components/layout/SvgFlex';
 import Expression from '.';
 

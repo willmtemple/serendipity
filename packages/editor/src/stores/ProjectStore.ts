@@ -1,16 +1,16 @@
 import { action, autorun, computed, observable, set, toJS } from 'mobx';
 
-import { surfaceExample } from 'proto-syntax/dist/test/examples';
+import { surfaceExample } from '@serendipity/syntax/dist/test/examples';
 
 import guid from 'uuid/v4';
 
-import * as expr from 'proto-syntax/dist/lib/lang/syntax/surface/expression';
+import * as expr from '@serendipity/syntax/dist/lib/lang/syntax/surface/expression';
 
-import { SyntaxObject } from 'proto-syntax/dist/lib/lang/syntax';
-import { Module } from 'proto-syntax/dist/lib/lang/syntax/surface';
-import { Expression } from 'proto-syntax/dist/lib/lang/syntax/surface/expression';
-import { Define, DefineFunction, Global, Main } from 'proto-syntax/dist/lib/lang/syntax/surface/global';
-import { Statement } from 'proto-syntax/dist/lib/lang/syntax/surface/statement';
+import { SyntaxObject } from '@serendipity/syntax/dist/lib/lang/syntax';
+import { Module } from '@serendipity/syntax/dist/lib/lang/syntax/surface';
+import { Expression } from '@serendipity/syntax/dist/lib/lang/syntax/surface/expression';
+import { Define, DefineFunction, Global, Main } from '@serendipity/syntax/dist/lib/lang/syntax/surface/global';
+import { Statement } from '@serendipity/syntax/dist/lib/lang/syntax/surface/statement';
 import { IPosition } from 'util/Position';
 
 const P_NAME = 'userProject';

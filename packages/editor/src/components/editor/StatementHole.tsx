@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
 
-import { SyntaxObject } from 'proto-syntax/dist/lib/lang/syntax';
+import { SyntaxObject } from '@serendipity/syntax/dist/lib/lang/syntax';
 
 import { useResizeParentEffect } from 'hooks/measure';
 import { useStores } from 'hooks/stores';
