@@ -3,9 +3,7 @@
         "module": "commonjs",
         "moduleResolution": "node",
         "target": "es5",
-        "lib": [
-            "es6",
-        ],
+        "lib": [],
         "types": [
             "node"
         ],
