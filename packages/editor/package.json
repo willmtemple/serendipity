@@ -1,6 +1,10 @@
 {
   "name": "@serendipity/editor",
   "version": "0.1.0",
+  "scripts": {
+    "build": "echo \"Skipping build of editor -- not yet re-enabled\"",
+    "typeck": "tsc"
+  },
   "dependencies": {
     "@serendipity/syntax": "^0.1.0",
     "@types/color": "^3.0.0",
@@ -14,19 +18,12 @@
     "normalize-wheel": "^1.0.1",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
-    "tslint": "^5.19.0",
-    "tslint-config-prettier": "^1.18.0",
-    "tslint-react": "^4.0.0",
-    "typescript": "^3.0.0",
+    "typescript": "^3.6.0",
     "uuid": "^3.3.3",
     "xterm": "^3.14.5"
   },
-  "scripts": {
-    "build": "echo \"Skipping build of editor -- not yet re-enabled\"",
-    "typeck": "tsc"
-  },
   "devDependencies": {
-    "@types/jest": "^24.0.18",
-    "jest": "^24.9.0"
+    "eslint": "~6.5.1",
+    "ts-node": "~8.4.1"
   }
 }
