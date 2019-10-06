@@ -10,7 +10,7 @@ import { Expression } from './expression';
 export type Global = Main | Define | DefineFunction;
 
 export interface Main extends SyntaxObject {
-    globalKind: "main",
+    globalKind: "main"
     body: Expression
 }
 

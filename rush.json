@@ -39,14 +39,20 @@
   "projects": [
     {
       "packageName": "@serendipity/syntax",
-      "projectFolder": "packages/syntax",
+      "projectFolder": "syntax/syntax",
       "reviewCategory": "production",
       "shouldPublish": false
     },
     {
-      "packageName": "@serendipity/editor",
-      "projectFolder": "packages/editor",
+      "packageName": "@serendipity/camino",
+      "projectFolder": "editor/camino",
       "reviewCategory": "production",
+      "shouldPublish": false
+    },
+    {
+      "packageName": "@serendipity/configs",
+      "projectFolder": "tools/configs",
+      "reviewCategory": "tools",
       "shouldPublish": false
     }
   ]

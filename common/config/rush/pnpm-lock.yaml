@@ -1,11 +1,14 @@
 dependencies:
-  '@rush-temp/editor': 'file:projects/editor.tgz'
+  '@rush-temp/camino': 'file:projects/camino.tgz'
+  '@rush-temp/configs': 'file:projects/configs.tgz_eslint@6.5.1'
   '@rush-temp/syntax': 'file:projects/syntax.tgz'
   '@types/color': 3.0.0
   '@types/node': 12.7.11
   '@types/react': 16.9.5
   '@types/react-dom': 16.9.1
   '@types/uuid': 3.4.5
+  '@typescript-eslint/eslint-plugin': 2.3.2_02831eb307232b3f286704a7de52b241
+  '@typescript-eslint/parser': 2.3.2_eslint@6.5.1
   color: 3.1.2
   eslint: 6.5.1
   mobx: 5.14.0
@@ -49,6 +52,14 @@ packages:
     dev: false
     resolution:
       integrity: sha512-5qqtNia+m2I0/85+pd2YzAXaTyKO8j+svirO5aN+XaQJ5+eZ8nx0jPtEWZLxCi50xwYsX10xUHetFzfb1WEs4Q==
+  /@types/eslint-visitor-keys/1.0.0:
+    dev: false
+    resolution:
+      integrity: sha512-OCutwjDZ4aFS6PB1UZ988C4YgwlBHJd6wCeQqaLdmadZ/7e+w79+hbMUFC1QXDNCmdyoRfAFdm0RypzwR+Qpag==
+  /@types/json-schema/7.0.3:
+    dev: false
+    resolution:
+      integrity: sha512-Il2DtDVRGDcqjDtE+rF8iqg1CArehSK84HZJCT7AMITlyXRBpuPhqGLDQMowraqqu1coEaimg4ZOqggt6L6L+A==
   /@types/node/12.7.11:
     dev: false
     resolution:
@@ -76,6 +87,62 @@ packages:
     dev: false
     resolution:
       integrity: sha512-MNL15wC3EKyw1VLF+RoVO4hJJdk9t/Hlv3rt1OL65Qvuadm4BYo6g9ZJQqoq7X8NBFSsQXgAujWciovh2lpVjA==
+  /@typescript-eslint/eslint-plugin/2.3.2_02831eb307232b3f286704a7de52b241:
+    dependencies:
+      '@typescript-eslint/experimental-utils': 2.3.2_eslint@6.5.1
+      '@typescript-eslint/parser': 2.3.2_eslint@6.5.1
+      eslint: 6.5.1
+      eslint-utils: 1.4.2
+      functional-red-black-tree: 1.0.1
+      regexpp: 2.0.1
+      tsutils: 3.17.1_typescript@3.6.3
+    dev: false
+    engines:
+      node: ^8.10.0 || ^10.13.0 || >=11.10.1
+    peerDependencies:
+      '@typescript-eslint/parser': ^2.0.0
+      eslint: ^5.0.0 || ^6.0.0
+      typescript: '*'
+    resolution:
+      integrity: sha512-tcnpksq1bXzcIRbYLeXkgp6l+ggEMXXUcl1wsSvL807fRtmvVQKygElwEUf4hBA76dNag3VAK1q2m3vd7qJaZA==
+  /@typescript-eslint/experimental-utils/2.3.2_eslint@6.5.1:
+    dependencies:
+      '@types/json-schema': 7.0.3
+      '@typescript-eslint/typescript-estree': 2.3.2
+      eslint: 6.5.1
+      eslint-scope: 5.0.0
+    dev: false
+    engines:
+      node: ^8.10.0 || ^10.13.0 || >=11.10.1
+    peerDependencies:
+      eslint: '*'
+    resolution:
+      integrity: sha512-t+JGdTT6dRbmvKDlhlVkEueoZa0fhJNfG6z2cpnRPLwm3VwYr2BjR//acJGC1Yza0I9ZNcDfRY7ubQEvvfG6Jg==
+  /@typescript-eslint/parser/2.3.2_eslint@6.5.1:
+    dependencies:
+      '@types/eslint-visitor-keys': 1.0.0
+      '@typescript-eslint/experimental-utils': 2.3.2_eslint@6.5.1
+      '@typescript-eslint/typescript-estree': 2.3.2
+      eslint: 6.5.1
+      eslint-visitor-keys: 1.1.0
+    dev: false
+    engines:
+      node: ^8.10.0 || ^10.13.0 || >=11.10.1
+    peerDependencies:
+      eslint: ^5.0.0 || ^6.0.0
+    resolution:
+      integrity: sha512-nq1UQeNGdKdqdgF6Ww+Ov2OidWgiL96+JYdXXZ2rkP/OWyc6KMNSbs6MpRCpI8q+PmDa7hBnHNQIo7w/drYccA==
+  /@typescript-eslint/typescript-estree/2.3.2:
+    dependencies:
+      glob: 7.1.4
+      is-glob: 4.0.1
+      lodash.unescape: 4.0.1
+      semver: 6.3.0
+    dev: false
+    engines:
+      node: ^8.10.0 || ^10.13.0 || >=11.10.1
+    resolution:
+      integrity: sha512-eZNEAai16nwyhIVIEaWQlaUgAU3S9CkQ58qvK0+3IuSdLJD3W1PNuehQFMIhW/mTP1oFR9GNoTcLg7gtXz6lzA==
   /acorn-jsx/5.0.2_acorn@7.1.0:
     dependencies:
       acorn: 7.1.0
@@ -596,6 +663,10 @@ packages:
       node: '>= 0.8.0'
     resolution:
       integrity: sha1-OwmSTt+fCDwEkP3UwLxEIeBHZO4=
+  /lodash.unescape/4.0.1:
+    dev: false
+    resolution:
+      integrity: sha1-vyJJiGzlFM2hEvrpIYzcBlIR/Jw=
   /lodash/4.17.15:
     dev: false
     resolution:
@@ -1002,6 +1073,17 @@ packages:
     dev: false
     resolution:
       integrity: sha512-qOebF53frne81cf0S9B41ByenJ3/IuH8yJKngAX35CmiZySA0khhkovshKK+jGCaMnVomla7gVlIcc3EvKPbTQ==
+  /tsutils/3.17.1_typescript@3.6.3:
+    dependencies:
+      tslib: 1.10.0
+      typescript: 3.6.3
+    dev: false
+    engines:
+      node: '>= 6'
+    peerDependencies:
+      typescript: '>=2.8.0 || >= 3.2.0-dev || >= 3.3.0-dev || >= 3.4.0-dev || >= 3.5.0-dev || >= 3.6.0-dev || >= 3.6.0-beta || >= 3.7.0-dev || >= 3.7.0-beta'
+    resolution:
+      integrity: sha512-kzeQ5B8H3w60nFY2g8cJIuH7JDpsALXySGtwGJ0p2LSjLgay3NdIpqq5SoOBe46bKDW2iq25irHCr8wjomUS2g==
   /type-check/0.3.2:
     dependencies:
       prelude-ls: 1.1.2
@@ -1065,7 +1147,7 @@ packages:
       node: '>=6'
     resolution:
       integrity: sha512-Ux4ygGWsu2c7isFWe8Yu1YluJmqVhxqK2cLXNQA5AcC3QfbGNpM7fu0Y8b/z16pXLnFxZYvWhd3fhBY9DLmC6Q==
-  'file:projects/editor.tgz':
+  'file:projects/camino.tgz':
     dependencies:
       '@types/color': 3.0.0
       '@types/node': 12.7.11
@@ -1084,30 +1166,48 @@ packages:
       uuid: 3.3.3
       xterm: 3.14.5
     dev: false
-    name: '@rush-temp/editor'
+    name: '@rush-temp/camino'
     resolution:
-      integrity: sha512-E68ErTYlXr2PeSc3n0tWU0kcDGAFyg0Wrj6prZ87yEKpjQJgb7wlY9Hfftmt5bwBmi9mL2Oe5b8a33OSM3/fRA==
-      tarball: 'file:projects/editor.tgz'
+      integrity: sha512-odzBAOAcNjGeTA5nDCO+S+dxP4sgpoecogc1brFABZyng7IiOtgTuxpr5HzWFf6d9QZni0y1jGX4e3ZFw+7c4g==
+      tarball: 'file:projects/camino.tgz'
+    version: 0.0.0
+  'file:projects/configs.tgz_eslint@6.5.1':
+    dependencies:
+      '@typescript-eslint/parser': 2.3.2_eslint@6.5.1
+    dev: false
+    id: 'file:projects/configs.tgz'
+    name: '@rush-temp/configs'
+    peerDependencies:
+      eslint: '*'
+    resolution:
+      integrity: sha512-XNRNL5Lw+Ifl16ZFAZpOIvn0WyF9XbFeup3PhaNQ7cmuPlFeL2q2CZ8LTvuEXfYV32So3ZbTfLVCixZNRf5N8Q==
+      tarball: 'file:projects/configs.tgz'
     version: 0.0.0
   'file:projects/syntax.tgz':
     dependencies:
       '@types/node': 12.7.11
+      '@typescript-eslint/eslint-plugin': 2.3.2_02831eb307232b3f286704a7de52b241
+      '@typescript-eslint/parser': 2.3.2_eslint@6.5.1
+      eslint: 6.5.1
       typescript: 3.6.3
     dev: false
     name: '@rush-temp/syntax'
     resolution:
-      integrity: sha512-2PLB7lZobUNuQwiYo58M+CbutqgUWIYFRJ2M0CEFg86/88V6Kfxnz0Y565YaJt9N49tIXCDg9nED9HyfjdQe4w==
+      integrity: sha512-Np4aJJvt3vH9ERoIUuksa3mufEkHr8ZKbfASYa+ilUnRUWsEIc9mdgS4teoXORIe43dM2TToZUxumbH2YbxRoA==
       tarball: 'file:projects/syntax.tgz'
     version: 0.0.0
 registry: ''
 specifiers:
-  '@rush-temp/editor': 'file:./projects/editor.tgz'
+  '@rush-temp/camino': 'file:./projects/camino.tgz'
+  '@rush-temp/configs': 'file:./projects/configs.tgz'
   '@rush-temp/syntax': 'file:./projects/syntax.tgz'
   '@types/color': ^3.0.0
   '@types/node': ^12.0.0
   '@types/react': ^16.9.2
   '@types/react-dom': ^16.9.0
   '@types/uuid': ^3.4.5
+  '@typescript-eslint/eslint-plugin': ~2.3.2
+  '@typescript-eslint/parser': ~2.3.2
   color: ^3.1.2
   eslint: ~6.5.1
   mobx: ^5.13.0

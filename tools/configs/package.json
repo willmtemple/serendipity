@@ -1,0 +1,15 @@
+{
+  "name": "@serendipity/configs",
+  "version": "0.1.0-dev",
+  "description": "Configuration files and build tools for serendipity",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Will Temple",
+  "license": "MIT",
+  "dependencies": {
+    "@typescript-eslint/eslint-plugin": "~2.3.2",
+    "@typescript-eslint/parser": "~2.3.2"
+  }
+}

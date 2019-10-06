@@ -1,12 +1,12 @@
 {
-  "name": "@serendipity/editor",
+  "name": "@serendipity/camino",
   "version": "0.1.0",
   "scripts": {
     "build": "echo \"Skipping build of editor -- not yet re-enabled\"",
     "typeck": "tsc"
   },
   "dependencies": {
-    "@serendipity/syntax": "^0.1.0",
+    "@serendipity/syntax": "0.1.0-dev",
     "@types/color": "^3.0.0",
     "@types/node": "^12.0.0",
     "@types/react": "^16.9.2",

@@ -1,0 +1,42 @@
+{
+  "name": "@serendipity/syntax",
+  "version": "0.1.0-dev",
+  "description": "Defines the syntax structure for serendipity languages",
+  "author": "Serendipity Project Contributors",
+  "contributors": [
+    {
+      "name": "Will Temple",
+      "email": "will@wtemple.net",
+      "url": "https://wtemple.info/"
+    }
+  ],
+  "license": "GPL-3.0-or-later",
+  "homepage": "https://github.com/willmtemple/serendipity/tree/master/packages/syntax",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/willmtemple/serendipity.git",
+    "directory": "packages/syntax"
+  },
+  "main": "dist/lib/index.js",
+  "files": [
+    "dist"
+  ],
+  "directories": {
+    "lib": "dist/lib"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist/",
+    "lint": "eslint package.json tsconfig.json src --ext ts",
+    "prebuild": "npm run clean"
+  },
+  "dependencies": {
+    "eslint": "~6.5.1"
+  },
+  "devDependencies": {
+    "@types/node": "^12.0.0",
+    "@typescript-eslint/eslint-plugin": "~2.3.2",
+    "@typescript-eslint/parser": "~2.3.2",
+    "typescript": "^3.6.0"
+  }
+}

@@ -39,7 +39,7 @@ export function matchResult<T, OkT, ErrT>(m: ResultMatcher<T, OkT, ErrT>) : Func
     return (r: Result<OkT, ErrT>) : T => {
         switch (r.kind) {
             case "ok":
-                return m.Ok(r as Ok<OkT>);
+                return m.Ok(r);
             case "error":
                 return m.Error(r as Error<ErrT>);
             default:
@@ -55,7 +55,7 @@ export function unwrap<T, E>(r: Result<T, E>) : T {
     } else if (r.kind === "error") {
         throw new Error(r.error.toString());
     } else {
-        const __exhaust : never = r;
+        const __exhaust: never = r;
         return __exhaust;
     }
 }
