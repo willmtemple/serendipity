@@ -1,3 +1,6 @@
 {
-    "extends" : "../../tools/configs/eslint.json"
+    "extends" : "../../tools/configs/eslint.json",
+    "parserOptions": {
+        "sourceType": "module"
+    }
 }
