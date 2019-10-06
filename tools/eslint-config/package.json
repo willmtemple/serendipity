@@ -2,7 +2,7 @@
   "name": "@serendipity/eslint-config",
   "version": "0.1.0-dev",
   "description": "Configuration files and build tools for serendipity",
-  "main": "index.js",
+  "main": ".eslintrc.json",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -14,6 +14,7 @@
   },
   "peerDependencies": {
     "@typescript-eslint/eslint-plugin": "^2.3.0",
-    "eslint-plugin-header": "^3.0.0"
+    "eslint-plugin-header": "^3.0.0",
+    "eslint-plugin-promise": "^4.2.1"
   }
 }

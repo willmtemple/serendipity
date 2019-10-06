@@ -1,6 +1,6 @@
 dependencies:
   '@rush-temp/camino': 'file:projects/camino.tgz'
-  '@rush-temp/eslint-config': 'file:projects/eslint-config.tgz_prettier@1.18.2+typescript@3.6.3'
+  '@rush-temp/eslint-config': 'file:projects/eslint-config.tgz_eslint@6.5.1+typescript@3.6.3'
   '@rush-temp/syntax': 'file:projects/syntax.tgz_@typescript-eslint+parser@2.3.2'
   '@types/color': 3.0.0
   '@types/node': 12.7.11
@@ -13,7 +13,7 @@ dependencies:
   eslint: 6.5.1
   eslint-config-prettier: 6.4.0_eslint@6.5.1
   eslint-plugin-header: 3.0.0_eslint@6.5.1
-  eslint-plugin-prettier: 3.1.1_eslint@6.5.1+prettier@1.18.2
+  eslint-plugin-promise: 4.2.1
   mobx: 5.14.0
   mobx-react: 6.1.3_mobx@5.14.0+react@16.10.2
   normalize-wheel: 1.0.1
@@ -360,19 +360,12 @@ packages:
       eslint: '>=0.18.0'
     resolution:
       integrity: sha512-OIu2ciVW8jK4Ove4JHm1I7X0C98PZuLCyCsoUhAm2HpyGS+zr34qLM6iV06unnDvssvvEh5BkOfaLRF+N7cGoQ==
-  /eslint-plugin-prettier/3.1.1_eslint@6.5.1+prettier@1.18.2:
-    dependencies:
-      eslint: 6.5.1
-      prettier: 1.18.2
-      prettier-linter-helpers: 1.0.0
+  /eslint-plugin-promise/4.2.1:
     dev: false
     engines:
-      node: '>=6.0.0'
-    peerDependencies:
-      eslint: '>= 5.0.0'
-      prettier: '>= 1.13.0'
+      node: '>=6'
     resolution:
-      integrity: sha512-A+TZuHZ0KU0cnn56/9mfR7/KjUJ9QNVXUhwvRFSR7PGPe0zQR6PTkmyqg1AtUUEOzTqeRsUwyKFh0oVZKVCrtA==
+      integrity: sha512-VoM09vT7bfA7D+upt+FjeBO5eHIJQBUWki1aPvB+vbNiHS3+oGIJGIeyBtKQTME6UPXXy3vV07OL1tHd3ANuDw==
   /eslint-scope/5.0.0:
     dependencies:
       esrecurse: 4.2.1
@@ -500,10 +493,6 @@ packages:
     dev: false
     resolution:
       integrity: sha1-ewUhjd+WZ79/Nwv3/bLLFf3Qqkk=
-  /fast-diff/1.2.0:
-    dev: false
-    resolution:
-      integrity: sha512-xJuoT5+L99XlZ8twedaRf6Ax2TgQVxvgZOYoPKqZufmJib0tL2tegPBOZb1pVNgIhlqDlA0eO0c3wBvQcmzx4w==
   /fast-json-stable-stringify/2.0.0:
     dev: false
     resolution:
@@ -860,14 +849,6 @@ packages:
       node: '>= 0.8.0'
     resolution:
       integrity: sha1-IZMqVJ9eUv/ZqCf1cOBL5iqX2lQ=
-  /prettier-linter-helpers/1.0.0:
-    dependencies:
-      fast-diff: 1.2.0
-    dev: false
-    engines:
-      node: '>=6.0.0'
-    resolution:
-      integrity: sha512-GbK2cP9nraSSUF9N2XwUwqfzlAFlMNYYl+ShE/V+H8a9uNl/oUqB1w2EL54Jh0OlyRSd8RfWYJ3coVS4TROP2w==
   /prettier/1.18.2:
     dev: false
     engines:
@@ -1231,22 +1212,21 @@ packages:
       integrity: sha512-odzBAOAcNjGeTA5nDCO+S+dxP4sgpoecogc1brFABZyng7IiOtgTuxpr5HzWFf6d9QZni0y1jGX4e3ZFw+7c4g==
       tarball: 'file:projects/camino.tgz'
     version: 0.0.0
-  'file:projects/eslint-config.tgz_prettier@1.18.2+typescript@3.6.3':
+  'file:projects/eslint-config.tgz_eslint@6.5.1+typescript@3.6.3':
     dependencies:
       '@typescript-eslint/eslint-plugin': 2.3.2_02831eb307232b3f286704a7de52b241
       '@typescript-eslint/parser': 2.3.2_eslint@6.5.1
-      eslint: 6.5.1
       eslint-config-prettier: 6.4.0_eslint@6.5.1
       eslint-plugin-header: 3.0.0_eslint@6.5.1
-      eslint-plugin-prettier: 3.1.1_eslint@6.5.1+prettier@1.18.2
+      eslint-plugin-promise: 4.2.1
     dev: false
     id: 'file:projects/eslint-config.tgz'
     name: '@rush-temp/eslint-config'
     peerDependencies:
-      prettier: '*'
+      eslint: '*'
       typescript: '*'
     resolution:
-      integrity: sha512-H9MkhFpVL79zDDlotfYXwJo+druMk/Wr5zWr5Azi82fHDGv7212jChTBeBdUVqfIkjxxBZS+NpKBeXzuLRxBzw==
+      integrity: sha512-PRYEBrp/OjPMrwJc7CcBAj4pDkEl3Op03tCitkT1l3gCKz9VGTm5Xpu505lHBHSSePUmdPGaMlQoa2xf4m1kQw==
       tarball: 'file:projects/eslint-config.tgz'
     version: 0.0.0
   'file:projects/syntax.tgz_@typescript-eslint+parser@2.3.2':
@@ -1254,6 +1234,8 @@ packages:
       '@types/node': 12.7.11
       '@typescript-eslint/eslint-plugin': 2.3.2_02831eb307232b3f286704a7de52b241
       eslint: 6.5.1
+      eslint-plugin-header: 3.0.0_eslint@6.5.1
+      eslint-plugin-promise: 4.2.1
       prettier: 1.18.2
       typescript: 3.6.3
     dev: false
@@ -1262,7 +1244,7 @@ packages:
     peerDependencies:
       '@typescript-eslint/parser': '*'
     resolution:
-      integrity: sha512-FHzopMfCQR2NFwiOq1aqtgFg5v5sLuChFRaOLR/wreCU9SoYjz/2qLB24Yw43AfuqTHv6uAcZWhYw3XbzcIzAQ==
+      integrity: sha512-cavOzIysH6yb8Se6sEhcRDb4NalqNVCz/4tTkzc9fEskuaerIcFR6OnOdtox0S5HftNhw5ONl/yBJCIJ69Ksxw==
       tarball: 'file:projects/syntax.tgz'
     version: 0.0.0
 registry: ''
@@ -1275,13 +1257,13 @@ specifiers:
   '@types/react': ^16.9.2
   '@types/react-dom': ^16.9.0
   '@types/uuid': ^3.4.5
-  '@typescript-eslint/eslint-plugin': ~2.3.2
+  '@typescript-eslint/eslint-plugin': ^2.3.0
   '@typescript-eslint/parser': ~2.3.2
   color: ^3.1.2
   eslint: ~6.5.1
   eslint-config-prettier: ~6.4.0
-  eslint-plugin-header: ~3.0.0
-  eslint-plugin-prettier: ~3.1.1
+  eslint-plugin-header: ^3.0.0
+  eslint-plugin-promise: ^4.2.1
   mobx: ^5.13.0
   mobx-react: ^6.1.3
   normalize-wheel: ^1.0.1
