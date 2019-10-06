@@ -51,6 +51,7 @@ jspm_packages/
 
 # dotenv environment variables file
 .env
+.env.*
 
 # next.js build output
 .next
@@ -61,3 +62,13 @@ temp
 # Rush files
 common/temp/**
 .rush/temp/**
+
+# Vim files
+*.swp
+*.swo
+
+# Require intentional and explicit git add to check in vscode settings
+.vscode
+
+# Build directories
+dist/
