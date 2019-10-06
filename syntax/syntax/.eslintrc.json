@@ -1,5 +1,5 @@
 {
-    "extends" : "../../tools/configs/eslint.json",
+    "extends" : "@serendipity/eslint-config",
     "parserOptions": {
         "sourceType": "module"
     }

@@ -1,7 +1,7 @@
 dependencies:
   '@rush-temp/camino': 'file:projects/camino.tgz'
-  '@rush-temp/configs': 'file:projects/configs.tgz_374a1f9662f6707e95d68329aa5f0094'
-  '@rush-temp/syntax': 'file:projects/syntax.tgz'
+  '@rush-temp/eslint-config': 'file:projects/eslint-config.tgz_prettier@1.18.2+typescript@3.6.3'
+  '@rush-temp/syntax': 'file:projects/syntax.tgz_@typescript-eslint+parser@2.3.2'
   '@types/color': 3.0.0
   '@types/node': 12.7.11
   '@types/react': 16.9.5
@@ -12,6 +12,7 @@ dependencies:
   color: 3.1.2
   eslint: 6.5.1
   eslint-config-prettier: 6.4.0_eslint@6.5.1
+  eslint-plugin-header: 3.0.0_eslint@6.5.1
   eslint-plugin-prettier: 3.1.1_eslint@6.5.1+prettier@1.18.2
   mobx: 5.14.0
   mobx-react: 6.1.3_mobx@5.14.0+react@16.10.2
@@ -351,6 +352,14 @@ packages:
       eslint: '>=3.14.1'
     resolution:
       integrity: sha512-YrKucoFdc7SEko5Sxe4r6ixqXPDP1tunGw91POeZTTRKItf/AMFYt/YLEQtZMkR2LVpAVhcAcZgcWpm1oGPW7w==
+  /eslint-plugin-header/3.0.0_eslint@6.5.1:
+    dependencies:
+      eslint: 6.5.1
+    dev: false
+    peerDependencies:
+      eslint: '>=0.18.0'
+    resolution:
+      integrity: sha512-OIu2ciVW8jK4Ove4JHm1I7X0C98PZuLCyCsoUhAm2HpyGS+zr34qLM6iV06unnDvssvvEh5BkOfaLRF+N7cGoQ==
   /eslint-plugin-prettier/3.1.1_eslint@6.5.1+prettier@1.18.2:
     dependencies:
       eslint: 6.5.1
@@ -1222,41 +1231,44 @@ packages:
       integrity: sha512-odzBAOAcNjGeTA5nDCO+S+dxP4sgpoecogc1brFABZyng7IiOtgTuxpr5HzWFf6d9QZni0y1jGX4e3ZFw+7c4g==
       tarball: 'file:projects/camino.tgz'
     version: 0.0.0
-  'file:projects/configs.tgz_374a1f9662f6707e95d68329aa5f0094':
+  'file:projects/eslint-config.tgz_prettier@1.18.2+typescript@3.6.3':
     dependencies:
       '@typescript-eslint/eslint-plugin': 2.3.2_02831eb307232b3f286704a7de52b241
       '@typescript-eslint/parser': 2.3.2_eslint@6.5.1
+      eslint: 6.5.1
       eslint-config-prettier: 6.4.0_eslint@6.5.1
+      eslint-plugin-header: 3.0.0_eslint@6.5.1
       eslint-plugin-prettier: 3.1.1_eslint@6.5.1+prettier@1.18.2
     dev: false
-    id: 'file:projects/configs.tgz'
-    name: '@rush-temp/configs'
+    id: 'file:projects/eslint-config.tgz'
+    name: '@rush-temp/eslint-config'
     peerDependencies:
-      eslint: '*'
       prettier: '*'
       typescript: '*'
     resolution:
-      integrity: sha512-yIXtZVGaKeOb2fuWNrfxdhJWT9QKBRSF5E4PwwUpP1W6wNaDg9NCpereoSEVGSeoDySIfWKZPy1mtrmN2EWuXw==
-      tarball: 'file:projects/configs.tgz'
+      integrity: sha512-H9MkhFpVL79zDDlotfYXwJo+druMk/Wr5zWr5Azi82fHDGv7212jChTBeBdUVqfIkjxxBZS+NpKBeXzuLRxBzw==
+      tarball: 'file:projects/eslint-config.tgz'
     version: 0.0.0
-  'file:projects/syntax.tgz':
+  'file:projects/syntax.tgz_@typescript-eslint+parser@2.3.2':
     dependencies:
       '@types/node': 12.7.11
       '@typescript-eslint/eslint-plugin': 2.3.2_02831eb307232b3f286704a7de52b241
-      '@typescript-eslint/parser': 2.3.2_eslint@6.5.1
       eslint: 6.5.1
       prettier: 1.18.2
       typescript: 3.6.3
     dev: false
+    id: 'file:projects/syntax.tgz'
     name: '@rush-temp/syntax'
+    peerDependencies:
+      '@typescript-eslint/parser': '*'
     resolution:
-      integrity: sha512-JZUJC0KF0fwlo2PYshR7iUC1R98iPsPAMWMUZACJQ6CLIqi3BBAlfI+h+jwmqg+h701C8iGE0npuGea8CQcJNg==
+      integrity: sha512-FHzopMfCQR2NFwiOq1aqtgFg5v5sLuChFRaOLR/wreCU9SoYjz/2qLB24Yw43AfuqTHv6uAcZWhYw3XbzcIzAQ==
       tarball: 'file:projects/syntax.tgz'
     version: 0.0.0
 registry: ''
 specifiers:
   '@rush-temp/camino': 'file:./projects/camino.tgz'
-  '@rush-temp/configs': 'file:./projects/configs.tgz'
+  '@rush-temp/eslint-config': 'file:./projects/eslint-config.tgz'
   '@rush-temp/syntax': 'file:./projects/syntax.tgz'
   '@types/color': ^3.0.0
   '@types/node': ^12.0.0
@@ -1268,6 +1280,7 @@ specifiers:
   color: ^3.1.2
   eslint: ~6.5.1
   eslint-config-prettier: ~6.4.0
+  eslint-plugin-header: ~3.0.0
   eslint-plugin-prettier: ~3.1.1
   mobx: ^5.13.0
   mobx-react: ^6.1.3

@@ -33,13 +33,15 @@
     "lint:fix": "eslint src --ext ts",
     "prebuild": "npm run clean"
   },
+  "prettier": "@serendipity/eslint-config/prettier.json",
   "dependencies": {},
   "devDependencies": {
-    "@serendipity/configs": "0.1.0-dev",
+    "@serendipity/eslint-config": "0.1.0-dev",
     "@types/node": "^12.0.0",
+    "@typescript-eslint/eslint-plugin": "^2.3.0",
     "eslint": "~6.5.1",
+    "eslint-plugin-header": "^3.0.0",
     "prettier": "~1.18.2",
     "typescript": "^3.6.0"
-  },
-  "prettier": "@serendipity/configs/prettier.json"
+  }
 }

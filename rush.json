@@ -50,8 +50,8 @@
       "shouldPublish": false
     },
     {
-      "packageName": "@serendipity/configs",
-      "projectFolder": "tools/configs",
+      "packageName": "@serendipity/eslint-config",
+      "projectFolder": "tools/eslint-config",
       "reviewCategory": "tools",
       "shouldPublish": false
     }
