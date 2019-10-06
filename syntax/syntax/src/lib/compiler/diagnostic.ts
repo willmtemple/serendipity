@@ -1,13 +1,12 @@
 import { SyntaxObject } from "../lang/syntax";
 
-export type Diagnostic = 
-    UnboundIdentifierError;
+export type Diagnostic = UnboundIdentifierError;
 
 interface SyntaxDiagnostic {
-    syntaxObject: SyntaxObject
+  syntaxObject: SyntaxObject;
 }
 
 export interface UnboundIdentifierError extends SyntaxDiagnostic {
-    kind: "unboundidentifier"
-    identifier: string,
+  kind: "unboundidentifier";
+  identifier: string;
 }
