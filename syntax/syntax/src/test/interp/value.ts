@@ -1,3 +1,7 @@
+// Copyright (c) Serendipity Project Contributors
+// All rights reserved.
+// Licensed under the terms of the GNU General Public License v3 or later.
+
 import { Binder, Scope } from "./scope";
 import { Statement } from "../../lib/lang/syntax/abstract/statement";
 

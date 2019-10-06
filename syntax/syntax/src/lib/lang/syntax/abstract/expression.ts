@@ -1,6 +1,12 @@
-import { Function } from "../../../util/FuncTools";
+// Copyright (c) Serendipity Project Contributors
+// All rights reserved.
+// Licensed under the terms of the GNU General Public License v3 or later.
+
+import { Fn } from "../../../util/FuncTools";
 import { SyntaxObject } from "..";
 import { Statement } from "./statement";
+
+/* eslint-disable @typescript-eslint/ban-types */
 
 export type Expression =
   | Number
@@ -98,17 +104,17 @@ export interface Void extends SyntaxObject {
  * An exhaustive definition of functions used to destructure an expression.
  */
 export interface ExpressionPattern<T> {
-  Accessor: Function<Accessor, T>;
-  Number: Function<Number, T>;
-  String: Function<String, T>;
-  Name: Function<Name, T>;
-  Call: Function<Call, T>;
-  Closure: Function<Closure, T>;
-  Tuple: Function<Tuple, T>;
-  Procedure: Function<Procedure, T>;
-  Void: Function<Void, T>;
-  If: Function<If, T>;
-  BinaryOp: Function<BinaryOp, T>;
+  Accessor: Fn<Accessor, T>;
+  Number: Fn<Number, T>;
+  String: Fn<String, T>;
+  Name: Fn<Name, T>;
+  Call: Fn<Call, T>;
+  Closure: Fn<Closure, T>;
+  Tuple: Fn<Tuple, T>;
+  Procedure: Fn<Procedure, T>;
+  Void: Fn<Void, T>;
+  If: Fn<If, T>;
+  BinaryOp: Fn<BinaryOp, T>;
 }
 
 export interface ExhaustiveExpressionPattern<T> extends ExpressionPattern<T> {
@@ -130,30 +136,31 @@ export function matchExpression<T>(p: ExpressionMatcher<T>): (e: Expression) => 
   return (e: Expression): T => {
     switch (e.exprKind) {
       case "number":
-        return p.Number ? p.Number(e as Number) : p.Default(e);
+        return p.Number ? p.Number(e) : p.Default(e);
       case "string":
-        return p.String ? p.String(e as String) : p.Default(e);
+        return p.String ? p.String(e) : p.Default(e);
       case "name":
-        return p.Name ? p.Name(e as Name) : p.Default(e);
+        return p.Name ? p.Name(e) : p.Default(e);
       case "accessor":
-        return p.Accessor ? p.Accessor(e as Accessor) : p.Default(e);
+        return p.Accessor ? p.Accessor(e) : p.Default(e);
       case "call":
-        return p.Call ? p.Call(e as Call) : p.Default(e);
+        return p.Call ? p.Call(e) : p.Default(e);
       case "closure":
-        return p.Closure ? p.Closure(e as Closure) : p.Default(e);
+        return p.Closure ? p.Closure(e) : p.Default(e);
       case "tuple":
-        return p.Tuple ? p.Tuple(e as Tuple) : p.Default(e);
+        return p.Tuple ? p.Tuple(e) : p.Default(e);
       case "procedure":
-        return p.Procedure ? p.Procedure(e as Procedure) : p.Default(e);
+        return p.Procedure ? p.Procedure(e) : p.Default(e);
       case "void":
-        return p.Void ? p.Void(e as Void) : p.Default(e);
+        return p.Void ? p.Void(e) : p.Default(e);
       case "if":
-        return p.If ? p.If(e as If) : p.Default(e);
+        return p.If ? p.If(e) : p.Default(e);
       case "binop":
-        return p.BinaryOp ? p.BinaryOp(e as BinaryOp) : p.Default(e);
-      default:
+        return p.BinaryOp ? p.BinaryOp(e) : p.Default(e);
+      default: {
         const __exhaust: never = e;
         return __exhaust;
+      }
     }
   };
 }

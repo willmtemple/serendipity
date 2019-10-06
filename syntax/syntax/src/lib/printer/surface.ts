@@ -1,3 +1,7 @@
+// Copyright (c) Serendipity Project Contributors
+// All rights reserved.
+// Licensed under the terms of the GNU General Public License v3 or later.
+
 import { Expression, matchExpression } from "../lang/syntax/surface/expression";
 import { Statement, matchStatement } from "../lang/syntax/surface/statement";
 import { Global, matchGlobal } from "../lang/syntax/surface/global";
@@ -10,7 +14,7 @@ export function writeExpression(e: Expression, level: number): string {
     indent += "    ";
   }
 
-  const wx = (e: Expression) => writeExpression(e, level);
+  const wx = (ex: Expression): string => writeExpression(ex, level);
   matchExpression<void>({
     Accessor: ({ accessee, index }) => {
       accum += wx(accessee) + "." + wx(index);
@@ -61,7 +65,7 @@ export function writeExpression(e: Expression, level: number): string {
         indent +
         "]";
     },
-    Void: ({}) => {
+    Void: () => {
       accum += "void";
     },
     If: ({ cond, then, _else }) => {

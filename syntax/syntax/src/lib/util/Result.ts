@@ -1,4 +1,8 @@
-import { Function } from "./FuncTools";
+// Copyright (c) Serendipity Project Contributors
+// All rights reserved.
+// Licensed under the terms of the GNU General Public License v3 or later.
+
+import { Fn } from "./FuncTools";
 
 /**
  * Rust-style Results for TypeScript
@@ -23,21 +27,21 @@ export interface Error<E> {
   error: E;
 }
 
-export function error<E>(error: E): Error<E> {
+export function error<E>(err: E): Error<E> {
   return {
     kind: "error",
-    error
+    error: err
   };
 }
 
 export interface ResultMatcher<T, OkT, ErrT> {
-  Ok: Function<Ok<OkT>, T>;
-  Error: Function<Error<ErrT>, T>;
+  Ok: Fn<Ok<OkT>, T>;
+  Error: Fn<Error<ErrT>, T>;
 }
 
 export function matchResult<T, OkT, ErrT>(
   m: ResultMatcher<T, OkT, ErrT>
-): Function<Result<OkT, ErrT>, T> {
+): Fn<Result<OkT, ErrT>, T> {
   return (r: Result<OkT, ErrT>): T => {
     switch (r.kind) {
       case "ok":

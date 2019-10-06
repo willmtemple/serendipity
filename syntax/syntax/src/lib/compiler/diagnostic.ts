@@ -1,3 +1,7 @@
+// Copyright (c) Serendipity Project Contributors
+// All rights reserved.
+// Licensed under the terms of the GNU General Public License v3 or later.
+
 import { SyntaxObject } from "../lang/syntax";
 
 export type Diagnostic = UnboundIdentifierError;

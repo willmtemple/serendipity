@@ -1,3 +1,7 @@
+// Copyright (c) Serendipity Project Contributors
+// All rights reserved.
+// Licensed under the terms of the GNU General Public License v3 or later.
+
 import { Expression } from "../../lib/lang/syntax/abstract/expression";
 import { Value } from "./value";
 
@@ -23,25 +27,25 @@ export type ScopedObject = CachedExpression | CachedBinder;
 type Evaluator = (e: Expression, s: Scope) => Value;
 
 export class Scope {
-  evaluator: Evaluator;
-  parent?: Scope;
-  bindings: { [k: string]: ScopedObject };
+  private evaluator: Evaluator;
+  private parent?: Scope;
+  private bindings: { [k: string]: ScopedObject };
 
-  constructor(evaluator: Evaluator, parent?: Scope) {
+  public constructor(evaluator: Evaluator, parent?: Scope) {
     this.evaluator = evaluator;
     this.parent = parent;
     this.bindings = {};
   }
 
-  scope(name: string, expr: Expression) {
+  public scope(name: string, expr: Expression): void {
     this.bindings[name] = { kind: "expression", expr };
   }
 
-  rebind(name: string, bind: Binder) {
+  public rebind(name: string, bind: Binder): void {
     this.bindings[name] = { kind: "binder", bind };
   }
 
-  bind(expr: Expression): Binder {
+  public bind(expr: Expression): Binder {
     const scope = new Scope(this.evaluator, this);
     return {
       expr,
@@ -49,7 +53,7 @@ export class Scope {
     };
   }
 
-  resolve(name: string): Value {
+  public resolve(name: string): Value {
     const bound = this.bindings[name];
 
     if (bound) {
@@ -75,9 +79,10 @@ export class Scope {
           res = this.evaluator(cexpr.bind.expr, cexpr.bind.scope);
           delete cexpr.bind;
           break;
-        default:
+        default: {
           const __exhaust: never = cexpr;
           return __exhaust;
+        }
       }
       cexpr.cache = res;
       return res;

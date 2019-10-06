@@ -1,3 +1,7 @@
+// Copyright (c) Serendipity Project Contributors
+// All rights reserved.
+// Licensed under the terms of the GNU General Public License v3 or later.
+
 import { Value, NumberV } from "./value";
 import {
   Expression,
@@ -9,6 +13,8 @@ import { Scope } from "./scope";
 import { Statement, matchStatement } from "../../lib/lang/syntax/abstract/statement";
 import { Module } from "../../lib/lang/syntax/abstract";
 import { matchGlobal, Main } from "../../lib/lang/syntax/abstract/global";
+
+import * as console from "console";
 
 enum StatementStatus {
   NORMAL = 0,
@@ -70,27 +76,37 @@ function compareOp(lv: Value, rv: Value, op: BinaryOperator): Value {
       switch (op) {
         case "!=":
           negate = true;
+        // eslint-disable-next-line no-fallthrough
         case "==":
           if (_isTotalType(lv)) {
-            if (lv.kind === "void") {
+            if (lv.kind === "void" || rv.kind === "void") {
               // Voids are always equal
               result = true;
+            } else if (lv.kind === "proc" || rv.kind === "proc") {
+              // Procs are never equal
+              result = false;
             } else {
-              result = (lv as any).value === (rv as any).value;
+              result = lv.value === rv.value;
             }
           } else {
-            result = lv == rv;
+            result = lv === rv;
           }
           return negate ? !result : result;
         case ">":
           negate = true;
+        // eslint-disable-next-line no-fallthrough
         case "<=":
           if (_isTotalType(lv)) {
             if (lv.kind === "void") {
               // Voids are always equal
               result = true;
-            } else if (lv.kind === "string" || lv.kind === "number") {
-              result = (lv as any).value <= (rv as any).value;
+            } else if (lv.kind === "proc") {
+              return false;
+            } else if (
+              (lv.kind === "string" || lv.kind === "number") &&
+              (rv.kind === "string" || rv.kind === "number")
+            ) {
+              result = lv.value <= rv.value;
             } else {
               throw new Error("Cannot compare booleans.");
             }
@@ -100,13 +116,19 @@ function compareOp(lv: Value, rv: Value, op: BinaryOperator): Value {
           return negate ? !result : result;
         case "<":
           negate = true;
+        // eslint-disable-next-line no-fallthrough
         case ">=":
           if (_isTotalType(lv)) {
             if (lv.kind === "void") {
               // Voids are always equal
               result = true;
-            } else if (lv.kind === "string" || lv.kind === "number") {
-              result = (lv as any).value >= (rv as any).value;
+            } else if (lv.kind === "proc") {
+              return false;
+            } else if (
+              (lv.kind === "string" || lv.kind === "number") &&
+              (rv.kind === "string" || rv.kind === "number")
+            ) {
+              result = lv.value >= rv.value;
             } else {
               throw new Error("Cannot compare booleans.");
             }
@@ -122,23 +144,22 @@ function compareOp(lv: Value, rv: Value, op: BinaryOperator): Value {
 type Printer = (s: string) => void;
 
 export class Interpreter {
-  private _print: Printer = console.log;
+  // eslint-disable-next-line no-console
+  private _print: Printer = console.log.bind(console);
 
-  constructor(printer?: Printer) {
+  public constructor(printer?: Printer) {
     if (printer) {
       this._print = printer;
     }
-
-    this.evalExpr = this.evalExpr.bind(this);
   }
 
-  public execModule(m: Module) {
-    const scope: Scope = new Scope(this.evalExpr);
+  public execModule(m: Module): void {
+    const scope: Scope = new Scope(this.evalExpr.bind(this));
     let main: Main;
     m.globals.forEach(
-      matchGlobal({
-        Main: (m) => {
-          main = m;
+      matchGlobal<void>({
+        Main: (_main) => {
+          main = _main;
         },
         Define: ({ name, value }) => {
           scope.scope(name, value);
@@ -156,8 +177,8 @@ export class Interpreter {
         throw new Error("main declaration must be a procedure");
       }
 
-      const evalScope = new Scope(this.evalExpr, bV.scope);
-      for (let stmt of bV.body) {
+      const evalScope = new Scope(this.evalExpr.bind(this), bV.scope);
+      for (const stmt of bV.body) {
         if (this.execStmt(stmt, evalScope) === StatementStatus.BREAK) {
           throw new Error("Encountered `break` in non-breakable context: MAIN");
         }
@@ -175,24 +196,27 @@ export class Interpreter {
         return v.value ? "true" : "false";
       case "void":
         return v.kind;
-      case "tuple":
+      case "tuple": {
         const vals = v.value.map((bind) => this.evalExpr(bind.expr, bind.scope));
-        return "(" + vals.map(this._strconv) + ")";
-      default:
+        return "(" + vals.map(this._strconv.bind(this)) + ")";
+      }
+      default: {
         const attrs: string[] = [];
-        for (let k of Object.keys(v)) {
-          if (v.hasOwnProperty(k)) {
-            attrs.push(k + "=(" + (v as any)[k].toString() + ")");
+        for (const k of Object.keys(v)) {
+          if (Object.prototype.hasOwnProperty.call(v, k)) {
+            attrs.push(k + "=(" + v[k as keyof Value].toString() + ")");
           }
         }
+
         return "#" + v.kind + "{" + attrs.join(", ") + "}";
+      }
     }
   }
 
   private binaryOperator({ op, left, right }: BinaryOp, scope: Scope): Value {
     const lv = this.evalExpr(left, scope);
     const rv = this.evalExpr(right, scope);
-    if (lv.kind != rv.kind) {
+    if (lv.kind !== rv.kind) {
       throw new Error("Type mismatch in binary operation");
     } else {
       switch (op) {
@@ -206,6 +230,7 @@ export class Interpreter {
           } else {
             return arithOp(lv, rv as NumberV, op);
           }
+
         default:
           return compareOp(lv, rv, op);
       }
@@ -221,6 +246,7 @@ export class Interpreter {
         if (!res) {
           throw new Error("name not found: " + name);
         }
+
         return res;
       },
       Accessor: ({ accessee, index }) => {
@@ -249,11 +275,12 @@ export class Interpreter {
           throw new Error("Attempted to call a non-function");
         }
 
-        const evalScope = new Scope(this.evalExpr, calleeValue.value.body.scope);
+        const evalScope = new Scope(this.evalExpr.bind(this), calleeValue.value.body.scope);
 
         if (parameter) {
           evalScope.rebind(calleeValue.value.parameter, scope.bind(parameter));
         }
+
         return this.evalExpr(calleeValue.value.body.expr, evalScope);
       },
       Closure: ({ body, parameter }) => ({
@@ -264,7 +291,7 @@ export class Interpreter {
         }
       }),
       Tuple: ({ values }) => {
-        const vals = values.map((e) => scope.bind(e));
+        const vals = values.map((exprBind) => scope.bind(exprBind));
         return {
           kind: "tuple",
           value: vals
@@ -273,7 +300,7 @@ export class Interpreter {
       Procedure: ({ body }) => ({
         kind: "proc",
         body,
-        scope: new Scope(this.evalExpr, scope)
+        scope: new Scope(this.evalExpr.bind(this), scope)
       }),
       If: ({ cond, then, _else }) => {
         if (isTrue(this.evalExpr(cond, scope))) {
@@ -293,7 +320,9 @@ export class Interpreter {
   private execStmt(s: Statement, scope: Scope): StatementStatus {
     return matchStatement({
       Print: (p) => {
-        this._print(this._strconv(this.evalExpr(p.value, new Scope(this.evalExpr, scope))));
+        this._print(
+          this._strconv(this.evalExpr(p.value, new Scope(this.evalExpr.bind(this), scope)))
+        );
         return StatementStatus.NORMAL;
       },
       Let: ({ name, value }) => {
@@ -308,6 +337,7 @@ export class Interpreter {
         } else if (_else) {
           return this.execStmt(_else, scope);
         }
+
         return StatementStatus.NORMAL;
       },
       ForIn: ({ binding, value, body }) => {
@@ -320,7 +350,7 @@ export class Interpreter {
             throw new Error("only lists (tuples of dimension 2) are iterable using for ... in");
           }
 
-          const evalScope = new Scope(this.evalExpr, scope);
+          const evalScope = new Scope(this.evalExpr.bind(this), scope);
           evalScope.rebind(binding, iter.value[0]);
           if (this.execStmt(body, evalScope) === StatementStatus.BREAK) {
             break;
@@ -329,11 +359,16 @@ export class Interpreter {
         return StatementStatus.NORMAL;
       },
       Forever: ({ body }) => {
-        while (true) {
-          if (this.execStmt(body, new Scope(this.evalExpr, scope)) === StatementStatus.BREAK) {
-            break;
+        let shouldContinue = true;
+        while (shouldContinue) {
+          if (
+            this.execStmt(body, new Scope(this.evalExpr.bind(this), scope)) ===
+            StatementStatus.BREAK
+          ) {
+            shouldContinue = false;
           }
         }
+
         return StatementStatus.NORMAL;
       },
       Do: ({ body }) => {
@@ -342,8 +377,8 @@ export class Interpreter {
           throw new Error("cannot 'do' anything other than a Procedure");
         }
 
-        const evalScope = new Scope(this.evalExpr, bV.scope);
-        for (let stmt of bV.body) {
+        const evalScope = new Scope(this.evalExpr.bind(this), bV.scope);
+        for (const stmt of bV.body) {
           if (this.execStmt(stmt, evalScope) === StatementStatus.BREAK) {
             throw new Error("Encountered `break` in non-breakable context: DO");
           }

@@ -1,13 +1,12 @@
-/**
- * Contains module-level syntax nodes (main/state/package
- * declarations)
- */
+// Copyright (c) Serendipity Project Contributors
+// All rights reserved.
+// Licensed under the terms of the GNU General Public License v3 or later.
 
 import { SyntaxObject } from "../";
-import { Function } from "../../../util/FuncTools";
+import { Fn } from "../../../util/FuncTools";
 import { Expression } from "./expression";
 
-export type Global = Main | Define | DefineFunction;
+export type Global = Main | Define | DefineFn;
 
 export interface Main extends SyntaxObject {
   globalKind: "main";
@@ -20,7 +19,7 @@ export interface Define extends SyntaxObject {
   value: Expression;
 }
 
-export interface DefineFunction extends SyntaxObject {
+export interface DefineFn extends SyntaxObject {
   globalKind: "definefunc";
   name: string;
   parameters: string[];
@@ -34,9 +33,9 @@ export interface State extends SyntaxObject {
 // Global tools
 
 export interface GlobalPattern<T> {
-  Main: Function<Main, T>;
-  Define: Function<Define, T>;
-  DefineFunction: Function<DefineFunction, T>;
+  Main: Fn<Main, T>;
+  Define: Fn<Define, T>;
+  DefineFunction: Fn<DefineFn, T>;
 }
 
 export interface ExhaustiveGlobalPattern<T> extends GlobalPattern<T> {
@@ -49,18 +48,19 @@ export interface PartialGlobalPattern<T> extends Partial<GlobalPattern<T>> {
 
 export type GlobalMatcher<T> = ExhaustiveGlobalPattern<T> | PartialGlobalPattern<T>;
 
-export function matchGlobal<T>(p: GlobalMatcher<T>): Function<Global, T> {
+export function matchGlobal<T>(p: GlobalMatcher<T>): Fn<Global, T> {
   return (g: Global): T => {
     switch (g.globalKind) {
       case "main":
-        return p.Main ? p.Main(g as Main) : p.Default(g);
+        return p.Main ? p.Main(g) : p.Default(g);
       case "define":
-        return p.Define ? p.Define(g as Define) : p.Default(g);
+        return p.Define ? p.Define(g) : p.Default(g);
       case "definefunc":
-        return p.DefineFunction ? p.DefineFunction(g as DefineFunction) : p.Default(g);
-      default:
+        return p.DefineFunction ? p.DefineFunction(g) : p.Default(g);
+      default: {
         const __exhaust: never = g;
         return __exhaust;
+      }
     }
   };
 }

@@ -1,3 +1,7 @@
+// Copyright (c) Serendipity Project Contributors
+// All rights reserved.
+// Licensed under the terms of the GNU General Public License v3 or later.
+
 import { Compiler, CompilerOutput } from "../../lib/compiler";
 import * as surface from "../../lib/lang/syntax/surface";
 import * as abstract from "../../lib/lang/syntax/abstract";
@@ -17,7 +21,7 @@ function _curry(parameters: string[], body: SExpression): AbsExpression {
     };
   } else {
     // Curry the paramters into separate closures.
-    for (let p of parameters) {
+    for (const p of parameters) {
       val = {
         exprKind: "closure",
         parameter: p,
@@ -119,7 +123,7 @@ function lowerStatement(s: SStatement): AbsStatement {
       statementKind: "do",
       body: lowerExpr(body)
     }),
-    Break: (s) => s,
+    Break: (b) => b,
     Default: (_) => {
       throw new Error("not implemented");
     }
@@ -128,9 +132,9 @@ function lowerStatement(s: SStatement): AbsStatement {
 
 function lowerExpr(e: SExpression): AbsExpression {
   return surface.expression.matchExpression<AbsExpression>({
-    Number: (e) => e,
-    String: (e) => e,
-    Name: (e) => e,
+    Number: (n) => n,
+    String: (s) => s,
+    Name: (n) => n,
     Accessor: ({ accessee, index }) => ({
       exprKind: "accessor",
       accessee: lowerExpr(accessee),
@@ -209,7 +213,7 @@ function lowerExpr(e: SExpression): AbsExpression {
       left: lowerExpr(left),
       right: lowerExpr(right)
     }),
-    Void: (e) => e,
+    Void: (v) => v,
     Hole: () => {
       throw new Error("encountered a hole in the program");
     },
@@ -253,7 +257,7 @@ function lower(i: surface.Module): CompilerOutput<abstract.Module> {
   }
 }
 
-export function createLoweringCompiler() {
+export function createLoweringCompiler(): Compiler<surface.Module, abstract.Module> {
   return new Compiler({
     run: lower
   });

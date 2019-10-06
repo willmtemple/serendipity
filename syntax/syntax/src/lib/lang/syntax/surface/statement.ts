@@ -1,10 +1,10 @@
-/**
- * Statement definitions for syntax.
- */
+// Copyright (c) Serendipity Project Contributors
+// All rights reserved.
+// Licensed under the terms of the GNU General Public License v3 or later.
 
 import { SyntaxObject } from "../";
 import { Expression } from "./expression";
-import { Function } from "../../../util/FuncTools";
+import { Fn } from "../../../util/FuncTools";
 
 export type Statement = Print | Let | If | ForIn | Forever | Do | Break | Hole;
 
@@ -54,14 +54,14 @@ export interface Hole extends SyntaxObject {
 // Statement tools
 
 export interface StatementPattern<T> {
-  Print: Function<Print, T>;
-  Let: Function<Let, T>;
-  If: Function<If, T>;
-  ForIn: Function<ForIn, T>;
-  Forever: Function<Forever, T>;
-  Do: Function<Do, T>;
-  Break: Function<Break, T>;
-  Hole: Function<Hole, T>;
+  Print: Fn<Print, T>;
+  Let: Fn<Let, T>;
+  If: Fn<If, T>;
+  ForIn: Fn<ForIn, T>;
+  Forever: Fn<Forever, T>;
+  Do: Fn<Do, T>;
+  Break: Fn<Break, T>;
+  Hole: Fn<Hole, T>;
 }
 
 export interface ExhaustiveStatementPattern<T> extends StatementPattern<T> {
@@ -75,32 +75,33 @@ export interface PartialStatementPattern<T> extends Partial<StatementPattern<T>>
 export type StatementMatcher<T> = ExhaustiveStatementPattern<T> | PartialStatementPattern<T>;
 
 /**
- * A function for destructuring a Statement
+ * A Fn for destructuring a Statement
  *
  * @param p The StatementPattern instance to use
  */
-export function matchStatement<T>(p: StatementMatcher<T>): Function<Statement, T> {
+export function matchStatement<T>(p: StatementMatcher<T>): Fn<Statement, T> {
   return (s: Statement): T => {
     switch (s.statementKind) {
       case "print":
-        return p.Print ? p.Print(s as Print) : p.Default(s);
+        return p.Print ? p.Print(s) : p.Default(s);
       case "let":
-        return p.Let ? p.Let(s as Let) : p.Default(s);
+        return p.Let ? p.Let(s) : p.Default(s);
       case "if":
-        return p.If ? p.If(s as If) : p.If(s);
+        return p.If ? p.If(s) : p.If(s);
       case "forin":
-        return p.ForIn ? p.ForIn(s as ForIn) : p.Default(s);
+        return p.ForIn ? p.ForIn(s) : p.Default(s);
       case "forever":
-        return p.Forever ? p.Forever(s as Forever) : p.Default(s);
+        return p.Forever ? p.Forever(s) : p.Default(s);
       case "do":
-        return p.Do ? p.Do(s as Do) : p.Default(s);
+        return p.Do ? p.Do(s) : p.Default(s);
       case "break":
-        return p.Break ? p.Break(s as Break) : p.Default(s);
+        return p.Break ? p.Break(s) : p.Default(s);
       case "@hole":
-        return p.Hole ? p.Hole(s as Hole) : p.Default(s);
-      default:
+        return p.Hole ? p.Hole(s) : p.Default(s);
+      default: {
         const __exhaust: never = s;
         return __exhaust;
+      }
     }
   };
 }

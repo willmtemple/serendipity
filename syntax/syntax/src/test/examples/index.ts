@@ -1,3 +1,7 @@
+// Copyright (c) Serendipity Project Contributors
+// All rights reserved.
+// Licensed under the terms of the GNU General Public License v3 or later.
+
 import { Module } from "../../lib/lang/syntax/surface";
 
 export const surfaceExample: Module = {
@@ -249,7 +253,7 @@ export const surfaceExample: Module = {
                 }
               }
             },
-            /*{
+            /* {
                             statementKind: "forin",
                             binding: "i",
                             value: {
