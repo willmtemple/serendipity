@@ -17,17 +17,17 @@
     "url": "https://github.com/willmtemple/serendipity.git",
     "directory": "packages/syntax"
   },
-  "main": "dist/lib/index.js",
+  "main": "dist/index.js",
   "files": [
     "dist"
   ],
   "directories": {
-    "lib": "dist/lib"
+    "lib": "dist"
   },
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist/",
-    "format": "prettier --check \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
     "format:fix": "prettier --write \"src/**/*.ts\"",
     "lint": "eslint src --ext ts",
     "lint:fix": "eslint src --ext ts",

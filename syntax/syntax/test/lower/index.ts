@@ -2,9 +2,10 @@
 // All rights reserved.
 // Licensed under the terms of the GNU General Public License v3 or later.
 
+import * as abstract from "@serendipity/syntax-abstract";
+
 import { Compiler, CompilerOutput } from "../../lib/compiler";
 import * as surface from "../../lib/lang/syntax/surface";
-import * as abstract from "../../lib/lang/syntax/abstract";
 import { ok, error } from "../../lib/util/Result";
 
 type SExpression = surface.expression.Expression;

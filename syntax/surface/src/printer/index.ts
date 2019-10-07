@@ -2,9 +2,9 @@
 // All rights reserved.
 // Licensed under the terms of the GNU General Public License v3 or later.
 
-import { Expression, matchExpression } from "../lang/syntax/surface/expression";
-import { Statement, matchStatement } from "../lang/syntax/surface/statement";
-import { Global, matchGlobal } from "../lang/syntax/surface/global";
+import { Expression, matchExpression } from "../expression";
+import { Statement, matchStatement } from "../statement";
+import { Global, matchGlobal } from "../global";
 
 export function writeExpression(e: Expression, level: number): string {
   let accum = "";

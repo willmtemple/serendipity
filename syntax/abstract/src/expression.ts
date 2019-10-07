@@ -2,26 +2,24 @@
 // All rights reserved.
 // Licensed under the terms of the GNU General Public License v3 or later.
 
-import { Fn } from "../../../util/FuncTools";
-import { SyntaxObject } from "../";
+import { Fn } from "@serendipity/syntax/dist/util/FuncTools";
+import { SyntaxObject } from "@serendipity/syntax";
 import { Statement } from "./statement";
+
+/* eslint-disable @typescript-eslint/ban-types */
 
 export type Expression =
   | Number
   | String
   | Name
   | Accessor
-  | Arithmetic
-  | With
   | Call
   | Closure
-  | List
   | Tuple
   | Procedure
   | If
-  | Compare
-  | Void
-  | Hole;
+  | BinaryOp
+  | Void;
 
 export interface Number extends SyntaxObject {
   exprKind: "number";
@@ -44,34 +42,16 @@ export interface Accessor extends SyntaxObject {
   index: Expression;
 }
 
-export interface Arithmetic extends SyntaxObject {
-  exprKind: "arithmetic";
-  op: "+" | "-" | "/" | "*" | "%";
-  left: Expression;
-  right: Expression;
-}
-
-export interface With extends SyntaxObject {
-  exprKind: "with";
-  binding: [string, Expression];
-  expr: Expression;
-}
-
 export interface Call extends SyntaxObject {
   exprKind: "call";
   callee: Expression;
-  parameters: Expression[];
+  parameter?: Expression;
 }
 
 export interface Closure extends SyntaxObject {
   exprKind: "closure";
-  parameters: string[];
+  parameter?: string;
   body: Expression;
-}
-
-export interface List extends SyntaxObject {
-  exprKind: "list";
-  contents: Expression[];
 }
 
 export interface Tuple extends SyntaxObject {
@@ -91,19 +71,31 @@ export interface If extends SyntaxObject {
   _else: Expression;
 }
 
-export interface Compare extends SyntaxObject {
-  exprKind: "compare";
-  op: "<" | ">" | "<=" | ">=" | "==" | "!=";
+export enum BinaryOperator {
+  // Comparators
+  LT = "<",
+  GT = ">",
+  LEQ = "<=",
+  GEQ = ">=",
+  EQ = "==",
+  NEQ = "!=",
+  // Arith
+  ADD = "+",
+  SUB = "-",
+  DIV = "/",
+  MUL = "*",
+  MOD = "%"
+}
+
+export interface BinaryOp extends SyntaxObject {
+  exprKind: "binop";
+  op: BinaryOperator;
   left: Expression;
   right: Expression;
 }
 
 export interface Void extends SyntaxObject {
   exprKind: "void";
-}
-
-export interface Hole extends SyntaxObject {
-  exprKind: "@hole";
 }
 
 // Expression tools
@@ -113,20 +105,16 @@ export interface Hole extends SyntaxObject {
  */
 export interface ExpressionPattern<T> {
   Accessor: Fn<Accessor, T>;
-  Arithmetic: Fn<Arithmetic, T>;
   Number: Fn<Number, T>;
   String: Fn<String, T>;
   Name: Fn<Name, T>;
-  With: Fn<With, T>;
   Call: Fn<Call, T>;
   Closure: Fn<Closure, T>;
-  List: Fn<List, T>;
   Tuple: Fn<Tuple, T>;
   Procedure: Fn<Procedure, T>;
   Void: Fn<Void, T>;
   If: Fn<If, T>;
-  Compare: Fn<Compare, T>;
-  Hole: Fn<Hole, T>;
+  BinaryOp: Fn<BinaryOp, T>;
 }
 
 export interface ExhaustiveExpressionPattern<T> extends ExpressionPattern<T> {
@@ -155,16 +143,10 @@ export function matchExpression<T>(p: ExpressionMatcher<T>): (e: Expression) => 
         return p.Name ? p.Name(e) : p.Default(e);
       case "accessor":
         return p.Accessor ? p.Accessor(e) : p.Default(e);
-      case "arithmetic":
-        return p.Arithmetic ? p.Arithmetic(e) : p.Default(e);
-      case "with":
-        return p.With ? p.With(e) : p.Default(e);
       case "call":
         return p.Call ? p.Call(e) : p.Default(e);
       case "closure":
         return p.Closure ? p.Closure(e) : p.Default(e);
-      case "list":
-        return p.List ? p.List(e) : p.Default(e);
       case "tuple":
         return p.Tuple ? p.Tuple(e) : p.Default(e);
       case "procedure":
@@ -173,10 +155,8 @@ export function matchExpression<T>(p: ExpressionMatcher<T>): (e: Expression) => 
         return p.Void ? p.Void(e) : p.Default(e);
       case "if":
         return p.If ? p.If(e) : p.Default(e);
-      case "compare":
-        return p.Compare ? p.Compare(e) : p.Default(e);
-      case "@hole":
-        return p.Hole ? p.Hole(e) : p.Default(e);
+      case "binop":
+        return p.BinaryOp ? p.BinaryOp(e) : p.Default(e);
       default: {
         const __exhaust: never = e;
         return __exhaust;

@@ -44,6 +44,18 @@
       "shouldPublish": false
     },
     {
+      "packageName": "@serendipity/syntax-abstract",
+      "projectFolder": "syntax/abstract",
+      "reviewCategory": "production",
+      "shouldPublish": false
+    },
+    {
+      "packageName": "@serendipity/syntax-surface",
+      "projectFolder": "syntax/surface",
+      "reviewCategory": "production",
+      "shouldPublish": false
+    },
+    {
       "packageName": "@serendipity/camino",
       "projectFolder": "editor/camino",
       "reviewCategory": "production",
@@ -52,6 +64,12 @@
     {
       "packageName": "@serendipity/eslint-config",
       "projectFolder": "tools/eslint-config",
+      "reviewCategory": "tools",
+      "shouldPublish": false
+    },
+    {
+      "packageName": "@serendipity/scripts",
+      "projectFolder": "tools/scripts",
       "reviewCategory": "tools",
       "shouldPublish": false
     }

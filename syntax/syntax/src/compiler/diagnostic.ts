@@ -2,7 +2,7 @@
 // All rights reserved.
 // Licensed under the terms of the GNU General Public License v3 or later.
 
-import { SyntaxObject } from "../lang/syntax";
+import { SyntaxObject } from "..";
 
 export type Diagnostic = UnboundIdentifierError;
 

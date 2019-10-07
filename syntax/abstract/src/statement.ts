@@ -2,11 +2,11 @@
 // All rights reserved.
 // Licensed under the terms of the GNU General Public License v3 or later.
 
-import { SyntaxObject } from "../";
+import { SyntaxObject } from "@serendipity/syntax";
+import { Fn } from "@serendipity/syntax/dist/util/FuncTools";
 import { Expression } from "./expression";
-import { Fn } from "../../../util/FuncTools";
 
-export type Statement = Print | Let | If | ForIn | Forever | Do | Break | Hole;
+export type Statement = Print | Let | If | ForIn | Forever | Do | Break;
 
 export interface Print extends SyntaxObject {
   statementKind: "print";
@@ -47,10 +47,6 @@ export interface Break extends SyntaxObject {
   statementKind: "break";
 }
 
-export interface Hole extends SyntaxObject {
-  statementKind: "@hole";
-}
-
 // Statement tools
 
 export interface StatementPattern<T> {
@@ -61,7 +57,6 @@ export interface StatementPattern<T> {
   Forever: Fn<Forever, T>;
   Do: Fn<Do, T>;
   Break: Fn<Break, T>;
-  Hole: Fn<Hole, T>;
 }
 
 export interface ExhaustiveStatementPattern<T> extends StatementPattern<T> {
@@ -75,7 +70,7 @@ export interface PartialStatementPattern<T> extends Partial<StatementPattern<T>>
 export type StatementMatcher<T> = ExhaustiveStatementPattern<T> | PartialStatementPattern<T>;
 
 /**
- * A Fn for destructuring a Statement
+ * A function for destructuring a Statement
  *
  * @param p The StatementPattern instance to use
  */
@@ -96,8 +91,6 @@ export function matchStatement<T>(p: StatementMatcher<T>): Fn<Statement, T> {
         return p.Do ? p.Do(s) : p.Default(s);
       case "break":
         return p.Break ? p.Break(s) : p.Default(s);
-      case "@hole":
-        return p.Hole ? p.Hole(s) : p.Default(s);
       default: {
         const __exhaust: never = s;
         return __exhaust;

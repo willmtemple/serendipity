@@ -23,7 +23,6 @@
     ],
     "exclude": [
         "dist",
-        "test",
         "node_modules"
     ]
 }
