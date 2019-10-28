@@ -20,8 +20,10 @@ steps:
     node common/scripts/install-run-rush.js install
   displayName: 'Install & Run Rush'
 
-- script: rush check
+- script: |
+    node common/scripts/install-run-rush.js check
   displayName: Rush Check
 
-- script: rush build
+- script: |
+    node common/scripts/install-run-rush.js build
   displayName: Rush Build
