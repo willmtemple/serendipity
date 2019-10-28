@@ -17,10 +17,11 @@ steps:
   displayName: 'Install Node.js'
 
 - script: |
-    npm install -g @microsoft/rush
-  displayName: 'Install Rush'
+    node common/scripts/install-run-rush.js install
+  displayName: 'Install & Run Rush'
 
-- script: |
-    rush update
-    rush build
-  displayName: 'Rush Build'
+- script: rush check
+  displayName: Rush Check
+
+- script: rush build
+  displayName: Rush Build
