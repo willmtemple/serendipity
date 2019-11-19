@@ -4,9 +4,9 @@
 
 import * as abstract from "@serendipity/syntax-abstract";
 
-import { Compiler, CompilerOutput } from "../../lib/compiler";
-import * as surface from "../../lib/lang/syntax/surface";
-import { ok, error } from "../../lib/util/Result";
+import { Compiler, CompilerOutput } from "@serendipity/syntax";
+import * as surface from "@serendipity/syntax-surface";
+import { ok, error } from "@serendipity/syntax/dist/util/Result";
 
 type SExpression = surface.expression.Expression;
 type AbsExpression = abstract.expression.Expression;

@@ -3,7 +3,7 @@
 // Licensed under the terms of the GNU General Public License v3 or later.
 
 import { Binder, Scope } from "./scope";
-import { Statement } from "../../lib/lang/syntax/abstract/statement";
+import { statement } from "@serendipity/syntax-abstract";
 
 export type Value = NumberV | StringV | ClosV | TupleV | ProcV | BoolV | VoidV;
 
@@ -32,7 +32,7 @@ export interface TupleV {
 
 export interface ProcV {
   kind: "proc";
-  body: Statement[];
+  body: statement.Statement[];
   scope: Scope;
 }
 

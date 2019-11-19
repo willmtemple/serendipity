@@ -2,17 +2,10 @@
 // All rights reserved.
 // Licensed under the terms of the GNU General Public License v3 or later.
 
+import { expression, statement, Module, global } from "@serendipity/syntax-abstract";
+
 import { Value, NumberV } from "./value";
-import {
-  Expression,
-  matchExpression,
-  BinaryOp,
-  BinaryOperator
-} from "../../lib/lang/syntax/abstract/expression";
 import { Scope } from "./scope";
-import { Statement, matchStatement } from "../../lib/lang/syntax/abstract/statement";
-import { Module } from "../../lib/lang/syntax/abstract";
-import { matchGlobal, Main } from "../../lib/lang/syntax/abstract/global";
 
 import * as console from "console";
 
@@ -46,7 +39,7 @@ function isTrue(v: Value): boolean {
   }
 }
 
-function arithOp(l: NumberV, r: NumberV, op: BinaryOperator): Value {
+function arithOp(l: NumberV, r: NumberV, op: expression.BinaryOperator): Value {
   const lv = l.value;
   const rv = r.value;
   switch (op) {
@@ -63,7 +56,7 @@ function arithOp(l: NumberV, r: NumberV, op: BinaryOperator): Value {
   }
 }
 
-function compareOp(lv: Value, rv: Value, op: BinaryOperator): Value {
+function compareOp(lv: Value, rv: Value, op: expression.BinaryOperator): Value {
   return {
     kind: "boolean",
     value: (() => {
@@ -155,9 +148,9 @@ export class Interpreter {
 
   public execModule(m: Module): void {
     const scope: Scope = new Scope(this.evalExpr.bind(this));
-    let main: Main;
+    let main: global.Main;
     m.globals.forEach(
-      matchGlobal<void>({
+      global.matchGlobal<void>({
         Main: (_main) => {
           main = _main;
         },
@@ -213,18 +206,18 @@ export class Interpreter {
     }
   }
 
-  private binaryOperator({ op, left, right }: BinaryOp, scope: Scope): Value {
+  private binaryOperator({ op, left, right }: expression.BinaryOp, scope: Scope): Value {
     const lv = this.evalExpr(left, scope);
     const rv = this.evalExpr(right, scope);
     if (lv.kind !== rv.kind) {
       throw new Error("Type mismatch in binary operation");
     } else {
       switch (op) {
-        case BinaryOperator.ADD:
-        case BinaryOperator.SUB:
-        case BinaryOperator.MUL:
-        case BinaryOperator.DIV:
-        case BinaryOperator.MOD:
+        case expression.BinaryOperator.ADD:
+        case expression.BinaryOperator.SUB:
+        case expression.BinaryOperator.MUL:
+        case expression.BinaryOperator.DIV:
+        case expression.BinaryOperator.MOD:
           if (lv.kind !== "number") {
             throw new Error("Attempted to do arithmetic on non-numbers");
           } else {
@@ -237,8 +230,8 @@ export class Interpreter {
     }
   }
 
-  private evalExpr(e: Expression, scope: Scope): Value {
-    return matchExpression<Value>({
+  private evalExpr(e: expression.Expression, scope: Scope): Value {
+    return expression.matchExpression<Value>({
       Number: ({ value }) => ({ kind: "number", value }),
       String: ({ value }) => ({ kind: "string", value }),
       Name: ({ name }) => {
@@ -317,8 +310,8 @@ export class Interpreter {
     })(e);
   }
 
-  private execStmt(s: Statement, scope: Scope): StatementStatus {
-    return matchStatement({
+  private execStmt(s: statement.Statement, scope: Scope): StatementStatus {
+    return statement.matchStatement({
       Print: (p) => {
         this._print(
           this._strconv(this.evalExpr(p.value, new Scope(this.evalExpr.bind(this), scope)))
