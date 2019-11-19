@@ -2,12 +2,8 @@
   "compilerOptions": {
     "baseUrl": "src",
 
-    "target": "es5",
-    "lib": [
-      "esnext",
-      "dom",
-      "dom.iterable"
-    ],
+    "target": "esnext",
+    "lib": ["esnext", "dom", "dom.iterable"],
 
     "allowJs": true,
     "skipLibCheck": true,
@@ -28,12 +24,11 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
 
-    "noEmit": true,
+    "outDir": "dist-esm",
 
     "jsx": "react",
 
-    "importHelpers": true,
-    "experimentalDecorators": true
+    "importHelpers": true
   },
   "exclude": [
     "node_modules",
@@ -43,7 +38,5 @@
     "webpack",
     "jest"
   ],
-  "include": [
-    "src"
-  ]
+  "include": ["src"]
 }
