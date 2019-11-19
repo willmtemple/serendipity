@@ -1,11 +1,7 @@
 {
-  "name": "@serendipity/syntax-abstract",
+  "name": "@serendipity/slipr",
   "version": "0.1.0-dev",
-  "description": "Defines abstract lower syntax for serendipity runtime",
-  "main": "dist/index.js",
-  "files": [
-    "dist/"
-  ],
+  "description": "Serendipity LISP representation and engine",
   "author": "Serendipity Project Contributors",
   "contributors": [
     {
@@ -15,14 +11,19 @@
     }
   ],
   "license": "GPL-3.0-or-later",
-  "homepage": "https://github.com/willmtemple/serendipity/tree/master/packages/syntax",
+  "homepage": "https://github.com/willmtemple/serendipity/tree/master/cli/slipr",
   "repository": {
     "type": "git",
     "url": "https://github.com/willmtemple/serendipity.git",
-    "directory": "syntax/abstract"
+    "directory": "cli/slipr"
   },
+  "main": "dist/index.js",
+  "bin": "dist/bin/slipr.js",
+  "files": [
+    "dist"
+  ],
   "directories": {
-    "lib": "dist/"
+    "lib": "dist"
   },
   "scripts": {
     "build": "tsc",
@@ -35,7 +36,10 @@
   },
   "prettier": "@serendipity/eslint-config/prettier.json",
   "dependencies": {
-    "@serendipity/syntax": "0.1.0-dev"
+    "@serendipity/compiler-desugar": "0.1.0-dev",
+    "@serendipity/interpreter": "0.1.0-dev",
+    "@serendipity/syntax": "0.1.0-dev",
+    "@serendipity/syntax-surface": "0.1.0-dev"
   },
   "devDependencies": {
     "@serendipity/eslint-config": "0.1.0-dev",

@@ -1,0 +1,10 @@
+{
+  "extends": "@serendipity/eslint-config",
+  "parserOptions": {
+    "sourceType": "module"
+  },
+  "env": {
+    "es6": true,
+    "node": true
+  }
+}

@@ -5,6 +5,22 @@
       "path": "."
     },
     {
+      "name": "@serendipity/slipr",
+      "path": "cli/slipr"
+    },
+    {
+      "name": "@serendipity/compiler-desugar",
+      "path": "compiler/desugar"
+    },
+    {
+      "name": "@serendipity/camino",
+      "path": "editor/camino"
+    },
+    {
+      "name": "@serendipity/interpreter",
+      "path": "runtime/interpreter"
+    },
+    {
       "name": "@serendipity/syntax",
       "path": "syntax/syntax"
     },
@@ -15,10 +31,6 @@
     {
       "name": "@serendipity/syntax-surface",
       "path": "syntax/surface"
-    },
-    {
-      "name": "@serendipity/camino",
-      "path": "editor/camino"
     },
     {
       "name": "@serendipity/eslint-config",
@@ -49,6 +61,22 @@
     ],
     "eslint.workingDirectories": [
       {
+        "directory": "cli/slipr",
+        "changeProcessCWD": true
+      },
+      {
+        "directory": "compiler/desugar",
+        "changeProcessCWD": true
+      },
+      {
+        "directory": "editor/camino",
+        "changeProcessCWD": true
+      },
+      {
+        "directory": "runtime/interpreter",
+        "changeProcessCWD": true
+      },
+      {
         "directory": "syntax/syntax",
         "changeProcessCWD": true
       },
@@ -58,10 +86,6 @@
       },
       {
         "directory": "syntax/surface",
-        "changeProcessCWD": true
-      },
-      {
-        "directory": "editor/camino",
         "changeProcessCWD": true
       },
       {

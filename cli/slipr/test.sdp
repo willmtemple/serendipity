@@ -1,0 +1,18 @@
+(define (rec n)
+  (cons
+    n
+    (rec (* n 2))))
+
+(define (take l n)
+  (if (< n 1)
+    empty
+    (cons
+      (get-property l 0)
+      (take (get-property l 1) (- n 1)))))
+
+(main
+  (proc
+    (for-in
+      [i (take (rec 1) 32)]
+      (print i))
+  ))

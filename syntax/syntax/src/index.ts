@@ -14,4 +14,6 @@ export interface SyntaxObject {
 export const util = {
   Result: result,
   FuncTools: funcTools
-}
+};
+
+export { Compiler, CompilerOutput } from "./compiler";

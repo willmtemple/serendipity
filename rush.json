@@ -7,7 +7,7 @@
     "resolutionStrategy": "fast"
   },
 
-  "nodeSupportedVersionRange": ">=10.13.0 <11.0.0",
+  "nodeSupportedVersionRange": ">=10.0.0",
   "suppressNodeLtsWarning": false,
 
   "ensureConsistentVersions": true,
@@ -38,6 +38,30 @@
 
   "projects": [
     {
+      "packageName": "@serendipity/slipr",
+      "projectFolder": "cli/slipr",
+      "reviewCategory": "production",
+      "shouldPublish": false
+    },
+    {
+      "packageName": "@serendipity/compiler-desugar",
+      "projectFolder": "compiler/desugar",
+      "reviewCategory": "production",
+      "shouldPublish": false
+    },
+    {
+      "packageName": "@serendipity/camino",
+      "projectFolder": "editor/camino",
+      "reviewCategory": "production",
+      "shouldPublish": false
+    },
+    {
+      "packageName": "@serendipity/interpreter",
+      "projectFolder": "runtime/interpreter",
+      "reviewCategory": "production",
+      "shouldPublish": false
+    },
+    {
       "packageName": "@serendipity/syntax",
       "projectFolder": "syntax/syntax",
       "reviewCategory": "production",
@@ -52,12 +76,6 @@
     {
       "packageName": "@serendipity/syntax-surface",
       "projectFolder": "syntax/surface",
-      "reviewCategory": "production",
-      "shouldPublish": false
-    },
-    {
-      "packageName": "@serendipity/camino",
-      "projectFolder": "editor/camino",
       "reviewCategory": "production",
       "shouldPublish": false
     },
