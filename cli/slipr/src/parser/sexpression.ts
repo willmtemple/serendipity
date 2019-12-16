@@ -29,12 +29,16 @@ export async function* chars(
   }
 }
 
-/*const rSymbol = /^[a-z_][a-zA-Z0-9_\-?!]*$/;
+/* const rSymbol = /^[a-z_][a-zA-Z0-9_\-?!]*$/;
 const rNumeric = /^(0[xdob])?[0-9]+$/;
 const rString = /^".*"$/;
 const rMultiLineString = /^`.*`/s;*/
 
-export async function* tokenize(input: AsyncIterable<Buffer>): AsyncGenerator<string> {
+/**
+ *
+ * @param input an iterator over chunks of inpu
+ */
+export async function* tokenize(input: AsyncIterable<string>): AsyncGenerator<string> {
   let accum = "";
   let waitFor: string | undefined;
 
@@ -43,12 +47,15 @@ export async function* tokenize(input: AsyncIterable<Buffer>): AsyncGenerator<st
     waitFor = undefined;
   };
 
-  for await (const c of chars(input)) {
+  for await (const c of input) {
     if (waitFor) {
       if (c === "\n") {
-        throw new Error("Found newline while scanning for end of quoted literal.");
-      }
-      if (c === waitFor) {
+        if (waitFor === "\n") {
+          clear();
+        } else {
+          throw new Error("Found newline while scanning for end of quoted literal.");
+        }
+      } else if (c === waitFor) {
         accum += waitFor;
         yield accum;
         clear();
@@ -64,6 +71,8 @@ export async function* tokenize(input: AsyncIterable<Buffer>): AsyncGenerator<st
     } else if (c === '"') {
       accum += c;
       waitFor = c;
+    } else if (c === ";") {
+      waitFor = "\n";
     } else if (FLAT_LIST_MARKERS.includes(c)) {
       if (accum !== "") {
         yield accum;

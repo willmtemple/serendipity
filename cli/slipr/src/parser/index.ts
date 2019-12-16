@@ -6,7 +6,14 @@ import * as fs from "fs";
 
 import { Module, global as glb, expression, statement } from "@serendipity/syntax-surface";
 
-import { atomize, tokenize, intoSExpression, SExpression, SExpressionArray } from "./sexpression";
+import {
+  atomize,
+  tokenize,
+  intoSExpression,
+  SExpression,
+  SExpressionArray,
+  chars
+} from "./sexpression";
 import { builtinConstructors, builtinValues, allBuiltins, requireAllSymbols } from "./builtins";
 
 export interface Parser {
@@ -95,6 +102,18 @@ export function intoStatement(sexpr: SExpression): statement.Statement {
       }
       return {
         statementKind: "let",
+        name: sexpr[1],
+        value: intoExpression(sexpr[2])
+      };
+    case "set!":
+      assertLength(3);
+      if (typeof sexpr[1] !== "string") {
+        throw new Error("Expected a symbol in set! statement, but got " + sexpr);
+      } else if (allBuiltins.includes(sexpr[1])) {
+        throw new Error(`Attempted to set builtin '${sexpr[1]} : '` + sexpr);
+      }
+      return {
+        statementKind: "set",
         name: sexpr[1],
         value: intoExpression(sexpr[2])
       };
@@ -235,8 +254,7 @@ async function collect<T>(input: AsyncIterable<T>): Promise<T[]> {
 }
 
 async function parse(input: fs.ReadStream): Promise<Module> {
-  const tokens = await collect(tokenize(input));
-  console.log(tokens);
+  const tokens = await collect(tokenize(chars(input)));
   const atoms = atomize(tokens);
   const sExpr = intoSExpression(atoms);
 

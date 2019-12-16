@@ -1,0 +1,2 @@
+(main (proc
+  [print (= empty empty)]))

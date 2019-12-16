@@ -1,0 +1,25 @@
+(define (map list f)
+  (if (= list empty)
+    empty
+    (cons
+      (f (get-property list 0))
+      (map (get-property list 1) f))))
+
+(define (take list n)
+  (if (<= n 0)
+    empty
+    (cons
+      (get-property list 0)
+      (take (get-property list 1) (- n 1)))))
+
+(define (pow-series acc exp)
+  (if (= acc 0)
+    (cons 1 (pow-series 1 exp))
+    (with [next-acc (* acc exp)]
+      (cons next-acc (pow-series next-acc exp)))))
+
+(define powers-of-two (pow-series 0 2))
+
+(main (proc
+  (for-in [p (take powers-of-two 64)] (do (proc
+    (print p))))))

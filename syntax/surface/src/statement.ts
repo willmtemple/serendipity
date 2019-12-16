@@ -6,7 +6,7 @@ import { Fn } from "@serendipity/syntax/dist/util/FuncTools";
 import { SyntaxObject } from "@serendipity/syntax";
 import { Expression } from "./expression";
 
-export type Statement = Print | Let | If | ForIn | Forever | Do | Break | Hole;
+export type Statement = Print | Let | Set | If | ForIn | Forever | Do | Break | Hole;
 
 export interface Print extends SyntaxObject {
   statementKind: "print";
@@ -15,6 +15,12 @@ export interface Print extends SyntaxObject {
 
 export interface Let extends SyntaxObject {
   statementKind: "let";
+  name: string;
+  value: Expression;
+}
+
+export interface Set extends SyntaxObject {
+  statementKind: "set";
   name: string;
   value: Expression;
 }
@@ -56,6 +62,7 @@ export interface Hole extends SyntaxObject {
 export interface StatementPattern<T> {
   Print: Fn<Print, T>;
   Let: Fn<Let, T>;
+  Set: Fn<Set, T>;
   If: Fn<If, T>;
   ForIn: Fn<ForIn, T>;
   Forever: Fn<Forever, T>;
@@ -86,8 +93,10 @@ export function matchStatement<T>(p: StatementMatcher<T>): Fn<Statement, T> {
         return p.Print ? p.Print(s) : p.Default(s);
       case "let":
         return p.Let ? p.Let(s) : p.Default(s);
+      case "set":
+        return p.Set ? p.Set(s) : p.Default(s);
       case "if":
-        return p.If ? p.If(s) : p.If(s);
+        return p.If ? p.If(s) : p.Default(s);
       case "forin":
         return p.ForIn ? p.ForIn(s) : p.Default(s);
       case "forever":

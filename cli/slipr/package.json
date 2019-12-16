@@ -39,6 +39,7 @@
     "@serendipity/compiler-desugar": "0.1.0-dev",
     "@serendipity/interpreter": "0.1.0-dev",
     "@serendipity/syntax": "0.1.0-dev",
+    "@serendipity/syntax-abstract": "0.1.0-dev",
     "@serendipity/syntax-surface": "0.1.0-dev"
   },
   "devDependencies": {

@@ -22,7 +22,12 @@ export interface CachedBinder {
   cache?: Value;
 }
 
-export type ScopedObject = CachedExpression | CachedBinder;
+export interface ScopedValue {
+  kind: "value";
+  value: Value;
+}
+
+export type ScopedObject = CachedExpression | CachedBinder | ScopedValue;
 
 type Evaluator = (e: expression.Expression, s: Scope) => Value;
 
@@ -53,6 +58,10 @@ export class Scope {
     };
   }
 
+  public demandInScope(name: string, expr: expression.Expression): void {
+    this.set(name, { kind: "value", value: this.evaluator(expr, this) });
+  }
+
   public resolve(name: string): Value {
     const bound = this.bindings[name];
 
@@ -65,7 +74,21 @@ export class Scope {
     }
   }
 
+  private set(name: string, cexpr: ScopedObject): void {
+    if (this.bindings[name]) {
+      this.bindings[name] = cexpr;
+    } else if (this.parent) {
+      this.parent.set(name, cexpr);
+    } else {
+      throw new Error("No such binding for name: " + name);
+    }
+  }
+
   private eval(cexpr: ScopedObject): Value {
+    if (cexpr.kind === "value") {
+      return cexpr.value;
+    }
+
     if (cexpr.cache) {
       return cexpr.cache;
     } else {

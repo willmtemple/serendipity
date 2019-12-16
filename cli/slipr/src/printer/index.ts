@@ -2,25 +2,23 @@
 // All rights reserved.
 // Licensed under the terms of the GNU General Public License v3 or later.
 
-import { Expression, matchExpression } from "../expression";
-import { Statement, matchStatement } from "../statement";
-import { Global, matchGlobal } from "../global";
+import { expression, statement, global as glb } from "@serendipity/syntax-surface";
 
-export function writeExpression(e: Expression, level: number): string {
+export function writeExpression(e: expression.Expression, level: number): string {
   let accum = "";
 
   let indent = "";
   for (let i = 0; i < level; i++) {
-    indent += "    ";
+    indent += "  ";
   }
 
-  const wx = (ex: Expression): string => writeExpression(ex, level);
-  matchExpression<void>({
+  const wx = (ex: expression.Expression): string => writeExpression(ex, level);
+  expression.matchExpression<void>({
     Accessor: ({ accessee, index }) => {
       accum += wx(accessee) + "." + wx(index);
     },
     Arithmetic: ({ op, left, right }) => {
-      accum += "(" + [wx(left), op, wx(right)].join(" ") + ")";
+      accum += "(" + [op, wx(left), wx(right)].join(" ") + ")";
     },
     Number: ({ value }) => {
       accum += value;
@@ -31,68 +29,62 @@ export function writeExpression(e: Expression, level: number): string {
     Name: ({ name }) => {
       accum += name;
     },
+    Boolean: ({ value }) => {
+      accum += value;
+    },
     With: ({ binding: [name, value], expr }) => {
       accum +=
-        "with {" +
-        name +
-        " = " +
-        wx(value) +
-        "} (\n" +
+        `(with [${name}: ${writeExpression(value, 0)}` +
+        "]\n" +
         indent +
-        "    " +
+        "  " +
         writeExpression(expr, level + 1) +
         "\n" +
         indent +
         ")";
     },
     Call: ({ callee, parameters }) => {
-      accum += wx(callee) + "(" + parameters.map(writeExpression).join(", ") + ")";
+      accum += "(" + wx(callee) + parameters.map(writeExpression).join(" ") + ")";
     },
     Closure: ({ parameters, body }) => {
-      accum += "((" + parameters.join(", ") + ") -> " + wx(body) + ")";
+      accum += "(fn (" + parameters.join(" ") + ") \n" + writeExpression(body, level + 1) + ")";
     },
     List: ({ contents }) => {
-      accum += "[" + contents.map(writeExpression).join(", ") + "]";
+      accum += "`[" + contents.map(writeExpression).join(" ") + "]";
     },
     Tuple: ({ values }) => {
-      accum += "(" + values.map(writeExpression).join(", ") + ")";
+      accum += "(cons " + values.map(writeExpression).join(" ") + ")";
     },
     Procedure: ({ body }) => {
       accum +=
-        "[\n" +
-        body.map((s) => writeStatement(s, level + 1, false)).join("\n") +
-        "\n" +
-        indent +
-        "]";
+        "(proc\n" +
+        body.map((s) => indent + "[" + writeStatement(s, level + 1, false) + "]").join("\n") +
+        "\n)";
     },
     Void: () => {
-      accum += "void";
+      accum += "empty";
     },
     If: ({ cond, then, _else }) => {
       accum +=
-        "if " +
+        "(if " +
         wx(cond) +
         "\n" +
-        indent +
-        "    ? then " +
-        wx(then) +
+        writeExpression(then, level + 1) +
         "\n" +
-        indent +
-        "    : else " +
-        wx(_else);
+        writeExpression(_else, level + 1) +
+        ")";
     },
     Compare: ({ left, right, op }) => {
-      accum += "(" + [wx(left), op, wx(right)].join(" ") + ")";
+      accum += "(" + [op, wx(left), wx(right)].join(" ") + ")";
     },
     Hole: () => {
-      // @ is the representation of a hole
-      accum += "@";
+      accum += "...";
     }
   })(e);
   return accum;
 }
 
-export function writeStatement(s: Statement, level: number, skipIndent: boolean): string {
+export function writeStatement(s: statement.Statement, level: number, skipIndent: boolean): string {
   let accum = "";
   let indent = "";
   if (!skipIndent) {
@@ -102,19 +94,19 @@ export function writeStatement(s: Statement, level: number, skipIndent: boolean)
   }
   accum += indent;
 
-  matchStatement<void>({
+  statement.matchStatement<void>({
     Print: ({ value }) => {
       accum += "print " + writeExpression(value, level);
     },
     Let: ({ name, value }) => {
       accum += "let " + name + " = " + writeExpression(value, level);
     },
+    Set: ({ name, value }) => {
+      accum += name + " = " + writeExpression(value, level);
+    },
     If: ({ condition, body, _else }) => {
       accum +=
-        "if " +
-        writeExpression(condition, level) +
-        " then \n" +
-        writeStatement(body, level + 1, false);
+        "if " + writeExpression(condition, level) + " [" + writeStatement(body, level + 1, false);
       if (_else) {
         accum += "\n" + indent + "else \n" + writeStatement(_else, level + 1, false);
       }
@@ -144,9 +136,9 @@ export function writeStatement(s: Statement, level: number, skipIndent: boolean)
   return accum;
 }
 
-export function writeGlobal(g: Global): string {
+export function writeGlobal(g: glb.Global): string {
   let accum = "";
-  matchGlobal<void>({
+  glb.matchGlobal<void>({
     Main: ({ body }) => {
       accum += "main " + writeExpression(body, 0);
     },

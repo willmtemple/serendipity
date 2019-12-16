@@ -4,19 +4,18 @@
 
 import { Fn } from "@serendipity/syntax/dist/util/FuncTools";
 import { SyntaxObject } from "@serendipity/syntax";
-import { Statement } from "./statement";
 
 /* eslint-disable @typescript-eslint/ban-types */
 
 export type Expression =
   | Number
   | String
+  | Boolean
   | Name
   | Accessor
   | Call
   | Closure
   | Tuple
-  | Procedure
   | If
   | BinaryOp
   | Void;
@@ -29,6 +28,11 @@ export interface Number extends SyntaxObject {
 export interface String extends SyntaxObject {
   exprKind: "string";
   value: string;
+}
+
+export interface Boolean extends SyntaxObject {
+  exprKind: "boolean";
+  value: boolean;
 }
 
 export interface Name extends SyntaxObject {
@@ -57,11 +61,6 @@ export interface Closure extends SyntaxObject {
 export interface Tuple extends SyntaxObject {
   exprKind: "tuple";
   values: Expression[];
-}
-
-export interface Procedure extends SyntaxObject {
-  exprKind: "procedure";
-  body: Statement[];
 }
 
 export interface If extends SyntaxObject {
@@ -107,11 +106,11 @@ export interface ExpressionPattern<T> {
   Accessor: Fn<Accessor, T>;
   Number: Fn<Number, T>;
   String: Fn<String, T>;
+  Boolean: Fn<Boolean, T>;
   Name: Fn<Name, T>;
   Call: Fn<Call, T>;
   Closure: Fn<Closure, T>;
   Tuple: Fn<Tuple, T>;
-  Procedure: Fn<Procedure, T>;
   Void: Fn<Void, T>;
   If: Fn<If, T>;
   BinaryOp: Fn<BinaryOp, T>;
@@ -139,6 +138,8 @@ export function matchExpression<T>(p: ExpressionMatcher<T>): (e: Expression) => 
         return p.Number ? p.Number(e) : p.Default(e);
       case "string":
         return p.String ? p.String(e) : p.Default(e);
+      case "boolean":
+        return p.Boolean ? p.Boolean(e) : p.Default(e);
       case "name":
         return p.Name ? p.Name(e) : p.Default(e);
       case "accessor":
@@ -149,8 +150,6 @@ export function matchExpression<T>(p: ExpressionMatcher<T>): (e: Expression) => 
         return p.Closure ? p.Closure(e) : p.Default(e);
       case "tuple":
         return p.Tuple ? p.Tuple(e) : p.Default(e);
-      case "procedure":
-        return p.Procedure ? p.Procedure(e) : p.Default(e);
       case "void":
         return p.Void ? p.Void(e) : p.Default(e);
       case "if":

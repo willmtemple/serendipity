@@ -2,10 +2,9 @@
 // All rights reserved.
 // Licensed under the terms of the GNU General Public License v3 or later.
 
-import { Binder, Scope } from "./scope";
-import { statement } from "@serendipity/syntax-abstract";
+import { Binder } from "./scope";
 
-export type Value = NumberV | StringV | ClosV | TupleV | ProcV | BoolV | VoidV;
+export type Value = NumberV | StringV | ClosV | IntrinsicV | TupleV | BoolV | VoidV;
 
 export interface NumberV {
   kind: "number";
@@ -25,15 +24,14 @@ export interface ClosV {
   };
 }
 
+export interface IntrinsicV {
+  kind: "intrinsic";
+  fn(parameter?: Value): Value;
+}
+
 export interface TupleV {
   kind: "tuple";
   value: Binder[];
-}
-
-export interface ProcV {
-  kind: "proc";
-  body: statement.Statement[];
-  scope: Scope;
 }
 
 export interface BoolV {

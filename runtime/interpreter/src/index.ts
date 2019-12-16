@@ -2,17 +2,13 @@
 // All rights reserved.
 // Licensed under the terms of the GNU General Public License v3 or later.
 
-import { expression, statement, Module, global } from "@serendipity/syntax-abstract";
+import { expression, Module } from "@serendipity/syntax-abstract";
 
-import { Value, NumberV } from "./value";
+import { Value, NumberV, IntrinsicV } from "./value";
 import { Scope } from "./scope";
 
 import * as console from "console";
-
-enum StatementStatus {
-  NORMAL = 0,
-  BREAK
-}
+// import { writeAbstract } from "./print";
 
 function _isTotalType(v: Value): boolean {
   switch (v.kind) {
@@ -61,7 +57,7 @@ function compareOp(lv: Value, rv: Value, op: expression.BinaryOperator): Value {
     kind: "boolean",
     value: (() => {
       if (lv.kind !== rv.kind) {
-        throw new Error("Incompatible types in comparison.");
+        return false;
       }
 
       let negate = false;
@@ -75,9 +71,8 @@ function compareOp(lv: Value, rv: Value, op: expression.BinaryOperator): Value {
             if (lv.kind === "void" || rv.kind === "void") {
               // Voids are always equal
               result = true;
-            } else if (lv.kind === "proc" || rv.kind === "proc") {
-              // Procs are never equal
-              result = false;
+            } else if (lv.kind === "intrinsic" || rv.kind === "intrinsic") {
+              result = lv === rv;
             } else {
               result = lv.value === rv.value;
             }
@@ -93,8 +88,6 @@ function compareOp(lv: Value, rv: Value, op: expression.BinaryOperator): Value {
             if (lv.kind === "void") {
               // Voids are always equal
               result = true;
-            } else if (lv.kind === "proc") {
-              return false;
             } else if (
               (lv.kind === "string" || lv.kind === "number") &&
               (rv.kind === "string" || rv.kind === "number")
@@ -115,7 +108,7 @@ function compareOp(lv: Value, rv: Value, op: expression.BinaryOperator): Value {
             if (lv.kind === "void") {
               // Voids are always equal
               result = true;
-            } else if (lv.kind === "proc") {
+            } else if (lv.kind === "intrinsic") {
               return false;
             } else if (
               (lv.kind === "string" || lv.kind === "number") &&
@@ -148,35 +141,56 @@ export class Interpreter {
 
   public execModule(m: Module): void {
     const scope: Scope = new Scope(this.evalExpr.bind(this));
-    let main: global.Main;
-    m.globals.forEach(
-      global.matchGlobal<void>({
-        Main: (_main) => {
-          main = _main;
-        },
-        Define: ({ name, value }) => {
-          scope.scope(name, value);
-        },
-        Default: (g) => {
-          throw new Error("not imlemented: " + g.globalKind);
-        }
-      })
-    );
+
+    let main = false;
+    for (const { name, value } of m.definitions) {
+      if (name === "__start") {
+        main = true;
+      }
+      scope.scope(name, value);
+    }
 
     if (main) {
-      const bV = this.evalExpr(main.body, scope);
-
-      if (bV.kind !== "proc") {
-        throw new Error("main declaration must be a procedure");
-      }
-
-      const evalScope = new Scope(this.evalExpr.bind(this), bV.scope);
-      for (const stmt of bV.body) {
-        if (this.execStmt(stmt, evalScope) === StatementStatus.BREAK) {
-          throw new Error("Encountered `break` in non-breakable context: MAIN");
-        }
-      }
+      this.evalExpr(
+        {
+          exprKind: "name",
+          name: "__start"
+        },
+        scope
+      );
     }
+  }
+
+  // TODO: remove this in favor of a core module and think hard about what
+  // should be in core
+  private getIntrinsic(scope: Scope, name: string): IntrinsicV {
+    return {
+      kind: "intrinsic",
+      fn: (() => {
+        switch (name.split(".")[1]) {
+          case "print_stmt":
+            return (param?: Value): Value => {
+              if (!param) {
+                throw new Error("Called print_stmt intrinsic with no parameter.");
+              }
+
+              this._print(this._strconv(param));
+              return {
+                kind: "closure",
+                value: {
+                  body: scope.bind({
+                    exprKind: "name",
+                    name: "__ident"
+                  }),
+                  parameter: "__ident"
+                }
+              };
+            };
+          default:
+            throw new Error("No such intrinsic: " + name);
+        }
+      })()
+    };
   }
 
   private _strconv(v: Value): string {
@@ -209,32 +223,33 @@ export class Interpreter {
   private binaryOperator({ op, left, right }: expression.BinaryOp, scope: Scope): Value {
     const lv = this.evalExpr(left, scope);
     const rv = this.evalExpr(right, scope);
-    if (lv.kind !== rv.kind) {
-      throw new Error("Type mismatch in binary operation");
-    } else {
-      switch (op) {
-        case expression.BinaryOperator.ADD:
-        case expression.BinaryOperator.SUB:
-        case expression.BinaryOperator.MUL:
-        case expression.BinaryOperator.DIV:
-        case expression.BinaryOperator.MOD:
-          if (lv.kind !== "number") {
-            throw new Error("Attempted to do arithmetic on non-numbers");
-          } else {
-            return arithOp(lv, rv as NumberV, op);
-          }
+    switch (op) {
+      case expression.BinaryOperator.ADD:
+      case expression.BinaryOperator.SUB:
+      case expression.BinaryOperator.MUL:
+      case expression.BinaryOperator.DIV:
+      case expression.BinaryOperator.MOD:
+        if (lv.kind !== "number" || rv.kind !== "number") {
+          throw new Error("Attempted to do arithmetic on non-numbers");
+        } else {
+          return arithOp(lv, rv, op);
+        }
 
-        default:
-          return compareOp(lv, rv, op);
-      }
+      default:
+        return compareOp(lv, rv, op);
     }
   }
 
   private evalExpr(e: expression.Expression, scope: Scope): Value {
+    // console.log("Eval: ", writeAbstract(e));
     return expression.matchExpression<Value>({
       Number: ({ value }) => ({ kind: "number", value }),
       String: ({ value }) => ({ kind: "string", value }),
+      Boolean: ({ value }) => ({ kind: "boolean", value }),
       Name: ({ name }) => {
+        if (name.startsWith("__core")) {
+          return this.getIntrinsic(scope, name);
+        }
         const res = scope.resolve(name);
         if (!res) {
           throw new Error("name not found: " + name);
@@ -264,6 +279,12 @@ export class Interpreter {
       },
       Call: ({ callee, parameter }) => {
         const calleeValue = this.evalExpr(callee, scope);
+
+        if (calleeValue.kind === "intrinsic") {
+          // Handle intrinsics specially for now
+          return calleeValue.fn(this.evalExpr(parameter, scope));
+        }
+
         if (calleeValue.kind !== "closure") {
           throw new Error("Attempted to call a non-function");
         }
@@ -290,11 +311,6 @@ export class Interpreter {
           value: vals
         };
       },
-      Procedure: ({ body }) => ({
-        kind: "proc",
-        body,
-        scope: new Scope(this.evalExpr.bind(this), scope)
-      }),
       If: ({ cond, then, _else }) => {
         if (isTrue(this.evalExpr(cond, scope))) {
           return this.evalExpr(then, scope);
@@ -303,88 +319,7 @@ export class Interpreter {
         }
       },
       BinaryOp: (v) => this.binaryOperator(v, scope),
-      Void: (_) => ({ kind: "void" }),
-      Default: (_) => {
-        throw new Error("not implemented");
-      }
+      Void: (_) => ({ kind: "void" })
     })(e);
-  }
-
-  private execStmt(s: statement.Statement, scope: Scope): StatementStatus {
-    return statement.matchStatement({
-      Print: (p) => {
-        this._print(
-          this._strconv(this.evalExpr(p.value, new Scope(this.evalExpr.bind(this), scope)))
-        );
-        return StatementStatus.NORMAL;
-      },
-      Let: ({ name, value }) => {
-        scope.scope(name, value);
-        return StatementStatus.NORMAL;
-      },
-      If: ({ condition, body, _else }) => {
-        const value = this.evalExpr(condition, scope);
-
-        if (isTrue(value)) {
-          return this.execStmt(body, scope);
-        } else if (_else) {
-          return this.execStmt(_else, scope);
-        }
-
-        return StatementStatus.NORMAL;
-      },
-      ForIn: ({ binding, value, body }) => {
-        for (
-          let iter = this.evalExpr(value, scope);
-          iter.kind !== "void";
-          iter = this.evalExpr(iter.value[1].expr, iter.value[1].scope)
-        ) {
-          if (iter.kind !== "tuple" || iter.value.length !== 2) {
-            throw new Error("only lists (tuples of dimension 2) are iterable using for ... in");
-          }
-
-          const evalScope = new Scope(this.evalExpr.bind(this), scope);
-          evalScope.rebind(binding, iter.value[0]);
-          if (this.execStmt(body, evalScope) === StatementStatus.BREAK) {
-            break;
-          }
-        }
-        return StatementStatus.NORMAL;
-      },
-      Forever: ({ body }) => {
-        let shouldContinue = true;
-        while (shouldContinue) {
-          if (
-            this.execStmt(body, new Scope(this.evalExpr.bind(this), scope)) ===
-            StatementStatus.BREAK
-          ) {
-            shouldContinue = false;
-          }
-        }
-
-        return StatementStatus.NORMAL;
-      },
-      Do: ({ body }) => {
-        const bV = this.evalExpr(body, scope);
-        if (bV.kind !== "proc") {
-          throw new Error("cannot 'do' anything other than a Procedure");
-        }
-
-        const evalScope = new Scope(this.evalExpr.bind(this), bV.scope);
-        for (const stmt of bV.body) {
-          if (this.execStmt(stmt, evalScope) === StatementStatus.BREAK) {
-            throw new Error("Encountered `break` in non-breakable context: DO");
-          }
-        }
-
-        return StatementStatus.NORMAL;
-      },
-      Break: (_) => {
-        return StatementStatus.BREAK;
-      },
-      Default: (_) => {
-        throw new Error("not implemented");
-      }
-    })(s);
   }
 }

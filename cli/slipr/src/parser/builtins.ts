@@ -50,6 +50,17 @@ export function requireAllSymbols(sexpr: SExpressionArray): string[] {
 export const builtinValues: { [k: string]: expression.Expression } = {
   empty: {
     exprKind: "void"
+  },
+  true: {
+    exprKind: "boolean",
+    value: true
+  },
+  false: {
+    exprKind: "boolean",
+    value: false
+  },
+  "...": {
+    exprKind: "@hole"
   }
 };
 
@@ -85,11 +96,11 @@ export const builtinConstructors: { [k: string]: (sexpr: SExpression) => express
   })),
   "<=": requireExact(3, (sexpr: SExpressionArray) => ({
     exprKind: "compare",
-    op: ">=",
+    op: "<=",
     left: intoExpression(sexpr[1]),
     right: intoExpression(sexpr[2])
   })),
-  "==": requireExact(3, (sexpr: SExpressionArray) => ({
+  "=": requireExact(3, (sexpr: SExpressionArray) => ({
     exprKind: "compare",
     op: "==",
     left: intoExpression(sexpr[1]),
@@ -146,7 +157,7 @@ export const builtinConstructors: { [k: string]: (sexpr: SExpression) => express
     accessee: intoExpression(sexpr[1]),
     index: intoExpression(sexpr[2])
   })),
-  proc: requireAtLeast(2, (sexpr: SExpressionArray) => ({
+  proc: requireAtLeast(1, (sexpr: SExpressionArray) => ({
     exprKind: "procedure",
     body: sexpr.slice(1).map(intoStatement)
   })),
@@ -186,7 +197,20 @@ export const builtinConstructors: { [k: string]: (sexpr: SExpression) => express
           };
 
     return folder(contents);
-  }
+  },
+  with: requireExact(3, (sexpr: SExpressionArray) => {
+    if (!(sexpr[1] instanceof Array) || sexpr[1].length !== 2 || typeof sexpr[1][0] !== "string") {
+      throw new Error(
+        `\`with\` expression expected binding shape [symbol SExpression], but it was '${sexpr[1]}' in SExpression: ` +
+          sexpr
+      );
+    }
+    return {
+      exprKind: "with",
+      binding: [sexpr[1][0], intoExpression(sexpr[1][1])],
+      expr: intoExpression(sexpr[2])
+    };
+  })
 };
 
 export const allBuiltins = [

@@ -9,6 +9,7 @@ import { Statement } from "./statement";
 export type Expression =
   | Number
   | String
+  | Boolean
   | Name
   | Accessor
   | Arithmetic
@@ -31,6 +32,11 @@ export interface Number extends SyntaxObject {
 export interface String extends SyntaxObject {
   exprKind: "string";
   value: string;
+}
+
+export interface Boolean extends SyntaxObject {
+  exprKind: "boolean";
+  value: boolean;
 }
 
 export interface Name extends SyntaxObject {
@@ -114,6 +120,7 @@ export interface Hole extends SyntaxObject {
 export interface ExpressionPattern<T> {
   Accessor: Fn<Accessor, T>;
   Arithmetic: Fn<Arithmetic, T>;
+  Boolean: Fn<Boolean, T>;
   Number: Fn<Number, T>;
   String: Fn<String, T>;
   Name: Fn<Name, T>;
@@ -151,6 +158,8 @@ export function matchExpression<T>(p: ExpressionMatcher<T>): (e: Expression) => 
         return p.Number ? p.Number(e) : p.Default(e);
       case "string":
         return p.String ? p.String(e) : p.Default(e);
+      case "boolean":
+        return p.Boolean ? p.Boolean(e) : p.Default(e);
       case "name":
         return p.Name ? p.Name(e) : p.Default(e);
       case "accessor":

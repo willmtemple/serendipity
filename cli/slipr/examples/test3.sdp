@@ -1,0 +1,39 @@
+;; `empty` equality predicate
+;;
+;; %{param x "the value to compare with `empty`"}
+;; %{return"`true` if `x` is `empty` and `false` otherwise"}
+(define (empty? x) (= x empty))
+
+(define example-tree
+  (cons 50
+    (cons 35
+      (cons 12
+        empty
+	(cons 13
+	  empty
+	  empty))
+      empty)
+    (cons 62
+      empty
+      empty)))
+
+(define (contains? tree n)
+  (if (empty? tree)
+    false
+    (with [elt (get-property tree 0)]
+      (if (= elt n)
+        true
+	(if (> elt n)
+	  (contains? (get-property tree 1) n)
+	  (contains? (get-property tree 2) n))))))
+
+(main (proc
+  (print "Tests:")
+  (print (= 50 (get-property example-tree 0)))
+  (print (= 35 (get-property (get-property example-tree 1) 0)))
+  (print (contains? example-tree 50))
+  (print (contains? example-tree 62))
+  (print (= false (contains? example-tree 5)))
+  (print (contains? example-tree 35))
+  (print (contains? example-tree 62))
+  (print (= false (contains? example-tree 0)))))

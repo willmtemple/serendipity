@@ -8,134 +8,21 @@ import { Compiler, CompilerOutput } from "@serendipity/syntax";
 import * as surface from "@serendipity/syntax-surface";
 import { ok, error } from "@serendipity/syntax/dist/util/Result";
 
+import { curry, Y } from "./util";
+import { foldProcedureCPS } from "./foldProcedure";
+
+// Rename for convenience
+const { matchGlobal } = surface.global;
+
 type SExpression = surface.expression.Expression;
 type AbsExpression = abstract.expression.Expression;
 
-function _curry(parameters: string[], body: SExpression): AbsExpression {
-  let val: AbsExpression;
-
-  if (parameters.length === 0) {
-    // No parameter for this closure
-    val = {
-      exprKind: "closure",
-      body: lowerExpr(body)
-    };
-  } else {
-    // Curry the paramters into separate closures.
-    for (const p of parameters) {
-      val = {
-        exprKind: "closure",
-        parameter: p,
-        // Stack the closures
-        body: val || lowerExpr(body)
-      };
-    }
-  }
-
-  return val;
-}
-
-/**
- * Fixed-point Y Combinator constructor function, used to recursively bind `c` to itself
- * @param c The lambda to bind into the y combinator for external renaming
- */
-function Y(c: abstract.expression.Closure): abstract.expression.Call {
-  return {
-    exprKind: "call",
-    parameter: c,
-    callee: {
-      exprKind: "closure",
-      parameter: "f",
-      body: {
-        exprKind: "call",
-        callee: {
-          exprKind: "closure",
-          parameter: "x",
-          body: {
-            exprKind: "call",
-            callee: {
-              exprKind: "name",
-              name: "x"
-            },
-            parameter: {
-              exprKind: "name",
-              name: "x"
-            }
-          }
-        },
-        parameter: {
-          exprKind: "closure",
-          parameter: "x",
-          body: {
-            exprKind: "call",
-            callee: {
-              exprKind: "name",
-              name: "f"
-            },
-            parameter: {
-              exprKind: "call",
-              callee: {
-                exprKind: "name",
-                name: "x"
-              },
-              parameter: {
-                exprKind: "name",
-                name: "x"
-              }
-            }
-          }
-        }
-      }
-    }
-  };
-}
-
-type SStatement = surface.statement.Statement;
-type AbsStatement = abstract.statement.Statement;
-
-function lowerStatement(s: SStatement): AbsStatement {
-  return surface.statement.matchStatement<AbsStatement>({
-    Print: ({ value }) => ({
-      statementKind: "print",
-      value: lowerExpr(value)
-    }),
-    Let: ({ name, value }) => ({
-      statementKind: "let",
-      name,
-      value: lowerExpr(value)
-    }),
-    If: ({ condition, body, _else }) => ({
-      statementKind: "if",
-      condition: lowerExpr(condition),
-      body: lowerStatement(body),
-      _else: _else && lowerStatement(_else)
-    }),
-    ForIn: ({ binding, value, body }) => ({
-      statementKind: "forin",
-      binding,
-      value: lowerExpr(value),
-      body: lowerStatement(body)
-    }),
-    Forever: ({ body }) => ({
-      statementKind: "forever",
-      body: lowerStatement(body)
-    }),
-    Do: ({ body }) => ({
-      statementKind: "do",
-      body: lowerExpr(body)
-    }),
-    Break: (b) => b,
-    Default: (_) => {
-      throw new Error("not implemented");
-    }
-  })(s);
-}
-
-function lowerExpr(e: SExpression): AbsExpression {
+export function lowerExpr(e: SExpression): AbsExpression {
   return surface.expression.matchExpression<AbsExpression>({
     Number: (n) => n,
     String: (s) => s,
     Name: (n) => n,
+    Boolean: (b) => b,
     Accessor: ({ accessee, index }) => ({
       exprKind: "accessor",
       accessee: lowerExpr(accessee),
@@ -185,7 +72,7 @@ function lowerExpr(e: SExpression): AbsExpression {
         return call;
       }
     },
-    Closure: ({ parameters, body }) => _curry(parameters, body),
+    Closure: ({ parameters, body }) => curry(parameters, body),
     List: ({ contents }) => {
       let list: AbsExpression = {
         exprKind: "void"
@@ -201,7 +88,7 @@ function lowerExpr(e: SExpression): AbsExpression {
       return list;
     },
     Tuple: ({ values }) => ({ exprKind: "tuple", values: values.map(lowerExpr) }),
-    Procedure: ({ body }) => ({ exprKind: "procedure", body: body.map(lowerStatement) }),
+    Procedure: ({ body }) => lowerExpr(foldProcedureCPS(body)),
     If: ({ cond, then, _else }) => ({
       exprKind: "if",
       cond: lowerExpr(cond),
@@ -217,45 +104,62 @@ function lowerExpr(e: SExpression): AbsExpression {
     Void: (v) => v,
     Hole: () => {
       throw new Error("encountered a hole in the program");
-    },
-    Default: (_) => {
-      throw new Error("not implemented");
     }
   })(e);
 }
 
-type SGlobal = surface.global.Global;
-type AbsGlobal = abstract.global.Global;
-
-function lowerGlobal(g: SGlobal): AbsGlobal {
-  return surface.global.matchGlobal<AbsGlobal>({
-    Main: ({ body }) => ({
-      globalKind: "main",
-      body: lowerExpr(body)
-    }),
-    Define: ({ name, value }) => ({
-      globalKind: "define",
-      name,
-      value: lowerExpr(value)
-    }),
-    DefineFunction: ({ name, parameters, body }) => {
-      return {
-        globalKind: "define",
-        name,
-        value: _curry(parameters, body)
-      };
-    }
-  })(g);
-}
-
 function lower(i: surface.Module): CompilerOutput<abstract.Module> {
-  try {
-    return ok({
-      globals: i.globals.map(lowerGlobal)
-    });
-  } catch (e) {
-    return error(e);
+  const definitions: Array<{
+    name: string;
+    value: AbsExpression;
+  }> = [];
+
+  for (const glb of i.globals) {
+    try {
+      matchGlobal({
+        Main({ body }) {
+          definitions.push({
+            name: "__start",
+            value: lowerExpr({
+              exprKind: "call",
+              callee: body,
+              parameters: [
+                {
+                  exprKind: "void"
+                },
+                {
+                  exprKind: "closure",
+                  parameters: [" w"],
+                  body: {
+                    exprKind: "name",
+                    name: " w"
+                  }
+                }
+              ]
+            })
+          });
+        },
+        Define({ name, value }) {
+          definitions.push({
+            name,
+            value: lowerExpr(value)
+          });
+        },
+        DefineFunction({ name, parameters, body }) {
+          definitions.push({
+            name,
+            value: curry(parameters, body)
+          });
+        }
+      })(glb);
+    } catch (e) {
+      return error(e);
+    }
   }
+
+  return ok({
+    definitions
+  });
 }
 
 export function createLoweringCompiler(): Compiler<surface.Module, abstract.Module> {

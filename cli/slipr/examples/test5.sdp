@@ -1,0 +1,11 @@
+(define (range start stop)
+   (if (>= start stop)
+     empty
+     (cons start (range (+ 1 start) stop))))
+
+
+(main (proc
+  (let sum 0)
+  (for-in [i (range 1 1000001)] (do (proc
+    (set! sum (+ sum (* i i)))
+    (print sum))))))
