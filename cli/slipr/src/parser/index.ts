@@ -14,7 +14,7 @@ import {
   SExpressionArray,
   chars
 } from "./sexpression";
-import { builtinConstructors, builtinValues, allBuiltins, requireAllSymbols } from "./builtins";
+import { builtinConstructors, builtinValues, allBuiltins, assertAllSymbols } from "./builtins";
 
 export interface Parser {
   parse(input: fs.ReadStream): Promise<Module>;
@@ -207,7 +207,7 @@ function intoGlobal(sexpr: SExpression): glb.Global {
       if (sexpr[1] instanceof Array) {
         // Defining a function (need to make sure the _name_ is not a reserved word)
 
-        const fnDef = requireAllSymbols(sexpr[1]);
+        const fnDef = assertAllSymbols(sexpr[1]);
 
         if (fnDef.length < 1) {
           throw new Error(`Function definition has no name in SExpression: ` + sexpr);

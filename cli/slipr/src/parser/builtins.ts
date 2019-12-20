@@ -9,31 +9,38 @@ import { intoExpression, intoStatement } from ".";
 
 type ExpressionReducer = (e: SExpressionArray) => expression.Expression;
 
-function requireExact(len: number, fn: ExpressionReducer): ExpressionReducer {
+const requireExact = (len: number, fn: ExpressionReducer): ExpressionReducer =>
+  requireBetween([len, len], fn);
+
+const requireAtLeast = (len: number, fn: ExpressionReducer): ExpressionReducer =>
+  requireBetween([len, undefined], fn);
+
+/* const _requireAtMost = (len: number, fn: ExpressionReducer): ExpressionReducer =>
+  requireBetween([undefined, len], fn);*/
+
+function requireBetween(lens: [number?, number?], fn: ExpressionReducer): ExpressionReducer {
   return (e: SExpressionArray) => {
-    if (e.length !== len) {
-      throw new Error(
-        `Wrong length for builtin '${e[0]}' SExpression. Got ${e.length} but ${len} required: ` + e
-      );
+    if ((lens[0] && e.length < lens[0]) || (lens[1] !== undefined && e.length > lens[1])) {
+      let message = `Wrong length for builtin '${e[0]}' SExpression. Got ${e.length} items but required `;
+
+      if (lens[0] === lens[1]) {
+        message += "exactly " + lens[0] + ".";
+      } else if (lens[0] && lens[1]) {
+        message += `between ${lens[0]} and ${lens[1]}.`;
+      } else if (lens[0] && !lens[1]) {
+        message += `at least ${lens[0]}`;
+      } else {
+        message += `at most ${lens[1]}`;
+      }
+
+      throw new Error(message);
     } else {
       return fn(e);
     }
   };
 }
 
-function requireAtLeast(len: number, fn: ExpressionReducer): ExpressionReducer {
-  return (e: SExpressionArray) => {
-    if (e.length < len) {
-      throw new Error(
-        `Wrong length for builtin '${e[0]}' SExpression. Got ${e.length} but at least ${len} required.`
-      );
-    } else {
-      return fn(e);
-    }
-  };
-}
-
-export function requireAllSymbols(sexpr: SExpressionArray): string[] {
+export function assertAllSymbols(sexpr: SExpressionArray): string[] {
   if (!sexpr.every((e) => typeof e === "string")) {
     throw new Error("Expected only symbols in function definition for: " + sexpr);
   }
@@ -169,7 +176,7 @@ export const builtinConstructors: { [k: string]: (sexpr: SExpression) => express
           sexpr
       );
     }
-    const parameters = requireAllSymbols(sexpr[1]);
+    const parameters = assertAllSymbols(sexpr[1]);
 
     return {
       exprKind: "closure",
@@ -183,21 +190,10 @@ export const builtinConstructors: { [k: string]: (sexpr: SExpression) => express
     then: intoExpression(sexpr[2]),
     _else: intoExpression(sexpr[3])
   })),
-  list: (sexpr: SExpressionArray) => {
-    const contents = sexpr.slice(1);
-
-    const folder = (rest: SExpressionArray): expression.Expression =>
-      rest.length > 0
-        ? {
-            exprKind: "tuple",
-            values: [intoExpression(rest[0]), folder(rest.slice(1))]
-          }
-        : {
-            exprKind: "void"
-          };
-
-    return folder(contents);
-  },
+  list: (sexpr: SExpressionArray) => ({
+    exprKind: "list",
+    contents: sexpr.slice(1).map(intoExpression)
+  }),
   with: requireExact(3, (sexpr: SExpressionArray) => {
     if (!(sexpr[1] instanceof Array) || sexpr[1].length !== 2 || typeof sexpr[1][0] !== "string") {
       throw new Error(
