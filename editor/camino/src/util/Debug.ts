@@ -1,10 +1,10 @@
-import { Expression } from '@serendipity/syntax/dist/lib/lang/syntax/surface/expression';
-import { Global } from '@serendipity/syntax/dist/lib/lang/syntax/surface/global';
-import { Statement } from '@serendipity/syntax/dist/lib/lang/syntax/surface/statement';
+import { Expression } from '@serendipity/syntax-surface/dist/expression';
+import { Global } from '@serendipity/syntax-surface/dist/global';
+import { Statement } from '@serendipity/syntax-surface/dist/statement';
 
 import ProjectStore from 'stores/ProjectStore';
 
-function hole() : Expression {
+function hole(): Expression {
     const e: Expression = {
         exprKind: "@hole"
     };
@@ -14,8 +14,8 @@ function hole() : Expression {
     return e;
 }
 
-function stmtHole() : Statement {
-    const s : Statement = {
+function stmtHole(): Statement {
+    const s: Statement = {
         statementKind: "@hole"
     };
 
@@ -24,8 +24,8 @@ function stmtHole() : Statement {
     return s;
 }
 
-function rq<T>(v : any, type : string) : T {
-    if (v && typeof(v) === type) {
+function rq<T>(v: any, type: string): T {
+    if (v && typeof (v) === type) {
         return v as T;
     } else {
         throw new Error("Required debug parameter did not satisfy type " + type + ": " + v.toString());
@@ -35,8 +35,8 @@ function rq<T>(v : any, type : string) : T {
 // tslint:disable-next-line: no-namespace
 export namespace spawn {
     export function statement(skind: string, ...args: any[]) {
-        const s = { statementKind : skind } as Statement;
-        const sm : Statement = (() : Statement => {
+        const s = { statementKind: skind } as Statement;
+        const sm: Statement = ((): Statement => {
             switch (s.statementKind) {
                 case "do":
                     return {
@@ -72,6 +72,12 @@ export namespace spawn {
                         name: "",
                         value: hole()
                     }
+                case "set":
+                    return {
+                        statementKind: "set",
+                        name: "",
+                        value: hole()
+                    }
                 case "print":
                     return {
                         statementKind: "print",
@@ -81,7 +87,7 @@ export namespace spawn {
                     throw new Error("Cannot instantiate a floating hole.");
                 default:
                     // tslint:disable-next-line: variable-name
-                    const __exhaust : never = s;
+                    const __exhaust: never = s;
                     return __exhaust;
             }
         })();
@@ -94,8 +100,8 @@ export namespace spawn {
     }
 
     export function global(gkind: string, ...args: any[]) {
-        const g = { globalKind : gkind } as Global;
-        const s: Global = (() : Global => {
+        const g = { globalKind: gkind } as Global;
+        const s: Global = ((): Global => {
             switch (g.globalKind) {
                 case "define":
                     return {
@@ -117,7 +123,7 @@ export namespace spawn {
                     }
                 default:
                     // tslint:disable-next-line: variable-name
-                    const __exhaust : never = g;
+                    const __exhaust: never = g;
                     return __exhaust;
             }
         })();
@@ -125,9 +131,9 @@ export namespace spawn {
         ProjectStore.addGlobal(s);
     }
 
-    export function expr(ekind : string, ...args: any[]) {
-        const e = { exprKind : ekind } as Expression;
-        const s: Expression = (() : Expression => {
+    export function expr(ekind: string, ...args: any[]) {
+        const e = { exprKind: ekind } as Expression;
+        const s: Expression = ((): Expression => {
             switch (e.exprKind) {
                 case "accessor":
                     return {
@@ -151,6 +157,11 @@ export namespace spawn {
                     return {
                         exprKind: "string",
                         value: ""
+                    }
+                case "boolean":
+                    return {
+                        exprKind: "boolean",
+                        value: false
                     }
                 case "name":
                     return {
@@ -214,7 +225,7 @@ export namespace spawn {
                     throw new Error("Cannot instantiate a floating hole.");
                 default:
                     // tslint:disable-next-line: variable-name
-                    const __exhaust : never = e;
+                    const __exhaust: never = e;
                     return __exhaust;
             }
         })();

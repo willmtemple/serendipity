@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
 
-import { Print } from '@serendipity/syntax/dist/lib/lang/syntax/surface/statement';
+import { Print } from '@serendipity/syntax-surface/dist/statement';
 import Indent from 'components/layout/Indent';
 import Expression from '../expression';
 

@@ -2,17 +2,17 @@
 // All rights reserved.
 // Licensed under the terms of the GNU General Public License v3 or later.
 
-import { expression } from "@serendipity/syntax-abstract";
+import { Expression } from "@serendipity/syntax-abstract";
 import { Value } from "./value";
 
 export type Binder = {
-  expr: expression.Expression;
+  expr: Expression;
   scope: Scope;
 };
 
 export interface CachedExpression {
   kind: "expression";
-  expr: expression.Expression;
+  expr: Expression;
   cache?: Value;
 }
 
@@ -29,7 +29,7 @@ export interface ScopedValue {
 
 export type ScopedObject = CachedExpression | CachedBinder | ScopedValue;
 
-type Evaluator = (e: expression.Expression, s: Scope) => Value;
+type Evaluator = (e: Expression, s: Scope) => Value;
 
 export class Scope {
   private evaluator: Evaluator;
@@ -42,7 +42,7 @@ export class Scope {
     this.bindings = {};
   }
 
-  public scope(name: string, expr: expression.Expression): void {
+  public scope(name: string, expr: Expression): void {
     this.bindings[name] = { kind: "expression", expr };
   }
 
@@ -50,7 +50,7 @@ export class Scope {
     this.bindings[name] = { kind: "binder", bind };
   }
 
-  public bind(expr: expression.Expression): Binder {
+  public bind(expr: Expression): Binder {
     const scope = new Scope(this.evaluator, this);
     return {
       expr,
@@ -58,7 +58,7 @@ export class Scope {
     };
   }
 
-  public demandInScope(name: string, expr: expression.Expression): void {
+  public demandInScope(name: string, expr: Expression): void {
     this.set(name, { kind: "value", value: this.evaluator(expr, this) });
   }
 

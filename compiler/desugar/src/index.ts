@@ -15,7 +15,7 @@ import { foldProcedureCPS } from "./foldProcedure";
 const { matchGlobal } = surface.global;
 
 type SExpression = surface.expression.Expression;
-type AbsExpression = abstract.expression.Expression;
+type AbsExpression = abstract.Expression;
 
 export function lowerExpr(e: SExpression): AbsExpression {
   return surface.expression.matchExpression<AbsExpression>({
@@ -30,7 +30,7 @@ export function lowerExpr(e: SExpression): AbsExpression {
     }),
     Arithmetic: ({ op, left, right }) => ({
       exprKind: "binop",
-      op: op as abstract.expression.BinaryOperator,
+      op: op as abstract.BinaryOperator,
       left: lowerExpr(left),
       right: lowerExpr(right)
     }),
@@ -97,7 +97,7 @@ export function lowerExpr(e: SExpression): AbsExpression {
     }),
     Compare: ({ op, left, right }) => ({
       exprKind: "binop",
-      op: op as abstract.expression.BinaryOperator,
+      op: op as abstract.BinaryOperator,
       left: lowerExpr(left),
       right: lowerExpr(right)
     }),

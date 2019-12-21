@@ -2,7 +2,7 @@
 // All rights reserved.
 // Licensed under the terms of the GNU General Public License v3 or later.
 
-import { expression, Module } from "@serendipity/syntax-abstract";
+import { Module, BinaryOperator, BinaryOp, matchExpression, Expression } from "@serendipity/syntax-abstract";
 
 import { Value, NumberV, IntrinsicV } from "./value";
 import { Scope } from "./scope";
@@ -35,7 +35,7 @@ function isTrue(v: Value): boolean {
   }
 }
 
-function arithOp(l: NumberV, r: NumberV, op: expression.BinaryOperator): Value {
+function arithOp(l: NumberV, r: NumberV, op: BinaryOperator): Value {
   const lv = l.value;
   const rv = r.value;
   switch (op) {
@@ -52,7 +52,7 @@ function arithOp(l: NumberV, r: NumberV, op: expression.BinaryOperator): Value {
   }
 }
 
-function compareOp(lv: Value, rv: Value, op: expression.BinaryOperator): Value {
+function compareOp(lv: Value, rv: Value, op: BinaryOperator): Value {
   return {
     kind: "boolean",
     value: (() => {
@@ -220,15 +220,15 @@ export class Interpreter {
     }
   }
 
-  private binaryOperator({ op, left, right }: expression.BinaryOp, scope: Scope): Value {
+  private binaryOperator({ op, left, right }: BinaryOp, scope: Scope): Value {
     const lv = this.evalExpr(left, scope);
     const rv = this.evalExpr(right, scope);
     switch (op) {
-      case expression.BinaryOperator.ADD:
-      case expression.BinaryOperator.SUB:
-      case expression.BinaryOperator.MUL:
-      case expression.BinaryOperator.DIV:
-      case expression.BinaryOperator.MOD:
+      case BinaryOperator.ADD:
+      case BinaryOperator.SUB:
+      case BinaryOperator.MUL:
+      case BinaryOperator.DIV:
+      case BinaryOperator.MOD:
         if (lv.kind !== "number" || rv.kind !== "number") {
           throw new Error("Attempted to do arithmetic on non-numbers");
         } else {
@@ -240,9 +240,9 @@ export class Interpreter {
     }
   }
 
-  private evalExpr(e: expression.Expression, scope: Scope): Value {
+  private evalExpr(e: Expression, scope: Scope): Value {
     // console.log("Eval: ", writeAbstract(e));
-    return expression.matchExpression<Value>({
+    return matchExpression<Value>({
       Number: ({ value }) => ({ kind: "number", value }),
       String: ({ value }) => ({ kind: "string", value }),
       Boolean: ({ value }) => ({ kind: "boolean", value }),

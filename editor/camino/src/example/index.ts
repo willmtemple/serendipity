@@ -2,7 +2,7 @@
 // All rights reserved.
 // Licensed under the terms of the GNU General Public License v3 or later.
 
-import { Module } from "../../lib/lang/syntax/surface";
+import { Module } from "@serendipity/syntax-surface";
 
 export const surfaceExample: Module = {
   globals: [

@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
 
-import { ForIn } from '@serendipity/syntax/dist/lib/lang/syntax/surface/statement';
+import { ForIn } from '@serendipity/syntax-surface/dist/statement';
 import SvgFlex from 'components/layout/SvgFlex';
 import Statement from '.';
 import Binder from '../../editor/Binder';

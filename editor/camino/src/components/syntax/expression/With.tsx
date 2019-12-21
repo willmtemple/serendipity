@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
 
-import { With } from '@serendipity/syntax/dist/lib/lang/syntax/surface/expression';
+import { With } from '@serendipity/syntax-surface/dist/expression';
 import Binder from 'components/editor/Binder';
 import Indent from 'components/layout/Indent';
 import SvgFlex from 'components/layout/SvgFlex';

@@ -16,8 +16,8 @@ import { lowerExpr } from ".";
 export function curry(
   parameters: string[],
   body: surface.expression.Expression
-): abstract.expression.Closure {
-  let val: abstract.expression.Closure;
+): abstract.Closure {
+  let val: abstract.Closure;
 
   if (parameters.length === 0) {
     // No parameter for this closure
@@ -46,7 +46,7 @@ export function curry(
  *
  * @param c The lambda to bind into the Y combinator for external renaming
  */
-export function Y(c: abstract.expression.Closure): abstract.expression.Call {
+export function Y(c: abstract.Closure): abstract.Call {
   return {
     exprKind: "call",
     parameter: c,

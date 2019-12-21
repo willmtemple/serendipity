@@ -11,27 +11,27 @@ const defaultPrefs = {
     terminal: false
 };
 
-type ICheckedEvent<T extends Event, K> = {
+export type ICheckedEvent<T extends Event, K> = {
     [P in keyof T]: T[P]
-} & {type : K};
+} & { type: K };
 
-interface ICheckedEventTarget<T extends {[k : string] : Event }> {
-    addEventListener<K extends keyof T>(name: K, h: (e : T[K]) => void) : void,
-    removeEventListener<K extends keyof T>(name: K, h: (e : T[K]) => void) : void,
-    dispatchEvent<K extends keyof T>(evt : ICheckedEvent<T[K], K>) : void
+interface ICheckedEventTarget<T extends { [k: string]: Event }> {
+    addEventListener<K extends keyof T>(name: K, h: (e: T[K]) => void): void,
+    removeEventListener<K extends keyof T>(name: K, h: (e: T[K]) => void): void,
+    dispatchEvent<K extends keyof T>(evt: ICheckedEvent<T[K], K>): void
 }
 
 export class PrefsStore {
     @observable public prefs = defaultPrefs;
 
-    public eventBus = new EventTarget() as ICheckedEventTarget<{ data : CustomEvent<{message: string}> }>;
+    public eventBus = new EventTarget() as ICheckedEventTarget<{ data: CustomEvent<{ message: string }> }>;
 
     constructor() {
         const that = this;
         const storedData = localStorage.getItem(LOCAL_STORE_KEY);
         if (storedData) {
             const storedPrefs = JSON.parse(storedData);
-            set(this.prefs, {...defaultPrefs, ...storedPrefs});
+            set(this.prefs, { ...defaultPrefs, ...storedPrefs });
         }
 
         let firstRun = true;
@@ -44,7 +44,7 @@ export class PrefsStore {
         });
     }
 
-    @action public setPosition(x : number, y : number) {
+    @action public setPosition(x: number, y: number) {
         this.prefs.editorPosition.x = x;
         this.prefs.editorPosition.y = y;
     }

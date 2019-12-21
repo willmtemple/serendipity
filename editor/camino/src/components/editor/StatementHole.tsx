@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
 
-import { SyntaxObject } from '@serendipity/syntax/dist/lib/lang/syntax';
+import { SyntaxObject } from '@serendipity/syntax';
 
 import { useResizeParentEffect } from 'hooks/measure';
 import { useStores } from 'hooks/stores';
@@ -23,27 +23,27 @@ const FORK_HEIGHT = 12;
 const FORK_OFFSET = 14;
 const FORK_SIZE = (FORK_HALF_WIDTH * 2) + (FORK_OFFSET * 2)
 
-function fork(x : number) {
+function fork(x: number) {
     return FORK_HEIGHT / FORK_HALF_WIDTH * x;
 }
 
-const path : string = (() : string => {
+const path: string = ((): string => {
     const r = {
         width: 120,
         height: 42 - FORK_HEIGHT
     }
     const span = r.width + (RADIUS * 2);
     const run = span - FORK_SIZE;
-    
+
     const vrun = r.height - (RADIUS * 2) + FORK_HEIGHT;
 
     const forkUpTurn1ControlPointX = FORK_ARC_W / 2;
     const forkUpTurn1ControlPointY = 0
     const forkUpTurn1EndPointX = FORK_ARC_W;
-    const forkUpTurn1EndPointY = fork(FORK_ARC_W/2);
+    const forkUpTurn1EndPointY = fork(FORK_ARC_W / 2);
 
-    const forkUpTurn2StartPointX = (FORK_HALF_WIDTH - FORK_ARC_CAP/2 - FORK_ARC_W/2);
-    const forkUpTurn2StartPointY = fork(FORK_HALF_WIDTH - FORK_ARC_CAP/2) - forkUpTurn1EndPointY;
+    const forkUpTurn2StartPointX = (FORK_HALF_WIDTH - FORK_ARC_CAP / 2 - FORK_ARC_W / 2);
+    const forkUpTurn2StartPointY = fork(FORK_HALF_WIDTH - FORK_ARC_CAP / 2) - forkUpTurn1EndPointY;
     const forkUpTurn2ControlPointX = FORK_ARC_CAP / 2;
     const forkUpTurn2ControlPointY = FORK_HEIGHT - forkUpTurn2StartPointY;
     const forkUpTurn2EndPointX = FORK_ARC_CAP;
@@ -51,7 +51,7 @@ const path : string = (() : string => {
 
     const forkUpTurn3StartPointX = forkUpTurn2StartPointX;
     const forkUpTurn3StartPointY = -forkUpTurn2StartPointY;
-    const forkUpTurn3ControlPointX = FORK_ARC_W/2;
+    const forkUpTurn3ControlPointX = FORK_ARC_W / 2;
     const forkUpTurn3ControlPointY = -forkUpTurn1EndPointY;
     const forkUpTurn3EndPointX = FORK_ARC_W;
     const forkUpTurn3EndPointY = -forkUpTurn1EndPointY;

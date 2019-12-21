@@ -6,7 +6,7 @@ import { Fn } from "@serendipity/syntax/dist/util/FuncTools";
 import { SyntaxObject } from "@serendipity/syntax";
 import { Expression } from "./expression";
 
-export type Global = Main | Define | DefineFn;
+export type Global = Main | Define | DefineFunction;
 
 export interface Main extends SyntaxObject {
   globalKind: "main";
@@ -19,7 +19,7 @@ export interface Define extends SyntaxObject {
   value: Expression;
 }
 
-export interface DefineFn extends SyntaxObject {
+export interface DefineFunction extends SyntaxObject {
   globalKind: "definefunc";
   name: string;
   parameters: string[];
@@ -35,7 +35,7 @@ export interface State extends SyntaxObject {
 export interface GlobalPattern<T> {
   Main: Fn<Main, T>;
   Define: Fn<Define, T>;
-  DefineFunction: Fn<DefineFn, T>;
+  DefineFunction: Fn<DefineFunction, T>;
 }
 
 export interface ExhaustiveGlobalPattern<T> extends GlobalPattern<T> {

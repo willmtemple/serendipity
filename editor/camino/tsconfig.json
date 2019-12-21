@@ -1,15 +1,16 @@
 {
   "compilerOptions": {
     "baseUrl": "src",
-
     "target": "esnext",
-    "lib": ["esnext", "dom", "dom.iterable"],
-
+    "lib": [
+      "esnext",
+      "dom",
+      "dom.iterable"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noImplicitReturns": true,
@@ -18,17 +19,14 @@
     "strictNullChecks": true,
     "suppressImplicitAnyIndexErrors": true,
     "noUnusedLocals": true,
-
     "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-
     "outDir": "dist-esm",
-
     "jsx": "react",
-
-    "importHelpers": true
+    "importHelpers": true,
+    "experimentalDecorators": true
   },
   "exclude": [
     "node_modules",
@@ -38,5 +36,7 @@
     "webpack",
     "jest"
   ],
-  "include": ["src"]
+  "include": [
+    "src"
+  ]
 }

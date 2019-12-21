@@ -5,12 +5,12 @@ import withStores from "./util/withStores";
 
 import "./App.css";
 
-import { PrefsStore } from "./stores/PrefsStore";
+import { PrefsStore, ICheckedEvent } from "./stores/PrefsStore";
 import { ProjectStore } from "./stores/ProjectStore";
 
 import { unwrap } from "@serendipity/syntax/dist/util/Result";
-import { Interpreter } from "@serendipity/syntax/dist/compiler";
-import { createLoweringCompiler } from "@serendipity/syntax/dist/test/lower";
+import { Interpreter } from "@serendipity/interpreter";
+import { createLoweringCompiler } from "@serendipity/compiler-desugar";
 
 import Global from "./components/syntax/global";
 import { makeDraggable } from "./util/Draggable";
@@ -56,8 +56,9 @@ export class App extends React.Component<IAppProps> {
     const println = (s: string) => {
       this.props.PrefsStore.eventBus.dispatchEvent(
         new CustomEvent("data", {
-          detail: { message: s + "\n\r" }
-        }) as ICheckedEvent
+          detail: { message: s + "\n\r" },
+
+        }) as ICheckedEvent<CustomEvent<{ message: string }>, "data">
       );
     };
     let compiled;

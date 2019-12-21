@@ -2,9 +2,9 @@
 // All rights reserved.
 // Licensed under the terms of the GNU General Public License v3 or later.
 
-import * as _expression from "./expression";
+import { Expression } from "./expression";
 
-export import expression = _expression;
+export * from "./expression";
 
 /**
  * A module definition, containing the set of global definitions.
@@ -12,6 +12,6 @@ export import expression = _expression;
 export interface Module {
   definitions: Array<{
     name: string;
-    value: expression.Expression;
+    value: Expression;
   }>;
 }

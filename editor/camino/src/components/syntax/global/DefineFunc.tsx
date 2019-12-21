@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
 
-import { global } from '@serendipity/syntax/dist/lib/lang/syntax/surface';
+import * as global from '@serendipity/syntax-surface/dist/global';
 import Indent from 'components/layout/Indent';
 import SvgFlex from 'components/layout/SvgFlex';
 import AddButton from '../../editor/AddButton';
@@ -36,7 +36,7 @@ const DefineFunc = React.forwardRef<SVGGElement, IDefineFuncProps>((props, ref) 
 
     binderLine = binderLine.concat([
         <text key="s_dfn_close_paren">)</text>,
-        <AddButton key="s_dfn_add_button"onClick={addParam} />,
+        <AddButton key="s_dfn_add_button" onClick={addParam} />,
         <text key="s_dfn_arrow">=></text>
     ])
 

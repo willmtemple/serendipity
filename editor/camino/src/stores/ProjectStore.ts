@@ -1,16 +1,16 @@
 import { action, autorun, computed, observable, set, toJS } from 'mobx';
 
-import { surfaceExample } from '@serendipity/syntax/dist/test/examples';
+import { surfaceExample } from '../example';
 
 import guid from 'uuid/v4';
 
-import * as expr from '@serendipity/syntax/dist/lib/lang/syntax/surface/expression';
+import * as expr from '@serendipity/syntax-surface/dist/expression';
 
-import { SyntaxObject } from '@serendipity/syntax/dist/lib/lang/syntax';
-import { Module } from '@serendipity/syntax/dist/lib/lang/syntax/surface';
-import { Expression } from '@serendipity/syntax/dist/lib/lang/syntax/surface/expression';
-import { Define, DefineFunction, Global, Main } from '@serendipity/syntax/dist/lib/lang/syntax/surface/global';
-import { Statement } from '@serendipity/syntax/dist/lib/lang/syntax/surface/statement';
+import { SyntaxObject } from '@serendipity/syntax';
+import { Module } from '@serendipity/syntax-surface';
+import { Expression } from '@serendipity/syntax-surface/dist/expression';
+import { Define, DefineFunction, Global, Main } from '@serendipity/syntax-surface/dist/global';
+import { Statement } from '@serendipity/syntax-surface/dist/statement';
 import { IPosition } from 'util/Position';
 
 const P_NAME = 'userProject';
@@ -61,7 +61,7 @@ export type IEditorGlobal =
     | IEditorDetachedExpression
     | IEditorDetachedStatements;
 
-export type IEditorUnregisteredGlobal = 
+export type IEditorUnregisteredGlobal =
     Omit<IEditorMain, "metadata">
     | Omit<IEditorDefine, "metadata">
     | Omit<IEditorDefineFunction, "metadata">
@@ -315,13 +315,13 @@ export class ProjectStore {
         return newGlobalObject.metadata.editor.guid;
     }
 
-    @action public register(g : IEditorUnregisteredGlobal) : IEditorGlobal {
+    @action public register(g: IEditorUnregisteredGlobal): IEditorGlobal {
         const id = this.loadGUID(g as IEditorGlobal);
-        this.updatePos(id, {x: 0, y: 0});
+        this.updatePos(id, { x: 0, y: 0 });
         return g as IEditorGlobal;
     }
 
-    @action public addGlobal(g : IEditorUnregisteredGlobal) {
+    @action public addGlobal(g: IEditorUnregisteredGlobal) {
         this.program.globals.push(this.register(g));
     }
 
