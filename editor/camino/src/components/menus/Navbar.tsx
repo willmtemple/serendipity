@@ -21,10 +21,10 @@ class Navbar extends React.Component<INavbarProps> {
 
     public render() {
         return (
-            <Menu   inverted={true}
-                    size="massive"
-                    fixed="top"
-                    color="violet">
+            <Menu inverted={true}
+                size="massive"
+                fixed="top"
+                color="violet">
                 <Menu.Item header={true}>λ &middot; Program Editor</Menu.Item>
                 <Menu.Menu position="right">
                     <Menu.Item icon={true} onClick={this.props.app.runProgram}>
