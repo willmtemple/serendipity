@@ -2,9 +2,12 @@ import { observer } from 'mobx-react';
 import * as React from 'react';
 
 import { Procedure } from '@serendipity/syntax-surface/dist/expression';
-import Indent from 'components/layout/Indent';
-import SvgFlex from 'components/layout/SvgFlex';
-import { useStores } from 'hooks/stores';
+
+import Indent from '../../layout/Indent';
+import SvgFlex from '../../layout/SvgFlex';
+
+import { useStores } from '../../../hooks/stores';
+
 import Statement from '../statement';
 
 const Procedure = React.forwardRef<any, { procedure: Procedure }>((props, ref) => {

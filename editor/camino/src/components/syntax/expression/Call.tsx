@@ -2,7 +2,8 @@ import { observer } from 'mobx-react';
 import * as React from 'react';
 
 import { Call } from '@serendipity/syntax-surface/dist/expression';
-import SvgFlex from 'components/layout/SvgFlex';
+
+import SvgFlex from '../../../components/layout/SvgFlex';
 import Expression from '.';
 import Indent from '../../layout/Indent';
 

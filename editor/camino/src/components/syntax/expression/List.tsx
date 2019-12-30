@@ -2,8 +2,9 @@ import { observer } from 'mobx-react';
 import * as React from 'react';
 
 import { List } from '@serendipity/syntax-surface/dist/expression';
-import SvgFlex from 'components/layout/SvgFlex';
+
 import Expression from '.';
+import SvgFlex from '../../layout/SvgFlex';
 import Indent from '../../layout/Indent';
 
 const List = React.forwardRef<any, { list: List }>((props, ref) => (

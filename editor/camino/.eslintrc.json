@@ -1,0 +1,6 @@
+{
+    "extends" : "@serendipity/eslint-config",
+    "parserOptions": {
+        "sourceType": "module"
+    }
+}

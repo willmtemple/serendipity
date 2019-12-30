@@ -50,6 +50,12 @@
       "shouldPublish": false
     },
     {
+      "packageName": "@serendipity/editor-app",
+      "projectFolder": "editor/app",
+      "reviewCategory": "production",
+      "shouldPublish": false
+    },
+    {
       "packageName": "@serendipity/camino",
       "projectFolder": "editor/camino",
       "reviewCategory": "production",

@@ -1,8 +1,8 @@
 import { inject } from 'mobx-react';
 import * as React from 'react';
 
-import { PrefsStore } from 'stores/PrefsStore';
-import withStores from 'util/withStores';
+import { PrefsStore } from '../stores/PrefsStore';
+import withStores from '../util/withStores';
 
 import { Terminal as XTerm } from 'xterm';
 import * as fit from 'xterm/lib/addons/fit/fit';
@@ -22,8 +22,8 @@ type TermDivProps = React.DetailedHTMLProps<
 
 @inject('PrefsStore')
 class Terminal extends React.Component<ITermDetailedProps> {
-    private termRef : React.RefObject<HTMLDivElement> = React.createRef();
-    private term : XTerm;
+    private termRef: React.RefObject<HTMLDivElement> = React.createRef();
+    private term: XTerm;
 
     constructor(props: ITermDetailedProps) {
         super(props);
@@ -68,7 +68,7 @@ class Terminal extends React.Component<ITermDetailedProps> {
         );
     }
 
-    private handleEvent(evt : CustomEvent<{ message : string }>) {
+    private handleEvent(evt: CustomEvent<{ message: string }>) {
         this.term.write(evt.detail.message);
     }
 }

@@ -22,14 +22,14 @@ export function useResizeParentEffect() {
     });
 }
 
-export interface IRect {
+export interface Rect {
     x: number,
     y: number,
     width: number,
     height: number
 }
 
-function same(l: IRect, r: IRect): boolean {
+function same(l: Rect, r: Rect): boolean {
     if (!l) {
         return r ? false : true;
     }
@@ -46,14 +46,14 @@ function same(l: IRect, r: IRect): boolean {
         && l.height === r.height;
 }
 
-const blankExtent: IRect = {
+const blankExtent: Rect = {
     x: 0,
     y: 0,
     width: 0,
     height: 0
 }
 
-function extend(l: IRect[], n: number): IRect[] {
+function extend(l: Rect[], n: number): Rect[] {
     const final = [...l];
 
     for (let i = 0; i < n; i++) {
@@ -67,8 +67,8 @@ function extend(l: IRect[], n: number): IRect[] {
 
 type SVGRefsType = Array<React.RefObject<SVGGElement>>;
 
-function refChildren(children: React.ReactNodeArray) : [React.ReactNodeArray, SVGRefsType] {
-    const refs : SVGRefsType = [];
+function refChildren(children: React.ReactNodeArray): [React.ReactNodeArray, SVGRefsType] {
+    const refs: SVGRefsType = [];
     function ref() {
         const r = React.createRef<SVGGElement>();
         refs.push(r);
@@ -83,20 +83,20 @@ function refChildren(children: React.ReactNodeArray) : [React.ReactNodeArray, SV
     return [containedChildren, refs];
 }
 
-export interface IMeasurementProps {
-    sizes: IRect[]
+export interface MeasurementProps {
+    sizes: Rect[]
 }
 
-export function measureChildren<P extends {}>(WrappedComponent: React.ComponentType<P & IMeasurementProps>) {
+export function measureChildren<P extends {}>(WrappedComponent: React.ComponentType<P & MeasurementProps>) {
     return React.forwardRef<any, React.PropsWithChildren<P>>((props, ref) => {
         const pChildren = React.Children.toArray(props.children);
 
         const [children, childRefs] = React.useMemo(() => refChildren(pChildren), pChildren);
-        const [rects, setRects] = React.useState<IRect[]>([]);
+        const [rects, setRects] = React.useState<Rect[]>([]);
 
         const resizeParent = useResizeParent();
 
-        const extendedProps: P & IMeasurementProps = {
+        const extendedProps: P & MeasurementProps = {
             ...props,
             sizes: extend(rects, children.length),
             children,
@@ -106,7 +106,7 @@ export function measureChildren<P extends {}>(WrappedComponent: React.ComponentT
         function resize() {
             const canSize = childRefs.every(r => r.current !== null);
             if (ready.current && canSize) {
-                const newRects = childRefs.map(r => (r.current && r.current.getBBox()) as IRect);
+                const newRects = childRefs.map(r => (r.current && r.current.getBBox()) as Rect);
 
                 if (!newRects.every((r, idx) => same(r, rects[idx]))) {
                     setRects(newRects);

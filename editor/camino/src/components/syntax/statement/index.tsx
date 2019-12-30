@@ -3,12 +3,22 @@ import * as React from 'react';
 
 import { SyntaxObject } from '@serendipity/syntax';
 import { statement } from '@serendipity/syntax-surface';
-import SyntaxHole from 'components/editor/StatementHole';
-import StatementBlock from 'components/layout/StatementBlock';
-import { useStores } from 'hooks/stores';
+
+import SyntaxHole from '../../editor/StatementHole';
+
+import StatementBlock from '../../layout/StatementBlock';
+
+import { useStores } from '../../../hooks/stores';
+
 import Do from './Do';
 import ForIn from './ForIn';
 import Print from './Print';
+
+export {
+    Do,
+    ForIn,
+    Print
+};
 
 function getColor(kind: string) {
     switch (kind) {
@@ -21,7 +31,7 @@ function getColor(kind: string) {
     }
 }
 
-interface IStatementProps {
+interface StatementProps {
     bind: SyntaxObject,
     bindKey: string,
     bindIdx?: number,
@@ -29,7 +39,7 @@ interface IStatementProps {
     fixed?: boolean,
 }
 
-const Statement = React.forwardRef<any, IStatementProps>((props, ref) => {
+const Statement = React.forwardRef<any, StatementProps>((props, ref) => {
     const { ProjectStore } = useStores();
 
     const stmt = (
@@ -56,7 +66,9 @@ const Statement = React.forwardRef<any, IStatementProps>((props, ref) => {
                 return <Do do={stmt as statement.Do} />;
             default:
                 return (
-                    <text ref={ref} fill="white" fontFamily="Source Code Pro" fontWeight="600">{stmt.statementKind} (unimplemented)</text>
+                    <text ref={ref} fill="white" fontFamily="Source Code Pro" fontWeight="600">
+                        {stmt.statementKind} (unimplemented)
+                    </text>
                 );
         }
     })();

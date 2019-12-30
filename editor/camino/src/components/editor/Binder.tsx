@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
-import { useResizeParentEffect } from 'hooks/measure';
+import { useResizeParentEffect } from '../../hooks/measure';
 
 interface IBinderProps {
     bind: any,

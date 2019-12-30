@@ -2,10 +2,13 @@ import { observer } from 'mobx-react';
 import * as React from 'react';
 
 import { With } from '@serendipity/syntax-surface/dist/expression';
-import Binder from 'components/editor/Binder';
-import Indent from 'components/layout/Indent';
-import SvgFlex from 'components/layout/SvgFlex';
-import Expression from './';
+
+import Binder from '../../editor/Binder';
+
+import Indent from '../../layout/Indent';
+import SvgFlex from '../../layout/SvgFlex';
+
+import Expression from '.';
 
 const With = React.forwardRef<any, { with: With }>((props, ref) => (
     <SvgFlex ref={ref} direction="vertical" padding={20}>

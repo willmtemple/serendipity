@@ -2,18 +2,18 @@ import * as React from 'react';
 
 import Color from 'color';
 
-import { IMeasurementProps, measureChildren } from 'hooks/measure';
+import { MeasurementProps, measureChildren } from '../../hooks/measure';
 
-interface IBoundingBoxProps {
+export interface BoundingBoxProps {
     color?: string,
 
     // Set extra props on the top-level g element
     containerProps?: any,
 }
 
-type CompleteProps = IMeasurementProps & React.PropsWithChildren<IBoundingBoxProps>;
+type CompleteProps = MeasurementProps & React.PropsWithChildren<BoundingBoxProps>;
 
-const BoundingBox = measureChildren(React.forwardRef<SVGGElement, CompleteProps>((props, ref) => {
+export const BoundingBox = measureChildren(React.forwardRef<SVGGElement, CompleteProps>((props, ref) => {
 
     const color = Color(props.color);
 

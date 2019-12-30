@@ -1,19 +1,18 @@
 import * as React from 'react';
 
-import { IMeasurementProps, IRect, measureChildren } from 'hooks/measure';
+import { MeasurementProps, Rect, measureChildren } from '../../hooks/measure';
 
-
-interface ISvgFlexProps {
+export interface SvgFlexProps {
     align?: "beginning" | "middle" | "end"
     direction: "horizontal" | "vertical",
     padding?: number,
 }
 
-type CompleteProps = IMeasurementProps & React.PropsWithChildren<ISvgFlexProps>;
+type CompleteProps = MeasurementProps & React.PropsWithChildren<SvgFlexProps>;
 
 const SvgFlex = measureChildren(React.forwardRef<SVGGElement, CompleteProps>((props, ref) => {
     // Compute size along orthogonal axis
-    const oSel: (r: IRect) => number =
+    const oSel: (r: Rect) => number =
         props.direction === "horizontal"
             ? r => r.height
             : r => r.width;
@@ -24,7 +23,7 @@ const SvgFlex = measureChildren(React.forwardRef<SVGGElement, CompleteProps>((pr
     }, 0);
 
     // Alignment helper function
-    const align: (rect: IRect) => number =
+    const align: (rect: Rect) => number =
         props.align === "end"
             ? r => oDim - oSel(r)
             : (

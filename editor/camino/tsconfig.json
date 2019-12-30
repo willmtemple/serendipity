@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "baseUrl": "src",
-    "target": "esnext",
+    "rootDir": "src",
+    "target": "es5",
     "lib": [
       "esnext",
       "dom",
@@ -19,14 +19,15 @@
     "strictNullChecks": true,
     "suppressImplicitAnyIndexErrors": true,
     "noUnusedLocals": true,
-    "module": "esnext",
+    "module": "commonjs",
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "isolatedModules": true,
-    "outDir": "dist-esm",
+    "outDir": "dist",
     "jsx": "react",
     "importHelpers": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "declaration": true,
+    "sourceMap": true
   },
   "exclude": [
     "node_modules",

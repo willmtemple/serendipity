@@ -2,7 +2,7 @@ import { observer } from 'mobx-react';
 import * as React from 'react';
 
 import * as global from '@serendipity/syntax-surface/dist/global';
-import Indent from 'components/layout/Indent';
+import Indent from '../../layout/Indent';
 import CloseButton from '../../editor/CloseButton';
 import Expression from '../expression';
 

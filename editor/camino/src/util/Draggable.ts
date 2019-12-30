@@ -1,6 +1,6 @@
 import prefsStore from '../stores/PrefsStore';
 import projectStore from '../stores/ProjectStore';
-import { distance, IPosition } from './Position';
+import { distance, Position } from './Position';
 
 import normalizeWheel from 'normalize-wheel';
 
@@ -45,7 +45,7 @@ export function makeDraggable(svg: SVGSVGElement) {
 
     let selectedElement: SVGGraphicsElement | undefined;
     let dragMode: "detach" | undefined;
-    let dragStart: IPosition | undefined;
+    let dragStart: Position | undefined;
     let offset: { x: any; y: any; };
     let transform: SVGTransform;
     let resume: string | undefined;
@@ -70,7 +70,7 @@ export function makeDraggable(svg: SVGSVGElement) {
     }
     resizeViewBox();
 
-    function getMousePosition(evt: MouseEvent): IPosition {
+    function getMousePosition(evt: MouseEvent): Position {
         const ctm = svg.getScreenCTM() as DOMMatrix;
         return {
             x: (evt.clientX - ctm.e) / ctm.a,

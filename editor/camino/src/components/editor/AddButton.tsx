@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { useResizeParentEffect } from 'hooks/measure';
+import { useResizeParentEffect } from '../../hooks/measure';
 
-const AddButton = React.forwardRef<SVGGElement,{ onClick(): void }>((props, ref) => {
+const AddButton = React.forwardRef<SVGGElement, { onClick(): void }>((props, ref) => {
     useResizeParentEffect();
 
     return <g ref={ref} onClick={props.onClick} className="add button">

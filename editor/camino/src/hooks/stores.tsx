@@ -1,8 +1,8 @@
 import * as React from 'react';
 
 import { Provider } from 'mobx-react';
-import PrefsStore from 'stores/PrefsStore';
-import ProjectStore from 'stores/ProjectStore';
+import PrefsStore from '../stores/PrefsStore';
+import ProjectStore from '../stores/ProjectStore';
 
 // Our stores. These can all be recovered from the context below.
 // TODO: once everything
@@ -13,10 +13,10 @@ export const stores = {
 
 const Context = React.createContext<typeof stores>(stores);
 
-export const StoreProvider: React.FC = ({children}) => {
+export const StoreProvider: React.FC = ({ children }) => {
     return (
         <Context.Provider value={stores}>
-            <Provider {... stores}>
+            <Provider {...stores}>
                 {children}
             </Provider>
         </Context.Provider>

@@ -1,12 +1,13 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
-import { useResizeParentEffect } from 'hooks/measure';
+
+import { useResizeParentEffect } from '../../hooks/measure';
 
 interface IDropDownProps<V> {
-    callback? : (v : V) => void,
+    callback?: (v: V) => void,
 
-    options : Array<{label: string, value: V}>
-    selected? : number
+    options: Array<{ label: string, value: V }>
+    selected?: number
 }
 
 const DropDown = (<T extends {}>() => React.forwardRef<SVGForeignObjectElement, IDropDownProps<T>>((props, ref) => {

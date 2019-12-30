@@ -13,6 +13,10 @@
       "path": "compiler/desugar"
     },
     {
+      "name": "@serendipity/editor-app",
+      "path": "editor/app"
+    },
+    {
       "name": "@serendipity/camino",
       "path": "editor/camino"
     },
@@ -66,6 +70,10 @@
       },
       {
         "directory": "compiler/desugar",
+        "changeProcessCWD": true
+      },
+      {
+        "directory": "editor/app",
         "changeProcessCWD": true
       },
       {

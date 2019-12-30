@@ -2,10 +2,12 @@ import { observer } from 'mobx-react';
 import * as React from 'react';
 
 import { ForIn } from '@serendipity/syntax-surface/dist/statement';
-import SvgFlex from 'components/layout/SvgFlex';
+
+import SvgFlex from '../../layout/SvgFlex';
+import Indent from '../../layout/Indent';
+
 import Statement from '.';
 import Binder from '../../editor/Binder';
-import Indent from '../../layout/Indent';
 import Expression from '../expression';
 
 const ForIn = React.forwardRef<any, { forin: ForIn }>((props, ref) => (

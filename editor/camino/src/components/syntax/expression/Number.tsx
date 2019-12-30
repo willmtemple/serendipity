@@ -2,7 +2,8 @@ import { observer } from 'mobx-react';
 import * as React from 'react';
 
 import { Number } from '@serendipity/syntax-surface/dist/expression';
-import { useResizeParentEffect } from 'hooks/measure';
+
+import { useResizeParentEffect } from '../../../hooks/measure';
 
 // tslint:disable-next-line: variable-name ban-types
 const Number = React.forwardRef<SVGForeignObjectElement, { number: Number }>((props, ref) => {

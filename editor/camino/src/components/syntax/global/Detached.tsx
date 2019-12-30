@@ -2,17 +2,18 @@ import * as React from 'react';
 
 import { observer } from 'mobx-react';
 
-import { IEditorDetachedSyntax } from 'stores/ProjectStore';
+import { EditorDetachedSyntax } from '../../../stores/ProjectStore';
+
 import Expression from '../expression';
 import Statement from '../statement';
 
-interface IDetachedProps {
-    global: IEditorDetachedSyntax,
+interface DetachedProps {
+    global: EditorDetachedSyntax,
 
     onDelete(): void,
 }
 
-const Detached =React.forwardRef<SVGGElement, IDetachedProps>((props, ref) => {
+const Detached = React.forwardRef<SVGGElement, DetachedProps>((props, ref) => {
     const kind = props.global.syntaxKind;
 
     const body = (() => {

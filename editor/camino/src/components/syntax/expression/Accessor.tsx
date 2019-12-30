@@ -2,7 +2,8 @@ import { observer } from 'mobx-react';
 import * as React from 'react';
 
 import { Accessor } from '@serendipity/syntax-surface/dist/expression';
-import SvgFlex from 'components/layout/SvgFlex';
+
+import SvgFlex from '../../../components/layout/SvgFlex';
 import Expression from '.';
 
 const Accessor = React.forwardRef<any, { accessor: Accessor }>((props, ref) => (

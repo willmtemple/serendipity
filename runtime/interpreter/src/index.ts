@@ -7,9 +7,6 @@ import { Module, BinaryOperator, BinaryOp, matchExpression, Expression } from "@
 import { Value, NumberV, IntrinsicV } from "./value";
 import { Scope } from "./scope";
 
-import * as console from "console";
-// import { writeAbstract } from "./print";
-
 function _isTotalType(v: Value): boolean {
   switch (v.kind) {
     case "void":
@@ -130,13 +127,10 @@ function compareOp(lv: Value, rv: Value, op: BinaryOperator): Value {
 type Printer = (s: string) => void;
 
 export class Interpreter {
-  // eslint-disable-next-line no-console
-  private _print: Printer = console.log.bind(console);
+  private _print: Printer;
 
-  public constructor(printer?: Printer) {
-    if (printer) {
-      this._print = printer;
-    }
+  public constructor(printer: Printer) {
+    this._print = printer;
   }
 
   public execModule(m: Module): void {

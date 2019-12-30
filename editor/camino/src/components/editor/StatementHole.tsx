@@ -3,8 +3,8 @@ import * as React from 'react';
 
 import { SyntaxObject } from '@serendipity/syntax';
 
-import { useResizeParentEffect } from 'hooks/measure';
-import { useStores } from 'hooks/stores';
+import { useResizeParentEffect } from '../../hooks/measure';
+import { useStores } from '../../hooks/stores';
 
 interface ISyntaxHoleProps {
     bind: SyntaxObject,

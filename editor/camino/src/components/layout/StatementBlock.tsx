@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import Color from 'color';
 
-import { IMeasurementProps, IRect, measureChildren } from 'hooks/measure';
+import { MeasurementProps, Rect, measureChildren } from '../../hooks/measure';
 
 const PADX = 10;
 const PADY_TOP = 2;
@@ -18,23 +18,23 @@ const FORK_OFFSET = 14;
 const FORK_SIZE = (FORK_HALF_WIDTH * 2) + (FORK_OFFSET * 2)
 const MIN_WIDTH = FORK_SIZE + (PADX - RADIUS) * 2;
 
-function fork(x : number) {
+function fork(x: number) {
     return FORK_HEIGHT / FORK_HALF_WIDTH * x;
 }
 
-function generatePath(r : IRect) : string {
+function generatePath(r: Rect): string {
     const span = r.width + ((PADX - RADIUS) * 2);
     const run = (span < MIN_WIDTH ? MIN_WIDTH : span - FORK_SIZE);
-    
+
     const vrun = r.height - (RADIUS * 2) + FORK_HEIGHT + (PADY_TOTAL);
 
     const forkUpTurn1ControlPointX = FORK_ARC_W / 2;
     const forkUpTurn1ControlPointY = 0
     const forkUpTurn1EndPointX = FORK_ARC_W;
-    const forkUpTurn1EndPointY = fork(FORK_ARC_W/2);
+    const forkUpTurn1EndPointY = fork(FORK_ARC_W / 2);
 
-    const forkUpTurn2StartPointX = (FORK_HALF_WIDTH - FORK_ARC_CAP/2 - FORK_ARC_W/2);
-    const forkUpTurn2StartPointY = fork(FORK_HALF_WIDTH - FORK_ARC_CAP/2) - forkUpTurn1EndPointY;
+    const forkUpTurn2StartPointX = (FORK_HALF_WIDTH - FORK_ARC_CAP / 2 - FORK_ARC_W / 2);
+    const forkUpTurn2StartPointY = fork(FORK_HALF_WIDTH - FORK_ARC_CAP / 2) - forkUpTurn1EndPointY;
     const forkUpTurn2ControlPointX = FORK_ARC_CAP / 2;
     const forkUpTurn2ControlPointY = FORK_HEIGHT - forkUpTurn2StartPointY;
     const forkUpTurn2EndPointX = FORK_ARC_CAP;
@@ -42,7 +42,7 @@ function generatePath(r : IRect) : string {
 
     const forkUpTurn3StartPointX = forkUpTurn2StartPointX;
     const forkUpTurn3StartPointY = -forkUpTurn2StartPointY;
-    const forkUpTurn3ControlPointX = FORK_ARC_W/2;
+    const forkUpTurn3ControlPointX = FORK_ARC_W / 2;
     const forkUpTurn3ControlPointY = -forkUpTurn1EndPointY;
     const forkUpTurn3EndPointX = FORK_ARC_W;
     const forkUpTurn3EndPointY = -forkUpTurn1EndPointY;
@@ -74,7 +74,7 @@ function generatePath(r : IRect) : string {
     `;
 }
 
-interface IBoundingBoxProps {
+export interface StatementBlockProps {
     color?: string,
     stroke?: string,
 
@@ -82,12 +82,12 @@ interface IBoundingBoxProps {
     containerProps?: any,
 }
 
-type CompleteProps = IMeasurementProps & React.PropsWithChildren<IBoundingBoxProps>;
+type CompleteProps = MeasurementProps & React.PropsWithChildren<StatementBlockProps>;
 
-const StatementBlock = measureChildren(React.forwardRef<SVGGElement, CompleteProps>((props, ref) => {
+export const StatementBlock = measureChildren(React.forwardRef<SVGGElement, CompleteProps>((props, ref) => {
 
     const pathDetails = React.useMemo(() => generatePath(props.sizes[0]), props.sizes);
-    
+
     const color = Color(props.color);
 
     return (

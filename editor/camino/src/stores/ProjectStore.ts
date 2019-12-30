@@ -11,70 +11,71 @@ import { Module } from '@serendipity/syntax-surface';
 import { Expression } from '@serendipity/syntax-surface/dist/expression';
 import { Define, DefineFunction, Global, Main } from '@serendipity/syntax-surface/dist/global';
 import { Statement } from '@serendipity/syntax-surface/dist/statement';
-import { IPosition } from 'util/Position';
+
+import { Position } from '../util/Position';
 
 const P_NAME = 'userProject';
 
-export interface IEditorMetadata {
+export interface EditorMetadata {
     guid: string,
-    pos: IPosition
+    pos: Position
 }
 
-interface IEditorMetadataWrapper {
-    editor: IEditorMetadata,
+interface EditorMetadataWrapper {
+    editor: EditorMetadata,
     [k: string]: any
 }
 
-export interface IEditorMain extends Main {
-    metadata: IEditorMetadataWrapper
+export interface EditorMain extends Main {
+    metadata: EditorMetadataWrapper
 }
-export interface IEditorDefine extends Define {
-    metadata: IEditorMetadataWrapper
+export interface EditorDefine extends Define {
+    metadata: EditorMetadataWrapper
 }
-export interface IEditorDefineFunction extends DefineFunction {
-    metadata: IEditorMetadataWrapper
+export interface EditorDefineFunction extends DefineFunction {
+    metadata: EditorMetadataWrapper
 }
 
-interface IEditorDetachedSyntaxBase {
+interface EditorDetachedSyntaxBase {
     globalKind: "_editor_detachedsyntax"
-    metadata: IEditorMetadataWrapper,
+    metadata: EditorMetadataWrapper,
 }
 
-export interface IEditorDetachedExpression extends IEditorDetachedSyntaxBase {
+export interface EditorDetachedExpression extends EditorDetachedSyntaxBase {
     syntaxKind: "expression",
     element: Expression
 }
 
-export interface IEditorDetachedStatements extends IEditorDetachedSyntaxBase {
+export interface EditorDetachedStatements extends EditorDetachedSyntaxBase {
     syntaxKind: "statement",
     element: Statement[]
 }
 
-export type IEditorDetachedSyntax =
-    IEditorDetachedStatements
-    | IEditorDetachedExpression;
+export type EditorDetachedSyntax =
+    EditorDetachedStatements
+    | EditorDetachedExpression;
 
-export type IEditorGlobal =
-    IEditorMain
-    | IEditorDefine
-    | IEditorDefineFunction
-    | IEditorDetachedExpression
-    | IEditorDetachedStatements;
+export type EditorGlobal =
+    EditorMain
+    | EditorDefine
+    | EditorDefineFunction
+    | EditorDetachedExpression
+    | EditorDetachedStatements;
 
-export type IEditorUnregisteredGlobal =
-    Omit<IEditorMain, "metadata">
-    | Omit<IEditorDefine, "metadata">
-    | Omit<IEditorDefineFunction, "metadata">
-    | Omit<IEditorDetachedExpression, "metadata">
-    | Omit<IEditorDetachedStatements, "metadata">;
+export type EditorUnregisteredGlobal =
+    Omit<EditorMain, "metadata">
+    | Omit<EditorDefine, "metadata">
+    | Omit<EditorDefineFunction, "metadata">
+    | Omit<EditorDetachedExpression, "metadata">
+    | Omit<EditorDetachedStatements, "metadata">;
 
-export interface IEditorModule {
-    globals: IEditorGlobal[]
+export interface EditorModule {
+    globals: EditorGlobal[]
 }
 
 export class ProjectStore {
 
-    @observable public program: IEditorModule = {
+    @observable public program: EditorModule = {
         globals: []
     };
 
@@ -147,7 +148,7 @@ export class ProjectStore {
     @action public reset() {
         // TODO find some way to get rid of distinction between editor module
         // and stx module
-        this.program = surfaceExample as IEditorModule;
+        this.program = surfaceExample as EditorModule;
         this.loadGUIDTable();
     }
 
@@ -160,7 +161,7 @@ export class ProjectStore {
                     if (k === "statement" && l[idx].statementKind !== "@hole") {
                         parent[key] = (l as any[]).concat(n as any[]);
                     } else {
-                        l[idx] = n[0];
+                        parent[key][idx] = n[0];
                     }
                     return
                 } else if (idx === undefined) {
@@ -178,14 +179,14 @@ export class ProjectStore {
             throw new Error("No such node to be inserted " + v);
         }
 
-        const kind = (v as IEditorDetachedSyntax).syntaxKind;
-        const e = (v as IEditorDetachedExpression).element;
+        const kind = (v as EditorDetachedSyntax).syntaxKind;
+        const e = (v as EditorDetachedExpression).element;
 
         setNode(e, kind);
         this.rmNodeByGUID(this.metadataFor(v).guid);
     }
 
-    @action public detachExpression(id: string, key: string, pos: IPosition, idx?: number): string {
+    @action public detachExpression(id: string, key: string, pos: Position, idx?: number): string {
         const parent = this.byGUID[id];
         const node = (() => {
             const v = parent && parent[key];
@@ -213,7 +214,7 @@ export class ProjectStore {
             throw new Error("No such key(s) on that object")
         });
 
-        const newGlobalObject: IEditorGlobal = observable({
+        const newGlobalObject: EditorGlobal = observable({
             globalKind: "_editor_detachedsyntax",
             syntaxKind: "expression",
             element: node as Expression,
@@ -243,7 +244,7 @@ export class ProjectStore {
         return newGlobalObject.metadata.editor.guid;
     }
 
-    @action public detachStatement(id: string, key: string, pos: IPosition, idx?: number): string {
+    @action public detachStatement(id: string, key: string, pos: Position, idx?: number): string {
         const that = this;
         const parent = this.byGUID[id];
         const node = (() => {
@@ -294,7 +295,7 @@ export class ProjectStore {
             throw new Error("No such key(s) on that object")
         });
 
-        const newGlobalObject: IEditorGlobal = observable({
+        const newGlobalObject: EditorGlobal = observable({
             globalKind: "_editor_detachedsyntax",
             syntaxKind: "statement",
             element: [node as Statement],
@@ -315,13 +316,13 @@ export class ProjectStore {
         return newGlobalObject.metadata.editor.guid;
     }
 
-    @action public register(g: IEditorUnregisteredGlobal): IEditorGlobal {
-        const id = this.loadGUID(g as IEditorGlobal);
+    @action public register(g: EditorUnregisteredGlobal): EditorGlobal {
+        const id = this.loadGUID(g as EditorGlobal);
         this.updatePos(id, { x: 0, y: 0 });
-        return g as IEditorGlobal;
+        return g as EditorGlobal;
     }
 
-    @action public addGlobal(g: IEditorUnregisteredGlobal) {
+    @action public addGlobal(g: EditorUnregisteredGlobal) {
         this.program.globals.push(this.register(g));
     }
 
@@ -336,7 +337,7 @@ export class ProjectStore {
         }
     }
 
-    @action public initMetadata(g: IEditorGlobal) {
+    @action public initMetadata(g: EditorGlobal) {
         if (!g.metadata) {
             g.metadata = {
                 editor: {
@@ -350,7 +351,7 @@ export class ProjectStore {
         }
     }
 
-    @action public updatePos(id: string, pos: IPosition) {
+    @action public updatePos(id: string, pos: Position) {
         const glb = this.byGUID[id];
         if (glb) {
             this.metadataFor(glb).pos = pos;
@@ -360,7 +361,7 @@ export class ProjectStore {
     }
 
     public metadataFor(node: SyntaxObject) {
-        return node.metadata!.editor as IEditorMetadata
+        return node.metadata!.editor as EditorMetadata
     }
 
     @action public loadGUID(node: SyntaxObject): string {

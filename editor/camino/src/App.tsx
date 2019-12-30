@@ -3,7 +3,7 @@ import { inject, observer } from "mobx-react";
 import * as React from "react";
 import withStores from "./util/withStores";
 
-import "./App.css";
+import "../styles/App.css";
 
 import { PrefsStore, ICheckedEvent } from "./stores/PrefsStore";
 import { ProjectStore } from "./stores/ProjectStore";
@@ -96,105 +96,85 @@ export class App extends React.Component<IAppProps> {
     const projectStore = this.props.ProjectStore;
 
     return (
-      <div className="App">
-        {/* <Navbar app={this} /> */}
-        {/* <BlocksPalette /> */}
-        <svg
-          ref={this.svg}
-          className="blocksWorkspace"
-          preserveAspectRatio="xMinYMin slice"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <defs>
-            <filter id="f_BlockShadow">
-              <feOffset result="offOut" in="SourceAlpha" dx="3" dy="3" />
-              <feGaussianBlur result="blurOut" in="offOut" stdDeviation="2" />
-              <feBlend in="SourceGraphic" in2="blurOut" mode="normal" />
-            </filter>
-            <filter id="detachedElement">
-              <feColorMatrix in="SourceGraphic" type="saturate" values="0.12" />
-            </filter>
-            <filter id="dropGlow">
-              <feFlood result="flood" floodColor="#FFFFFF" floodOpacity={1} />
-              <feComposite
-                in="flood"
-                result="mask"
-                in2="SourceGraphic"
-                operator="in"
-              />
-              <feMorphology
-                in="mask"
-                result="dilated"
-                operator="dilate"
-                radius="2"
-              />
-              <feGaussianBlur in="dilated" result="blurred" stdDeviation={5} />
-              <feMerge>
-                <feMergeNode in="blurred" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-            <pattern
-              id="bgPattern"
-              x={0}
-              y={0}
-              width={50}
-              height={50}
-              patternUnits="userSpaceOnUse"
-            >
-              <rect x={0} y={0} width={50} height={50} fill="#F0F0F0" />
-              <circle cx={25} cy={25} r={2} fill="#AAAAAA" />
-            </pattern>
-          </defs>
-          <rect
-            id="workspaceBackground"
+      <svg
+        ref={this.svg}
+        className="blocksWorkspace"
+        preserveAspectRatio="xMinYMin slice"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          <filter id="f_BlockShadow">
+            <feOffset result="offOut" in="SourceAlpha" dx="3" dy="3" />
+            <feGaussianBlur result="blurOut" in="offOut" stdDeviation="2" />
+            <feBlend in="SourceGraphic" in2="blurOut" mode="normal" />
+          </filter>
+          <filter id="detachedElement">
+            <feColorMatrix in="SourceGraphic" type="saturate" values="0.12" />
+          </filter>
+          <filter id="dropGlow">
+            <feFlood result="flood" floodColor="#FFFFFF" floodOpacity={1} />
+            <feComposite
+              in="flood"
+              result="mask"
+              in2="SourceGraphic"
+              operator="in"
+            />
+            <feMorphology
+              in="mask"
+              result="dilated"
+              operator="dilate"
+              radius="2"
+            />
+            <feGaussianBlur in="dilated" result="blurred" stdDeviation={5} />
+            <feMerge>
+              <feMergeNode in="blurred" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          <pattern
+            id="bgPattern"
             x={0}
             y={0}
-            width="140%"
-            height="140%"
-            fill="url(#bgPattern)"
-            style={{ height: "140%", width: "140%" }}
-          />
-          {projectStore.program.globals.map((glb, idx) => {
-            const meta = this.props.ProjectStore.metadataFor(glb);
-            return (
-              <g
-                key={untracked(() => meta.guid)}
-                id={meta.guid}
-                data-guid={meta.guid}
-                data-idx={idx}
-                data-port-compatibility={
-                  glb.globalKind === "_editor_detachedsyntax"
-                    ? glb.syntaxKind
-                    : undefined
-                }
-                className={"draggable global " + glb.globalKind}
-                transform={untracked(
-                  () => `translate(${meta.pos.x}, ${meta.pos.y})`
-                )}
-              >
-                <Global global={glb} />
-              </g>
-            );
-          })}
-        </svg>
-        {/*
-          this.props.PrefsStore.prefs.terminal && (
-            <Terminal termDivProps={{
-              id: "terminal",
-              style: {
-                position: "absolute",
-                left: 0,
-                bottom: 0,
-                right: 0,
-                height: "30%",
-                background: "black",
+            width={50}
+            height={50}
+            patternUnits="userSpaceOnUse"
+          >
+            <rect x={0} y={0} width={50} height={50} fill="#F0F0F0" />
+            <circle cx={25} cy={25} r={2} fill="#AAAAAA" />
+          </pattern>
+        </defs>
+        <rect
+          id="workspaceBackground"
+          x={0}
+          y={0}
+          width="140%"
+          height="140%"
+          fill="url(#bgPattern)"
+          style={{ height: "140%", width: "140%" }}
+        />
+        {projectStore.program.globals.map((glb, idx) => {
+          const meta = this.props.ProjectStore.metadataFor(glb);
+          return (
+            <g
+              key={untracked(() => meta.guid)}
+              id={meta.guid}
+              data-guid={meta.guid}
+              data-idx={idx}
+              data-port-compatibility={
+                glb.globalKind === "_editor_detachedsyntax"
+                  ? glb.syntaxKind
+                  : undefined
               }
-            }} />
-          )
-        */}
-        {/* <Toolbar app={this} /> */}
-      </div>
+              className={"draggable global " + glb.globalKind}
+              transform={untracked(
+                () => `translate(${meta.pos.x}, ${meta.pos.y})`
+              )}
+            >
+              <Global global={glb} />
+            </g>
+          );
+        })}
+      </svg>
     );
   }
 }

@@ -1,4 +1,4 @@
-import * as React from 'react';
+/* import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
 import App from './App';
@@ -26,3 +26,19 @@ const root = (
 )
 
 ReactDOM.render(root, document.getElementById('root'));
+
+*/
+
+import * as React from 'react';
+
+import App from './App';
+
+import { StoreProvider } from './hooks/stores';
+
+export const Editor = () => {
+    return (
+        <StoreProvider>
+            <App />
+        </StoreProvider>
+    )
+}

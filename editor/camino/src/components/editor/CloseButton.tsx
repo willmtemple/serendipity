@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { useResizeParentEffect } from 'hooks/measure';
+
+import { useResizeParentEffect } from '../../hooks/measure';
 
 const CloseButton = React.forwardRef<SVGGElement, { onClick(): void }>((props, ref) => {
     useResizeParentEffect();

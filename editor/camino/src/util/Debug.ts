@@ -2,7 +2,7 @@ import { Expression } from '@serendipity/syntax-surface/dist/expression';
 import { Global } from '@serendipity/syntax-surface/dist/global';
 import { Statement } from '@serendipity/syntax-surface/dist/statement';
 
-import ProjectStore from 'stores/ProjectStore';
+import ProjectStore from '../stores/ProjectStore';
 
 function hole(): Expression {
     const e: Expression = {

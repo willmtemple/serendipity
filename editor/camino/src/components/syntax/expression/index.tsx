@@ -2,10 +2,11 @@ import { observer } from 'mobx-react';
 import * as React from 'react';
 
 import * as expression from '@serendipity/syntax-surface/dist/expression';
-import ExpressionBlock from 'components/layout/ExpressionBlock';
-import { useStores } from 'hooks/stores';
 
-import SyntaxHole from 'components/editor/ExpressionHole';
+import ExpressionBlock from '../../layout/ExpressionBlock';
+import SyntaxHole from '../../editor/ExpressionHole';
+
+import { useStores } from '../../../hooks/stores';
 import Accessor from './Accessor';
 import Arithmetic from './Arithmetic';
 import Call from './Call';
@@ -20,17 +21,21 @@ import Tuple from './Tuple';
 import Void from './Void';
 import With from './With';
 
-/*function getPadding(kind: string) {
-    switch (kind) {
-        case "number":
-        case "name":
-            return 10;
-        case "void":
-            return 20;
-        default:
-            return 6;
-    }
-}*/
+export {
+    Accessor,
+    Arithmetic,
+    Call,
+    Closure,
+    Compare,
+    If,
+    List,
+    Name,
+    Number,
+    Procedure,
+    Tuple,
+    Void,
+    With
+};
 
 function getColor(kind: string) {
     switch (kind) {
@@ -65,7 +70,7 @@ function getColor(kind: string) {
     }
 }
 
-interface IExpressionProps {
+export interface IExpressionProps {
     bind: any,
     bindKey: string,
     bindIdx?: number

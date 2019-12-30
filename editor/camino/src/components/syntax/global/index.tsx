@@ -3,17 +3,28 @@ import * as React from 'react';
 
 import * as surface from '@serendipity/syntax-surface';
 import { matchGlobal } from '@serendipity/syntax-surface/dist/global';
-import { useStores } from 'hooks/stores';
-import { IEditorDetachedSyntax, IEditorGlobal } from 'stores/ProjectStore';
+
+import { useStores } from '../../../hooks/stores';
+
+import { EditorDetachedSyntax, EditorGlobal } from '../../../stores/ProjectStore';
+
 import CloseButton from '../../editor/CloseButton';
+
 import BoundingBox from '../../layout/BoundingBox';
+
 import Define from './Define';
 import DefineFunc from './DefineFunc';
 import Detached from './Detached';
 import Main from './Main';
 
+export {
+    Define,
+    DefineFunc,
+    Detached,
+    Main
+};
 
-function getColor(glb: IEditorGlobal) {
+function getColor(glb: EditorGlobal) {
     return matchGlobal({
         Define: () => "darkblue",
         DefineFunction: () => "darkviolet",
@@ -23,7 +34,7 @@ function getColor(glb: IEditorGlobal) {
     })(glb as surface.global.Global)
 }
 
-const Global = React.forwardRef<any, { global: IEditorGlobal }>((props, ref) => {
+const Global = React.forwardRef<any, { global: EditorGlobal }>((props, ref) => {
 
     const { ProjectStore } = useStores();
 
@@ -35,7 +46,7 @@ const Global = React.forwardRef<any, { global: IEditorGlobal }>((props, ref) => 
     const kind = glb.globalKind;
 
     if (kind === "_editor_detachedsyntax") {
-        return <Detached ref={ref} onDelete={deleteNode} global={glb as IEditorDetachedSyntax} />;
+        return <Detached ref={ref} onDelete={deleteNode} global={glb as EditorDetachedSyntax} />;
     }
 
     const body = (() => {
