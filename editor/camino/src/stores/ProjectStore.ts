@@ -160,13 +160,27 @@ export class ProjectStore {
                 if (idx !== undefined && l[idx]) {
                     if (mode === "statement" && l[idx].statementKind !== "@hole") {
                         parent[key] = (l as any[]).concat(n as any[]);
+                    } else if (mode === "statement") {
+                        parent[key] = n;
                     } else {
                         parent[key][idx] = n;
                     }
-                    return
+                    this.rmNodeByGUID(this.metadataFor(v).guid);
+                    return;
                 } else if (idx === undefined) {
-                    parent[key] = n;
-                    return
+                    if (mode === "statement") {
+                        // Break the first statement of the list off
+                        parent[key] = (n as any[]).splice(0, 1)[0];
+                        console.log(parent[key], n);
+                        // Clean up v if it is done
+                        if (n.length === 0) {
+                            this.rmNodeByGUID(this.metadataFor(v).guid);
+                        }
+                    } else {
+                        parent[key] = n;
+                        this.rmNodeByGUID(this.metadataFor(v).guid);
+                    }
+                    return;
                 }
             }
 
@@ -179,16 +193,7 @@ export class ProjectStore {
             throw new Error("No such node to be inserted " + v);
         }
 
-        const kind = v.syntaxKind;
-        switch (kind) {
-            case "expression":
-                setNode(v.element);
-                break;
-            case "statement":
-                setNode(v.element[0], "statement")
-        }
-
-        this.rmNodeByGUID(this.metadataFor(v).guid);
+        setNode(v.element, v.syntaxKind);
     }
 
     @action public detachExpression(id: string, key: string, pos: Position, idx?: number): string {
@@ -250,7 +255,6 @@ export class ProjectStore {
     }
 
     @action public detachStatement(id: string, key: string, pos: Position, idx?: number): string {
-        const that = this;
         const parent = this.byGUID[id];
         const node = (() => {
             const v = parent && parent[key];
@@ -263,27 +267,28 @@ export class ProjectStore {
 
         if (!node) { throw new Error("No such key(s) on that object during 'get'"); }
 
-        const killNode = action(() => {
+        const killNode = action((): Statement[] => {
             const v = parent && parent[key];
             if (v) {
                 if (idx !== undefined && v[idx]) {
                     const l = v as any[];
-                    if (l.length > 1) {
-                        (v as any[]).splice(idx, 1);
+                    if (l.length > 1 && idx !== 0) {
+                        return (v as any[]).splice(idx, v.length - idx);
                     } else {
                         const g = guid();
-                        v[idx] = {
+                        parent[key] = [{
                             statementKind: "@hole",
                             metadata: {
                                 editor: {
                                     guid: g
                                 }
                             }
-                        };
+                        }];
+                        return v;
                     }
-                    return;
                 } else if (idx === undefined) {
                     const g = guid();
+                    const old = parent[key];
                     parent[key] = {
                         statementKind: "@hole",
                         metadata: {
@@ -292,8 +297,7 @@ export class ProjectStore {
                             }
                         }
                     };
-                    that.byGUID[g] = parent[key];
-                    return;
+                    return [old];
                 }
             }
 
@@ -303,7 +307,7 @@ export class ProjectStore {
         const newGlobalObject: EditorGlobal = observable({
             globalKind: "_editor_detachedsyntax",
             syntaxKind: "statement",
-            element: [node as Statement],
+            element: killNode(),
             metadata: {
                 editor: {
                     guid: guid(),
@@ -311,8 +315,6 @@ export class ProjectStore {
                 }
             }
         });
-
-        killNode();
 
         // Put the clone onto the globals stack
         this.byGUID[newGlobalObject.metadata.editor.guid] = newGlobalObject;

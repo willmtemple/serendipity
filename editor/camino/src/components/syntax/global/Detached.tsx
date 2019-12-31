@@ -2,10 +2,11 @@ import * as React from 'react';
 
 import { observer } from 'mobx-react';
 
-import { EditorDetachedSyntax } from '../../../stores/ProjectStore';
+import { EditorDetachedSyntax, EditorDetachedStatements } from '../../../stores/ProjectStore';
 
 import Expression from '../expression';
 import Statement from '../statement';
+import { SvgFlex } from '../../layout';
 
 interface DetachedProps {
     global: EditorDetachedSyntax,
@@ -24,11 +25,14 @@ const Detached = React.forwardRef<SVGGElement, DetachedProps>((props, ref) => {
                     bind={props.global}
                     bindKey="element" />
             case "statement":
-                return <Statement
-                    fixed={true}
-                    bind={props.global}
-                    bindKey="element"
-                    bindIdx={0} />
+                return <SvgFlex direction="vertical" padding={-10}>
+                    {(props.global as EditorDetachedStatements).element.map((_, idx) =>
+                        <Statement fixed={idx === 0}
+                            bind={props.global}
+                            bindKey="element"
+                            bindIdx={idx} />
+                    )}
+                </SvgFlex>
             default:
                 const _exhaust: never = kind;
                 return _exhaust;
