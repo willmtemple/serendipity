@@ -126,11 +126,23 @@ function compareOp(lv: Value, rv: Value, op: BinaryOperator): Value {
 
 type Printer = (s: string) => void;
 
-export class Interpreter {
-  private _print: Printer;
+export interface InterpreterOptions {
+  printer: Printer,
+  beforeEval: (expr: Expression, scope: Scope) => void
+}
 
-  public constructor(printer: Printer) {
-    this._print = printer;
+const defaultOptions: InterpreterOptions = {
+  printer(_: string) {
+    throw new Error("No print function provided to interpreter");
+  },
+  beforeEval: () => { }
+}
+
+export class Interpreter {
+  private options: InterpreterOptions;
+
+  public constructor(options: Partial<InterpreterOptions> = {}) {
+    this.options = { ...defaultOptions, ...options };
   }
 
   public execModule(m: Module): void {
@@ -168,7 +180,7 @@ export class Interpreter {
                 throw new Error("Called print_stmt intrinsic with no parameter.");
               }
 
-              this._print(this._strconv(param));
+              this.options.printer(this._strconv(param));
               return {
                 kind: "closure",
                 value: {
@@ -235,7 +247,7 @@ export class Interpreter {
   }
 
   private evalExpr(e: Expression, scope: Scope): Value {
-    // console.log("Eval: ", writeAbstract(e));
+    this.options.beforeEval(e, scope);
     return matchExpression<Value>({
       Number: ({ value }) => ({ kind: "number", value }),
       String: ({ value }) => ({ kind: "string", value }),

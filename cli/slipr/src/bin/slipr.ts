@@ -8,6 +8,7 @@ import * as fs from "fs";
 
 import { createLoweringCompiler } from "@serendipity/compiler-desugar";
 import { Interpreter } from "@serendipity/interpreter";
+import { writeAbstract } from "@serendipity/interpreter/dist/print"
 import { unwrap } from "@serendipity/syntax/dist/util/Result";
 
 import defaultParser from "../parser";
@@ -23,8 +24,13 @@ async function main(): Promise<void> {
 
   const program = unwrap(compiler.compile(parseTree));
 
-  const interpreter = new Interpreter((s: string) => {
-    process.stdout.write(s + "\n");
+  const interpreter = new Interpreter({
+    printer(s: string) {
+      process.stdout.write(s + "\n");
+    },
+    beforeEval: (expr) => {
+      console.info("[eval]", writeAbstract(expr))
+    }
   });
 
   interpreter.execModule(program);

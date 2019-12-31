@@ -69,7 +69,9 @@ export class App extends React.Component<IAppProps> {
       return;
     }
 
-    const interp = new Interpreter(println);
+    const interp = new Interpreter({
+      printer: println
+    });
     println("\x1B[1m[Program Starting]\x1B[0m\n");
     try {
       interp.execModule(compiled);
