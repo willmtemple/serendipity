@@ -154,14 +154,14 @@ export class ProjectStore {
 
     @action public insertInto(vid: string, into: string, key: string, idx?: number) {
         const parent = this.byGUID[into];
-        const setNode = action((n: any, k: string) => {
+        const setNode = action((n: any, mode?: string) => {
             const l = parent && parent[key];
             if (l) {
                 if (idx !== undefined && l[idx]) {
-                    if (k === "statement" && l[idx].statementKind !== "@hole") {
+                    if (mode === "statement" && l[idx].statementKind !== "@hole") {
                         parent[key] = (l as any[]).concat(n as any[]);
                     } else {
-                        parent[key][idx] = n[0];
+                        parent[key][idx] = n;
                     }
                     return
                 } else if (idx === undefined) {
@@ -174,15 +174,20 @@ export class ProjectStore {
             throw new Error("No such key(s) on that object");
         });
 
-        const v = this.byGUID[vid];
+        const v = this.byGUID[vid] as EditorDetachedSyntax;
         if (!v || !v.hasOwnProperty("syntaxKind")) {
             throw new Error("No such node to be inserted " + v);
         }
 
-        const kind = (v as EditorDetachedSyntax).syntaxKind;
-        const e = (v as EditorDetachedExpression).element;
+        const kind = v.syntaxKind;
+        switch (kind) {
+            case "expression":
+                setNode(v.element);
+                break;
+            case "statement":
+                setNode(v.element[0], "statement")
+        }
 
-        setNode(e, kind);
         this.rmNodeByGUID(this.metadataFor(v).guid);
     }
 
