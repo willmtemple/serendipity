@@ -11,6 +11,18 @@ export interface SyntaxObject {
   metadata?: { [k: string]: any };
 }
 
+export interface MetadataHandler<T> {
+  get(s: SyntaxObject): T | undefined
+}
+
+export function createMetadataInterface<T>(k: string): MetadataHandler<T> {
+  return {
+    get(s: SyntaxObject) {
+      return s.metadata && s.metadata[k];
+    }
+  }
+}
+
 export const util = {
   Result: result,
   FuncTools: funcTools
