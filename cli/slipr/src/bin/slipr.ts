@@ -8,10 +8,14 @@ import * as fs from "fs";
 
 import { createLoweringCompiler } from "@serendipity/compiler-desugar";
 import { Interpreter } from "@serendipity/interpreter";
-import { writeAbstract } from "@serendipity/interpreter/dist/print"
-import { unwrap } from "@serendipity/syntax/dist/util/Result";
+import { writeAbstract } from "@serendipity/interpreter/dist/print";
+import { unwrap, ok } from "@serendipity/syntax/dist/util/Result";
+
+import { Module } from "@serendipity/syntax-abstract";
 
 import defaultParser from "../parser";
+import { removeUnusedFunctionCalls } from "../optimizers/deadCode";
+import { CompilerOutput } from "@serendipity/syntax";
 
 async function main(): Promise<void> {
   const fn = process.argv[2];
@@ -20,7 +24,11 @@ async function main(): Promise<void> {
 
   const parseTree = await defaultParser.parse(stream);
 
-  const compiler = createLoweringCompiler();
+  const compiler = createLoweringCompiler().then({
+    run(out: Module): CompilerOutput<Module> {
+      return ok(removeUnusedFunctionCalls(out));
+    }
+  });
 
   const program = unwrap(compiler.compile(parseTree));
 
@@ -29,7 +37,7 @@ async function main(): Promise<void> {
       process.stdout.write(s + "\n");
     },
     beforeEval: (expr) => {
-      console.info("[eval]", writeAbstract(expr))
+      console.info("[eval]", writeAbstract(expr));
     }
   });
 
