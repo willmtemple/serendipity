@@ -129,10 +129,10 @@ function lower(i: surface.Module): CompilerOutput<abstract.Module> {
                 },
                 {
                   exprKind: "closure",
-                  parameters: [" w"],
+                  parameters: ["__world"],
                   body: {
                     exprKind: "name",
-                    name: " w"
+                    name: "__world"
                   }
                 }
               ]

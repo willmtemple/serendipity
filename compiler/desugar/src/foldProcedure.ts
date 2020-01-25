@@ -11,12 +11,12 @@ type Statement = surface.statement.Statement;
 type Expression = surface.expression.Expression;
 
 const internalNames = {
-  k: " k",
-  world: " w",
-  break: " b",
-  loop: " l",
-  it: " it",
-  next: " next"
+  k: "__k",
+  world: "__world",
+  break: "__break",
+  loop: "__loop",
+  it: "__iter",
+  next: "__next"
 };
 
 /**
