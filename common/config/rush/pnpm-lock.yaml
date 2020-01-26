@@ -18,6 +18,7 @@ dependencies:
   '@types/node': 12.7.11
   '@types/react': 16.9.17
   '@types/react-dom': 16.9.4
+  '@types/readline-sync': 1.4.3
   '@types/uuid': 3.4.5
   '@typescript-eslint/eslint-plugin': 2.3.2_be736db0bdda6b0d3ffeb597f7320a47
   '@typescript-eslint/parser': 2.3.2_eslint@6.8.0
@@ -35,6 +36,7 @@ dependencies:
   react: 16.12.0
   react-dom: 16.12.0_react@16.12.0
   react-scripts: 3.3.0_cb0a09958492ef9d1ade99c7a680c30b
+  readline-sync: 1.4.10
   sass: 1.24.0
   ts-node: 8.5.4_typescript@3.7.2
   tslib: 1.10.0
@@ -2132,6 +2134,10 @@ packages:
     dev: false
     resolution:
       integrity: sha512-UP27In4fp4sWF5JgyV6pwVPAQM83Fj76JOcg02X5BZcpSu5Wx+fP9RMqc2v0ssBoQIFvD5JdKY41gjJJKmw6Bg==
+  /@types/readline-sync/1.4.3:
+    dev: false
+    resolution:
+      integrity: sha512-YP9NVli96E+qQLAF2db+VjnAUEeZcFVg4YnMgr8kpDUFwQBnj31rPLOVHmazbKQhaIkJ9cMHsZhpKdzUeL0KTg==
   /@types/stack-utils/1.0.1:
     dev: false
     resolution:
@@ -10322,6 +10328,12 @@ packages:
       node: '>=8.10.0'
     resolution:
       integrity: sha512-zz0pAkSPOXXm1viEwygWIPSPkcBYjW1xU5j/JBh5t9bGCJwa6f9+BJa6VaB2g+b55yVrmXzqkyLf4xaWYM0IkQ==
+  /readline-sync/1.4.10:
+    dev: false
+    engines:
+      node: '>= 0.8.0'
+    resolution:
+      integrity: sha512-gNva8/6UAe8QYepIQH/jQ2qn91Qj0B9sYjMBBs3QOB8F2CXcKgLxQaJRP76sWVRQt+QU+8fAkCbCvjjMFu7Ycw==
   /realpath-native/1.1.0:
     dependencies:
       util.promisify: 1.0.0
@@ -12718,7 +12730,7 @@ packages:
     dev: false
     name: '@rush-temp/camino'
     resolution:
-      integrity: sha512-aEoN5bts8kvBuS7H+JxvY61aECZ+Rulfw/Zg+rcxsiNoGjP1t42VBJk/SfqswkpB4DFubY03d4PG5Sd7N2zK1Q==
+      integrity: sha512-R6zf008+YJMZHzXWQ4G/+mZGWW7g5xeZK1im2ta2b+snzywfId4scYQtL5bvEuRZ9p+fSc1KOjw7PIUqBQKwZA==
       tarball: 'file:projects/camino.tgz'
     version: 0.0.0
   'file:projects/compiler-desugar.tgz_@typescript-eslint+parser@2.3.2':
@@ -12760,7 +12772,7 @@ packages:
     dev: false
     name: '@rush-temp/editor-app'
     resolution:
-      integrity: sha512-MIJ1B1vnvqxkTwdbM7idGbcMGjk9qbvucAPBnnf9KS634V4iFbGKRpyyFyk9zrABMKAJc/sEYpcioLic2zqHfw==
+      integrity: sha512-wJbptYRmNkaD7VLhCHVZHBkfhJUwOpLkh2qgjbAHSRF9UUBvs0XU1W8wVmJXwGVfzGgoDknXcxHuOsBhFuxYrg==
       tarball: 'file:projects/editor-app.tgz'
     version: 0.0.0
   'file:projects/eslint-config.tgz_eslint@6.8.0+typescript@3.7.2':
@@ -12821,11 +12833,13 @@ packages:
   'file:projects/slipr.tgz_@typescript-eslint+parser@2.3.2':
     dependencies:
       '@types/node': 12.12.8
+      '@types/readline-sync': 1.4.3
       '@typescript-eslint/eslint-plugin': 2.7.0_be736db0bdda6b0d3ffeb597f7320a47
       eslint: 6.8.0
       eslint-plugin-header: 3.0.0_eslint@6.8.0
       eslint-plugin-promise: 4.2.1
       prettier: 1.18.2
+      readline-sync: 1.4.10
       typescript: 3.7.2
     dev: false
     id: 'file:projects/slipr.tgz'
@@ -12833,7 +12847,7 @@ packages:
     peerDependencies:
       '@typescript-eslint/parser': '*'
     resolution:
-      integrity: sha512-K7bjlFoHU38IeKYK5J4D+K7wNPagQcCCKnK0ZEERi3Hdq7cwfOV6FE1o5y/jRbHLVerLxH0riq3C1OsbkHZ0/A==
+      integrity: sha512-IipgabMO0riHaVWWtk6XXuqh3MFgb2E6t8pOmLZOcIaH83UpEH/ZxIEjscPwcTphtWYeb0eY2tNRUokvGvp5Fg==
       tarball: 'file:projects/slipr.tgz'
     version: 0.0.0
   'file:projects/syntax-abstract.tgz_@typescript-eslint+parser@2.3.2':
@@ -12911,6 +12925,7 @@ specifiers:
   '@types/node': ^12.0.0
   '@types/react': ^16.9.17
   '@types/react-dom': ^16.9.4
+  '@types/readline-sync': ~1.4.3
   '@types/uuid': ^3.4.5
   '@typescript-eslint/eslint-plugin': ^2.3.0
   '@typescript-eslint/parser': ~2.3.2
@@ -12928,6 +12943,7 @@ specifiers:
   react: ^16.12.0
   react-dom: ^16.12.0
   react-scripts: 3.3.0
+  readline-sync: ~1.4.10
   sass: ^1.3.0
   ts-node: ~8.5.4
   tslib: ~1.10.0

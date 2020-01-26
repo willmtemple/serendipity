@@ -14,7 +14,7 @@ export function writeAbstract(s: Expression): string {
     String: ({ value }) => '"' + value.toString() + '"',
     Call: ({ callee, parameter }) =>
       `(${writeAbstract(callee)}${parameter ? " " + writeAbstract(parameter) : ""})`,
-    Name: ({ name }) => name.trimLeft(),
+    Name: ({ name: _name }) => _name.trimLeft(),
     Tuple: ({ values }) => "[" + values.map(writeAbstract).join(" ") + "]",
     Void: (_) => "∅",
     If: ({ cond, then, _else }) =>

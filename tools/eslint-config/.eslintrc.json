@@ -1,6 +1,11 @@
 {
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint", "promise", "header"],
+  "env": {
+    "browser": true,
+    "es6": true,
+    "node": true
+  },
   "parserOptions": {
     "project": ["./tsconfig.json"],
     "createDefaultProgram": true

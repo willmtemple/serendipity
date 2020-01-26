@@ -1,0 +1,3 @@
+(main (proc
+  (loop (print (readline "[echo] > ")))))
+

@@ -164,6 +164,31 @@ export const builtinConstructors: { [k: string]: (sexpr: SExpression) => express
     accessee: intoExpression(sexpr[1]),
     index: intoExpression(sexpr[2])
   })),
+  // TODO: this should be a lib function rather than a syntax-level intrinsic
+  readline: requireBetween([1, 2], (sexpr: SExpressionArray) => ({
+    exprKind: "call",
+    callee: {
+      exprKind: "name",
+      name: "__core.read_line"
+    },
+    parameters: [intoExpression(sexpr[1])]
+  })),
+  "str-split": requireExact(3, (sexpr: SExpressionArray) => ({
+    exprKind: "call",
+    callee: {
+      exprKind: "name",
+      name: "__core.str_split"
+    },
+    parameters: [intoExpression(sexpr[1]), intoExpression(sexpr[2])]
+  })),
+  "str-cat": requireExact(3, (sexpr: SExpressionArray) => ({
+    exprKind: "call",
+    callee: {
+      exprKind: "name",
+      name: "__core.str_cat"
+    },
+    parameters: [intoExpression(sexpr[1]), intoExpression(sexpr[2])]
+  })),
   proc: requireAtLeast(1, (sexpr: SExpressionArray) => ({
     exprKind: "procedure",
     body: sexpr.slice(1).map(intoStatement)

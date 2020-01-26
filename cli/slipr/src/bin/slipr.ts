@@ -6,12 +6,14 @@
 
 import * as fs from "fs";
 
+import * as readlineSync from "readline-sync";
+
 import { createLoweringCompiler } from "@serendipity/compiler-desugar";
-import { Interpreter } from "@serendipity/interpreter";
+import { Interpreter, InterpreterOptions } from "@serendipity/interpreter";
 import { writeAbstract } from "@serendipity/interpreter/dist/print";
 import { unwrap, ok } from "@serendipity/syntax/dist/util/Result";
 
-import { Module } from "@serendipity/syntax-abstract";
+import { Module, Expression } from "@serendipity/syntax-abstract";
 
 import defaultParser from "../parser";
 import { removeUnusedFunctionCalls } from "../optimizers/deadCode";
@@ -32,14 +34,26 @@ async function main(): Promise<void> {
 
   const program = unwrap(compiler.compile(parseTree));
 
-  const interpreter = new Interpreter({
+  const options: Partial<InterpreterOptions> = {
     printer(s: string) {
       process.stdout.write(s + "\n");
     },
-    beforeEval: (expr) => {
-      console.info("[eval]", writeAbstract(expr));
+    prompt(s?: string) {
+      if (s) {
+        return readlineSync.question(s);
+      } else {
+        return readlineSync.question();
+      }
     }
-  });
+  };
+
+  if (process.env.DEBUG) {
+    options.beforeEval = (expr: Expression) => {
+      console.info("[eval]", writeAbstract(expr));
+    };
+  }
+
+  const interpreter = new Interpreter(options);
 
   interpreter.execModule(program);
 }

@@ -12,8 +12,10 @@ export function removeUnusedFunctionCalls(input: Module): Module {
   return {
     definitions: input.definitions.map((d) => {
       if (d.name === "__start") {
-        // eslint-disable-next-line no-console
-        console.log("[deadcode] __start was: ", writeAbstract(d.value));
+        if (process.env.DEBUG) {
+          // eslint-disable-next-line no-console
+          console.log("[deadcode] __start was: ", writeAbstract(d.value));
+        }
       }
       return {
         name: d.name,
@@ -36,8 +38,10 @@ function reduceDeadCode(input: Expression, env: Environment): Expression {
       env[clos.parameter] = 0;
       const body = reduceDeadCode(clos.body, env);
       if (env[clos.parameter] === 0) {
-        // eslint-disable-next-line no-console
-        console.log("[deadcode] This function is dead: ", writeAbstract(clos));
+        if (process.env.DEBUG) {
+          // eslint-disable-next-line no-console
+          console.log("[deadcode] This function is dead: ", writeAbstract(clos));
+        }
         clos.metadata.dead = true;
       }
       env[clos.parameter] = saved;
@@ -69,8 +73,10 @@ function reduceDeadCode(input: Expression, env: Environment): Expression {
       const callee = reduce(e.callee);
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       if (callee.exprKind === "closure" && callee.metadata.dead! === true) {
-        // eslint-disable-next-line no-console
-        console.log("[deadcode] eliminated: ", writeAbstract(e));
+        if (process.env.DEBUG) {
+          // eslint-disable-next-line no-console
+          console.log("[deadcode] eliminated: ", writeAbstract(e));
+        }
         return callee.body;
       } else {
         return {

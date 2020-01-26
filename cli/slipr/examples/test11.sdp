@@ -1,0 +1,2 @@
+(main (proc
+  (print (str-cat "You said: " (readline "echo>")))))

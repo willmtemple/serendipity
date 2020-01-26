@@ -2,7 +2,15 @@
 // All rights reserved.
 // Licensed under the terms of the GNU General Public License v3 or later.
 
-import { Module, BinaryOperator, BinaryOp, matchExpression, Expression } from "@serendipity/syntax-abstract";
+/// <reference lib="es6" />
+
+import {
+  Module,
+  BinaryOperator,
+  BinaryOp,
+  matchExpression,
+  Expression
+} from "@serendipity/syntax-abstract";
 
 import { Value, NumberV, IntrinsicV } from "./value";
 import { Scope } from "./scope";
@@ -125,18 +133,23 @@ function compareOp(lv: Value, rv: Value, op: BinaryOperator): Value {
 }
 
 type Printer = (s: string) => void;
+type Prompter = (s?: string) => string;
 
 export interface InterpreterOptions {
-  printer: Printer,
-  beforeEval: (expr: Expression, scope: Scope) => void
+  printer: Printer;
+  prompt: Prompter;
+  beforeEval: (expr: Expression, scope: Scope) => void;
 }
 
 const defaultOptions: InterpreterOptions = {
-  printer(_: string) {
+  printer(_) {
     throw new Error("No print function provided to interpreter");
   },
-  beforeEval: () => { }
-}
+  prompt(_) {
+    throw new Error("No prompt function provided to interpeter");
+  },
+  beforeEval: () => {}
+};
 
 export class Interpreter {
   private options: InterpreterOptions;
@@ -149,11 +162,11 @@ export class Interpreter {
     const scope: Scope = new Scope(this.evalExpr.bind(this));
 
     let main = false;
-    for (const { name, value } of m.definitions) {
-      if (name === "__start") {
+    for (const { name: _name, value } of m.definitions) {
+      if (_name === "__start") {
         main = true;
       }
-      scope.scope(name, value);
+      scope.scope(_name, value);
     }
 
     if (main) {
@@ -169,34 +182,133 @@ export class Interpreter {
 
   // TODO: remove this in favor of a core module and think hard about what
   // should be in core
-  private getIntrinsic(scope: Scope, name: string): IntrinsicV {
-    return {
-      kind: "intrinsic",
-      fn: (() => {
-        switch (name.split(".")[1]) {
-          case "print_stmt":
-            return (param?: Value): Value => {
-              if (!param) {
-                throw new Error("Called print_stmt intrinsic with no parameter.");
-              }
+  private getIntrinsic(scope: Scope, _name: string): IntrinsicV {
+    switch (_name.split(".")[1]) {
+      case "print_stmt":
+        return {
+          kind: "intrinsic",
+          fn: (param?: Value): Value => {
+            if (!param) {
+              throw new Error("Called print_stmt intrinsic with no parameter.");
+            }
 
-              this.options.printer(this._strconv(param));
-              return {
-                kind: "closure",
-                value: {
-                  body: scope.bind({
-                    exprKind: "name",
-                    name: "__ident"
-                  }),
-                  parameter: "__ident"
-                }
-              };
+            this.options.printer(this._strconv(param));
+
+            return {
+              kind: "closure",
+              value: {
+                body: scope.bind({
+                  exprKind: "name",
+                  name: "__ident"
+                }),
+                parameter: "__ident"
+              }
             };
-          default:
-            throw new Error("No such intrinsic: " + name);
-        }
-      })()
-    };
+          }
+        };
+      case "read_line":
+        return {
+          kind: "intrinsic",
+          fn: (param?: Value): Value => {
+            if (param && param.kind !== "string") {
+              throw new Error("readline: prompt must be a string!");
+            }
+
+            let result: string;
+            if (param && param.kind === "string") {
+              result = this.options.prompt(param.value);
+            } else {
+              result = this.options.prompt();
+            }
+
+            return {
+              kind: "string",
+              value: result
+            };
+          }
+        };
+      case "str_split":
+        return {
+          kind: "intrinsic",
+          fn: (str?: Value): Value => {
+            if (!str || str.kind !== "string") {
+              throw new Error("str_split: no string provided");
+            }
+
+            return {
+              kind: "intrinsic",
+              fn: (splitOn?: Value): Value => {
+                if (!splitOn || (splitOn.kind !== "string" && splitOn.kind !== "number")) {
+                  throw new Error("str_split: no splitOn provided (must be string or number)");
+                }
+
+                let leftStr: string;
+                let rightStr: string;
+                if (splitOn.kind === "string") {
+                  const split = str.value.split(splitOn.value, 2);
+                  if (split.length !== 2) {
+                    throw new Error("str_split: split delimiter not found");
+                  }
+                  [leftStr, rightStr] = split;
+                } else {
+                  if (splitOn.value > str.value.length) {
+                    throw new Error("str_split: index out of bounds");
+                  }
+                  [leftStr, rightStr] = [
+                    str.value.substring(0, splitOn.value),
+                    str.value.substring(splitOn.value, str.value.length)
+                  ];
+                }
+
+                const emptyScope = new Scope(this.evalExpr.bind(this));
+
+                return {
+                  kind: "tuple",
+                  value: [
+                    {
+                      expr: {
+                        exprKind: "string",
+                        value: leftStr
+                      },
+                      scope: emptyScope
+                    },
+                    {
+                      expr: {
+                        exprKind: "string",
+                        value: rightStr
+                      },
+                      scope: emptyScope
+                    }
+                  ]
+                };
+              }
+            };
+          }
+        };
+      case "str_cat":
+        return {
+          kind: "intrinsic",
+          fn: (rightStr?: Value): Value => {
+            if (!rightStr || rightStr.kind !== "string") {
+              throw new Error("str_join: no leftStr provided");
+            }
+
+            return {
+              kind: "intrinsic",
+              fn: (leftStr?: Value): Value => {
+                if (!leftStr || leftStr.kind !== "string") {
+                  throw new Error("str_join: no rightStr provided");
+                }
+
+                return {
+                  kind: "string",
+                  value: leftStr.value + rightStr.value
+                };
+              }
+            };
+          }
+        };
+    }
   }
 
   private _strconv(v: Value): string {
@@ -252,13 +364,13 @@ export class Interpreter {
       Number: ({ value }) => ({ kind: "number", value }),
       String: ({ value }) => ({ kind: "string", value }),
       Boolean: ({ value }) => ({ kind: "boolean", value }),
-      Name: ({ name }) => {
-        if (name.startsWith("__core")) {
-          return this.getIntrinsic(scope, name);
+      Name: ({ name: _name }) => {
+        if (_name.startsWith("__core")) {
+          return this.getIntrinsic(scope, _name);
         }
-        const res = scope.resolve(name);
+        const res = scope.resolve(_name);
         if (!res) {
-          throw new Error("name not found: " + name);
+          throw new Error("name not found: " + _name);
         }
 
         return res;
