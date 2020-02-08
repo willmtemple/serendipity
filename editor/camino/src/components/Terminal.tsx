@@ -1,76 +1,51 @@
-import { inject } from 'mobx-react';
-import * as React from 'react';
+import * as React from "react";
 
-import { PrefsStore } from '../stores/PrefsStore';
-import withStores from '../util/withStores';
+import { useStores } from "@serendipity/editor-stores";
 
-import { Terminal as XTerm } from 'xterm';
-import * as fit from 'xterm/lib/addons/fit/fit';
+import { Terminal as XTerm } from "xterm";
+import { fit } from "xterm/lib/addons/fit/fit";
 
-import 'xterm/dist/xterm.css';
+import "xterm/dist/xterm.css";
 
 interface ITermDetailedProps {
-    termDivProps: TermDivProps
-
-    // injected
-    PrefsStore: PrefsStore
+  termDivProps: TermDivProps;
 }
 
-type TermDivProps = React.DetailedHTMLProps<
-    React.HTMLAttributes<HTMLDivElement>,
-    HTMLDivElement>;
+type TermDivProps = React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement>;
 
-@inject('PrefsStore')
-class Terminal extends React.Component<ITermDetailedProps> {
-    private termRef: React.RefObject<HTMLDivElement> = React.createRef();
-    private term: XTerm;
+export const Terminal: React.FC<ITermDetailedProps> = ({ termDivProps }) => {
+  const termDiv: React.RefObject<HTMLDivElement> = React.createRef();
 
-    constructor(props: ITermDetailedProps) {
-        super(props);
+  const { Prefs } = useStores();
 
-        this.term = new XTerm({
-            fontFamily: "Source Code Pro",
-            fontWeight: "600"
-        });
+  React.useEffect(() => {
+    if (termDiv.current) {
+      const term = new XTerm({
+        fontFamily: "Source Code Pro",
+        fontWeight: "600"
+      });
 
-        this.handleEvent = this.handleEvent.bind(this);
+      term.open(termDiv.current);
+      fit(term);
+
+      term.writeln("Program Terminal");
+      term.writeln("");
+
+      const handleEvent = (evt: CustomEvent<{ message: string }>) => {
+        term.write(evt.detail.message);
+      };
+      Prefs.eventBus.addEventListener("data", handleEvent);
+
+      return () => {
+        Prefs.eventBus.removeEventListener("data", handleEvent);
+      };
+    } else {
+      return () => {};
     }
+  }, []);
 
-    public componentDidMount() {
-        const tElt = this.termRef.current;
-        if (!tElt) {
-            console.error("Terminal mounted, but the child div is not available");
-            return;
-        }
+  return <div ref={termDiv} {...termDivProps} />;
+};
 
-        this.term.open(tElt);
-        fit.fit(this.term);
+export default Terminal;
 
-        this.term.writeln('Program Terminal');
-        this.term.writeln('');
-
-        this.props.PrefsStore.eventBus.addEventListener(
-            'data',
-            this.handleEvent
-        );
-    }
-
-    public componentWillUnmount() {
-        this.props.PrefsStore.eventBus.removeEventListener(
-            'data',
-            this.handleEvent
-        )
-    }
-
-    public render() {
-        return (
-            <div ref={this.termRef} {...this.props.termDivProps} />
-        );
-    }
-
-    private handleEvent(evt: CustomEvent<{ message: string }>) {
-        this.term.write(evt.detail.message);
-    }
-}
-
-export default withStores('PrefsStore')(Terminal);

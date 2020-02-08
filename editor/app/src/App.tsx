@@ -1,6 +1,7 @@
 import React from "react";
 
-import { Editor } from "@serendipity/camino";
+import { Workspace } from "@serendipity/camino";
+import { StoreProvider } from "@serendipity/editor-stores";
 
 const App: React.FC = () => {
   return (
@@ -12,7 +13,9 @@ const App: React.FC = () => {
           backgroundColor: "magenta"
         }}
       >
-        <Editor />
+        <StoreProvider>
+          <Workspace />
+        </StoreProvider>
       </div>
     </div>
   );

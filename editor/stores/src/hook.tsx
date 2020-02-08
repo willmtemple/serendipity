@@ -1,17 +1,17 @@
 import * as React from "react";
 
 import { Provider } from "mobx-react";
-import PrefsStore from "../stores/PrefsStore";
-import ProjectStore from "@serendipity/editor-project-store";
+import { DefaultPrefsStore } from "./stores/PrefsStore";
+import { DefaultProjectStore } from "./stores/ProjectStore";
 
-// Our stores. These can all be recovered from the context below.
-// TODO: once everything
-export const stores = {
-  PrefsStore,
-  ProjectStore
+const stores = {
+  Prefs: DefaultPrefsStore,
+  Project: DefaultProjectStore
 };
 
-const Context = React.createContext<typeof stores>(stores);
+export type Stores = typeof stores;
+
+const Context = React.createContext<Stores>(stores);
 
 export const StoreProvider: React.FC = ({ children }) => {
   return (

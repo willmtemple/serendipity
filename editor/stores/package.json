@@ -1,5 +1,5 @@
 {
-  "name": "@serendipity/editor-project-store",
+  "name": "@serendipity/editor-stores",
   "version": "0.1.0-dev",
   "description": "Serendipity editor app project storage",
   "author": "Serendipity Project Contributors",
@@ -38,8 +38,10 @@
     "@serendipity/syntax": "0.1.0-dev",
     "@serendipity/syntax-surface": "0.1.0-dev",
     "mobx": "^5.13.0",
+    "mobx-react": "^6.1.0",
     "tslib": "~1.10.0",
-    "uuid": "^3.3.3"
+    "uuid": "^3.3.3",
+    "react": "^16.12.0"
   },
   "devDependencies": {
     "@serendipity/eslint-config": "0.1.0-dev",
@@ -50,6 +52,7 @@
     "eslint-plugin-header": "^3.0.0",
     "eslint-plugin-promise": "^4.2.1",
     "prettier": "~1.18.2",
-    "typescript": "^3.7.2"
+    "typescript": "^3.7.2",
+    "@types/react": "^16.9.17"
   }
 }

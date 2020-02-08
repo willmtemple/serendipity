@@ -2,14 +2,14 @@ import { Expression } from "@serendipity/syntax-surface/dist/expression";
 import { Global } from "@serendipity/syntax-surface/dist/global";
 import { Statement } from "@serendipity/syntax-surface/dist/statement";
 
-import ProjectStore from "@serendipity/editor-project-store";
+import { Project } from "@serendipity/editor-stores";
 
 function hole(): Expression {
   const e: Expression = {
     exprKind: "@hole"
   };
 
-  ProjectStore.loadGUID(e as any);
+  Project.loadGUID(e as any);
 
   return e;
 }
@@ -19,7 +19,7 @@ function stmtHole(): Statement {
     statementKind: "@hole"
   };
 
-  ProjectStore.loadGUID(s as any);
+  Project.loadGUID(s as any);
 
   return s;
 }
@@ -92,7 +92,7 @@ export namespace spawn {
       }
     })();
 
-    ProjectStore.addGlobal({
+    Project.addGlobal({
       globalKind: "_editor_detachedsyntax",
       syntaxKind: "statement",
       element: [sm]
@@ -128,7 +128,7 @@ export namespace spawn {
       }
     })();
 
-    ProjectStore.addGlobal(s);
+    Project.addGlobal(s);
   }
 
   export function expr(ekind: string, ...args: any[]) {
@@ -232,7 +232,7 @@ export namespace spawn {
       }
     })();
 
-    ProjectStore.addGlobal({
+    Project.addGlobal({
       globalKind: "_editor_detachedsyntax",
       syntaxKind: "expression",
       element: s
@@ -243,7 +243,7 @@ export namespace spawn {
 // tslint:disable-next-line: no-namespace
 export namespace project {
   export function reset() {
-    ProjectStore.reset();
+    Project.reset();
   }
 }
 

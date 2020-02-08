@@ -2,9 +2,9 @@ import { observer } from "mobx-react";
 import * as React from "react";
 
 import { SyntaxObject } from "@serendipity/syntax";
+import { useStores } from "@serendipity/editor-stores";
 
 import { useResizeParentEffect } from "../../hooks/measure";
-import { useStores } from "../../hooks/stores";
 
 interface ISyntaxHoleProps {
   bind: SyntaxObject;
@@ -71,7 +71,7 @@ const path: string = (() => {
 })();
 
 const ExpressionHole = React.forwardRef<SVGPathElement, ISyntaxHoleProps>((props, ref) => {
-  const { ProjectStore } = useStores();
+  const { Project } = useStores();
 
   useResizeParentEffect();
 
@@ -79,7 +79,7 @@ const ExpressionHole = React.forwardRef<SVGPathElement, ISyntaxHoleProps>((props
     <path
       ref={ref}
       className={"drop " + props.kind}
-      data-parent-guid={ProjectStore.metadataFor(props.bind).guid}
+      data-parent-guid={Project.metadataFor(props.bind).guid}
       data-mutation-key={props.bindKey}
       data-mutation-idx={props.bindIdx}
       fill="#FFFFFFA0"

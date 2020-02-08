@@ -2,7 +2,7 @@ dependencies:
   '@rush-temp/camino': 'file:projects/camino.tgz'
   '@rush-temp/compiler-desugar': 'file:projects/compiler-desugar.tgz_@typescript-eslint+parser@2.3.3'
   '@rush-temp/editor-app': 'file:projects/editor-app.tgz'
-  '@rush-temp/editor-project-store': 'file:projects/editor-project-store.tgz_@typescript-eslint+parser@2.3.3'
+  '@rush-temp/editor-stores': 'file:projects/editor-stores.tgz_fa9b0a9689772c63b0307886471b073b'
   '@rush-temp/eslint-config': 'file:projects/eslint-config.tgz_eslint@6.8.0+typescript@3.7.5'
   '@rush-temp/interpreter': 'file:projects/interpreter.tgz_@typescript-eslint+parser@2.3.3'
   '@rush-temp/scripts': 'file:projects/scripts.tgz_@typescript-eslint+parser@2.3.3'
@@ -6392,6 +6392,9 @@ packages:
       node: '>=6'
     peerDependencies:
       jest-resolve: '*'
+    peerDependenciesMeta:
+      jest-resolve:
+        optional: true
     resolution:
       integrity: sha512-pgFw2tm54fzgYvc/OHrnysABEObZCUNFnhjoRjaVOCN8NYc032/gVjPaHD4Aq6ApkSieWtfKAFQtmDKAmhupnQ==
   /jest-regex-util/24.9.0:
@@ -11891,6 +11894,7 @@ packages:
       eslint: 6.8.0
       mobx: 5.15.4
       mobx-react: 6.1.4_mobx@5.15.4+react@16.12.0
+      node-sass: 4.13.1
       normalize-wheel: 1.0.1
       react: 16.12.0
       react-dom: 16.12.0_react@16.12.0
@@ -11901,7 +11905,7 @@ packages:
     dev: false
     name: '@rush-temp/camino'
     resolution:
-      integrity: sha512-R6zf008+YJMZHzXWQ4G/+mZGWW7g5xeZK1im2ta2b+snzywfId4scYQtL5bvEuRZ9p+fSc1KOjw7PIUqBQKwZA==
+      integrity: sha512-Qtp2AFLK18QeSfbkt5i074aWhttNomdWX3hxSmP6RD8eug7uZTvmm334Tr3Ik4VOlarfuImOHSwgB/OmJygJ3A==
       tarball: 'file:projects/camino.tgz'
     version: 0.0.0
   'file:projects/compiler-desugar.tgz_@typescript-eslint+parser@2.3.3':
@@ -11946,7 +11950,7 @@ packages:
       integrity: sha512-wJbptYRmNkaD7VLhCHVZHBkfhJUwOpLkh2qgjbAHSRF9UUBvs0XU1W8wVmJXwGVfzGgoDknXcxHuOsBhFuxYrg==
       tarball: 'file:projects/editor-app.tgz'
     version: 0.0.0
-  'file:projects/editor-project-store.tgz_@typescript-eslint+parser@2.3.3':
+  'file:projects/editor-stores.tgz_fa9b0a9689772c63b0307886471b073b':
     dependencies:
       '@types/node': 12.12.26
       '@types/uuid': 3.4.7
@@ -11955,18 +11959,20 @@ packages:
       eslint-plugin-header: 3.0.0_eslint@6.8.0
       eslint-plugin-promise: 4.2.1
       mobx: 5.15.4
+      mobx-react: 6.1.4_mobx@5.15.4+react@16.12.0
       prettier: 1.18.2
       tslib: 1.10.0
       typescript: 3.7.5
       uuid: 3.4.0
     dev: false
-    id: 'file:projects/editor-project-store.tgz'
-    name: '@rush-temp/editor-project-store'
+    id: 'file:projects/editor-stores.tgz'
+    name: '@rush-temp/editor-stores'
     peerDependencies:
       '@typescript-eslint/parser': '*'
+      react: '*'
     resolution:
-      integrity: sha512-KTv8jBX3R8zY+5CrryBcTzXwSGS5o7ioF9dQ6Vgd1Q27hZ4A2Uxn59QDYn/nT+acQ+DM/NjSkjqGSZFVqpau8g==
-      tarball: 'file:projects/editor-project-store.tgz'
+      integrity: sha512-3bxed5Wgkfk0Tsvzr7h56W+YX4mkkZNGT4L0QSBzISqYdTTStj041psTVSNn+lSV/fK/NyvFSd8fuW5h2QYgPQ==
+      tarball: 'file:projects/editor-stores.tgz'
     version: 0.0.0
   'file:projects/eslint-config.tgz_eslint@6.8.0+typescript@3.7.5':
     dependencies:
@@ -12096,11 +12102,12 @@ packages:
       integrity: sha512-QDuRdCJJVSmdodi/L6FRwBOr0MSlq2K/LTX1dzqLawD8DhXjT3ebPpO1M2CpeTEL13PT7SVTH0VrQEKPbmj1zg==
       tarball: 'file:projects/syntax.tgz'
     version: 0.0.0
+registry: ''
 specifiers:
   '@rush-temp/camino': 'file:./projects/camino.tgz'
   '@rush-temp/compiler-desugar': 'file:./projects/compiler-desugar.tgz'
   '@rush-temp/editor-app': 'file:./projects/editor-app.tgz'
-  '@rush-temp/editor-project-store': 'file:./projects/editor-project-store.tgz'
+  '@rush-temp/editor-stores': 'file:./projects/editor-stores.tgz'
   '@rush-temp/eslint-config': 'file:./projects/eslint-config.tgz'
   '@rush-temp/interpreter': 'file:./projects/interpreter.tgz'
   '@rush-temp/scripts': 'file:./projects/scripts.tgz'
@@ -12128,7 +12135,7 @@ specifiers:
   eslint-plugin-promise: ^4.2.1
   fibers: ~4.0.2
   mobx: ^5.13.0
-  mobx-react: ^6.1.3
+  mobx-react: ^6.1.0
   node-sass: ^4.0.0
   normalize-wheel: ^1.0.1
   prettier: ~1.18.2

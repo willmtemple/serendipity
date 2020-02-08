@@ -1,6 +1,6 @@
 import { action, autorun, computed, observable, set, toJS } from "mobx";
 
-import { surfaceExample } from "./defaultProject";
+import { surfaceExample } from "../defaultProject";
 
 import guid from "uuid/v4";
 
@@ -426,5 +426,5 @@ export class ProjectStore {
   }
 }
 
-export default new ProjectStore();
+export const DefaultProjectStore = new ProjectStore();
 

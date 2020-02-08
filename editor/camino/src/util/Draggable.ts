@@ -1,6 +1,5 @@
-import projectStore from "@serendipity/editor-project-store";
+import { Prefs, Project } from "@serendipity/editor-stores";
 
-import prefsStore from "../stores/PrefsStore";
 import { distance, Position } from "./Position";
 
 import normalizeWheel from "normalize-wheel";
@@ -30,9 +29,9 @@ export function makeDraggable(svg: SVGSVGElement) {
   const initialRect = svg.getClientRects()[0];
   const svgDims = {
     height: initialRect.height,
-    left: prefsStore.prefs.editorPosition.x,
-    scale: prefsStore.prefs.editorScale,
-    top: prefsStore.prefs.editorPosition.y,
+    left: Prefs.prefs.editorPosition.x,
+    scale: Prefs.prefs.editorScale,
+    top: Prefs.prefs.editorPosition.y,
     width: initialRect.width
   };
 
@@ -141,7 +140,7 @@ export function makeDraggable(svg: SVGSVGElement) {
         const dataIdx = selectedElement.getAttribute("data-idx");
         const idx = dataIdx && parseInt(dataIdx, 10);
         if (typeof idx === "number" && !isNaN(idx)) {
-          projectStore.bump(idx);
+          Project.bump(idx);
         } else {
           console.warn("Selected global draggable does not have an index.");
         }
@@ -206,7 +205,7 @@ export function makeDraggable(svg: SVGSVGElement) {
           let newGuid;
           if (selectedElement.classList.contains("expression")) {
             heldItemKind = "expression";
-            newGuid = projectStore.detachExpression(
+            newGuid = Project.detachExpression(
               guid,
               key,
               newPosition,
@@ -215,7 +214,7 @@ export function makeDraggable(svg: SVGSVGElement) {
           } else {
             // statement
             heldItemKind = "statement";
-            newGuid = projectStore.detachStatement(
+            newGuid = Project.detachStatement(
               guid,
               key,
               newPosition,
@@ -243,7 +242,7 @@ export function makeDraggable(svg: SVGSVGElement) {
 
   function endDrag(evt: MouseEvent) {
     if (selectedElement === svg) {
-      prefsStore.setPosition(svgDims.left, svgDims.top);
+      Prefs.setPosition(svgDims.left, svgDims.top);
     } else if (selectedElement) {
       const mouseOver = evt.target as SVGElement;
       const draggedGuid = selectedElement.getAttribute("data-guid");
@@ -254,7 +253,7 @@ export function makeDraggable(svg: SVGSVGElement) {
 
           // If the element doesn't match the drop target, then don't drop it there
           if (heldItemKind && !mouseOver.classList.contains(heldItemKind)) {
-            projectStore.updatePos(draggedGuid, {
+            Project.updatePos(draggedGuid, {
               x: transform.matrix.e,
               y: transform.matrix.f
             });
@@ -266,11 +265,11 @@ export function makeDraggable(svg: SVGSVGElement) {
             if (overGuid != null && overKey != null) {
               const overIdx = overIdxS != null ? parseInt(overIdxS, 10) : undefined;
 
-              projectStore.insertInto(draggedGuid, overGuid, overKey, overIdx);
+              Project.insertInto(draggedGuid, overGuid, overKey, overIdx);
             }
           }
         } else {
-          projectStore.updatePos(draggedGuid, {
+          Project.updatePos(draggedGuid, {
             x: transform.matrix.e,
             y: transform.matrix.f
           });
@@ -294,14 +293,14 @@ export function makeDraggable(svg: SVGSVGElement) {
 
       const ratio = nextScale / oldScale;
       svgDims.scale = nextScale;
-      prefsStore.prefs.editorScale = nextScale;
+      Prefs.prefs.editorScale = nextScale;
       // Keep the mouse position fixed in SVG space
       const mouse = getMousePosition(bEvt);
       const { left, top } = svgDims;
       svgDims.left = mouse.x - (mouse.x - left) * ratio;
       svgDims.top = mouse.y - (mouse.y - top) * ratio;
 
-      prefsStore.setPosition(svgDims.left, svgDims.top);
+      Prefs.setPosition(svgDims.left, svgDims.top);
 
       setViewBox();
     }

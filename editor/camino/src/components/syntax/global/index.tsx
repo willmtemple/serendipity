@@ -3,10 +3,7 @@ import * as React from "react";
 
 import * as surface from "@serendipity/syntax-surface";
 import { matchGlobal } from "@serendipity/syntax-surface/dist/global";
-
-import { useStores } from "../../../hooks/stores";
-
-import { EditorDetachedSyntax, EditorGlobal } from "@serendipity/editor-project-store";
+import { useStores, EditorDetachedSyntax, EditorGlobal } from "@serendipity/editor-stores";
 
 import CloseButton from "../../editor/CloseButton";
 
@@ -30,10 +27,10 @@ function getColor(glb: EditorGlobal) {
 }
 
 const Global = React.forwardRef<any, { global: EditorGlobal }>((props, ref) => {
-  const { ProjectStore } = useStores();
+  const { Project } = useStores();
 
   function deleteNode() {
-    ProjectStore.rmNodeByGUID(props.global.metadata.editor.guid);
+    Project.rmNodeByGUID(props.global.metadata.editor.guid);
   }
 
   const glb = props.global;

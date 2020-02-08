@@ -6,10 +6,10 @@ import "../styles/App.scss";
 
 import Global from "./components/syntax/global";
 import { makeDraggable } from "./util/Draggable";
-import { useStores } from "./hooks/stores";
+import { useStores } from "@serendipity/editor-stores";
 import WorkspaceSvgDefs from "./WorkspaceSvgDefs";
 
-const Workspace: React.FC<{}> = () => {
+export const Workspace: React.FC<{}> = observer(() => {
   const svg: React.RefObject<SVGSVGElement> = React.useRef(null);
 
   React.useEffect(() => {
@@ -18,7 +18,7 @@ const Workspace: React.FC<{}> = () => {
     }
   }, []);
 
-  const { ProjectStore } = useStores();
+  const { Project } = useStores();
 
   return (
     <svg
@@ -37,8 +37,8 @@ const Workspace: React.FC<{}> = () => {
         fill="url(#bgPattern)"
         style={{ height: "140%", width: "140%" }}
       />
-      {ProjectStore.program.globals.map((glb, idx) => {
-        const meta = ProjectStore.metadataFor(glb);
+      {Project.program.globals.map((glb, idx) => {
+        const meta = Project.metadataFor(glb);
         return (
           <g
             key={untracked(() => meta.guid)}
@@ -57,6 +57,5 @@ const Workspace: React.FC<{}> = () => {
       })}
     </svg>
   );
-};
+});
 
-export default observer(Workspace);

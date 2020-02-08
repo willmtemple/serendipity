@@ -56,8 +56,8 @@
       "shouldPublish": false
     },
     {
-      "packageName": "@serendipity/editor-project-store",
-      "projectFolder": "editor/project-store",
+      "packageName": "@serendipity/editor-stores",
+      "projectFolder": "editor/stores",
       "reviewCategory": "production",
       "shouldPublish": false
     },

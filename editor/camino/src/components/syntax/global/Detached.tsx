@@ -2,7 +2,7 @@ import * as React from "react";
 
 import { observer } from "mobx-react";
 
-import { EditorDetachedSyntax, EditorDetachedStatements } from "@serendipity/editor-project-store";
+import { EditorDetachedSyntax, EditorDetachedStatements } from "@serendipity/editor-stores";
 
 import Expression from "../expression";
 import Statement from "../statement";

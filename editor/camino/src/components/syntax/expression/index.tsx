@@ -2,11 +2,11 @@ import { observer } from "mobx-react";
 import * as React from "react";
 
 import * as expression from "@serendipity/syntax-surface/dist/expression";
+import { useStores } from "@serendipity/editor-stores";
 
 import ExpressionBlock from "../../layout/ExpressionBlock";
 import SyntaxHole from "../../editor/ExpressionHole";
 
-import { useStores } from "../../../hooks/stores";
 import Accessor from "./Accessor";
 import Arithmetic from "./Arithmetic";
 import Call from "./Call";
@@ -81,7 +81,7 @@ export interface IExpressionProps {
 type CompleteProps = React.PropsWithChildren<IExpressionProps>;
 
 const Expression = React.forwardRef<any, CompleteProps>((props, ref) => {
-  const { ProjectStore } = useStores();
+  const { Project } = useStores();
 
   const expr = (props.bindIdx === undefined
     ? props.bind[props.bindKey]
@@ -140,11 +140,11 @@ const Expression = React.forwardRef<any, CompleteProps>((props, ref) => {
 
   // Set up node metadata for DOM access
   const containerProps: { [k: string]: any } = {};
-  const guid = ProjectStore.metadataFor(expr).guid;
+  const guid = Project.metadataFor(expr).guid;
   containerProps.id = guid;
   containerProps.className = props.fixed ? "expression" : "draggable syntax expression";
-  containerProps["data-guid"] = ProjectStore.metadataFor(expr).guid;
-  containerProps["data-parent-guid"] = ProjectStore.metadataFor(props.bind).guid;
+  containerProps["data-guid"] = Project.metadataFor(expr).guid;
+  containerProps["data-parent-guid"] = Project.metadataFor(props.bind).guid;
   containerProps["data-mutation-key"] = props.bindKey;
   if (props.bindIdx !== undefined) {
     containerProps["data-mutation-idx"] = props.bindIdx;
