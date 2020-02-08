@@ -1,0 +1,55 @@
+{
+  "name": "@serendipity/editor-project-store",
+  "version": "0.1.0-dev",
+  "description": "Serendipity editor app project storage",
+  "author": "Serendipity Project Contributors",
+  "contributors": [
+    {
+      "name": "Will Temple",
+      "email": "will@wtemple.net",
+      "url": "https://wtemple.info/"
+    }
+  ],
+  "license": "AGPL-3.0-or-later",
+  "homepage": "https://github.com/willmtemple/serendipity/tree/master/editor/project-store",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/willmtemple/serendipity.git",
+    "directory": "editor/project-store"
+  },
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "directories": {
+    "lib": "dist"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist/",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "format:fix": "prettier --write \"src/**/*.ts\"",
+    "lint": "eslint src --ext ts",
+    "lint:fix": "eslint src --ext ts",
+    "prebuild": "npm run clean"
+  },
+  "prettier": "@serendipity/eslint-config/prettier.json",
+  "dependencies": {
+    "@serendipity/syntax": "0.1.0-dev",
+    "@serendipity/syntax-surface": "0.1.0-dev",
+    "mobx": "^5.13.0",
+    "tslib": "~1.10.0",
+    "uuid": "^3.3.3"
+  },
+  "devDependencies": {
+    "@serendipity/eslint-config": "0.1.0-dev",
+    "@types/node": "^12.0.0",
+    "@types/uuid": "^3.4.5",
+    "@typescript-eslint/eslint-plugin": "^2.3.0",
+    "eslint": "^6.6.0",
+    "eslint-plugin-header": "^3.0.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "prettier": "~1.18.2",
+    "typescript": "^3.7.2"
+  }
+}
