@@ -105,14 +105,16 @@ customized to support these features.
 
 #### VS Code
 
-A VS Code workspace is provided in the repository as
-[`/serendipity.code-workspace`][workspace]. VS Code users are highly suggested
-to disable automatic type acquisition either through the graphical settings UI
-(labeled: "TypeScript: Disable Automatic Type Acquisition") or through the
-`settings.json` file (`"typescript.disableAutomaticTypeAcquisition": false`).
+Serendipity provides a script to generate a VS Code workspace. You can generate
+the `serendipity.code-workspace` file by using the `rush generate-workspace`
+command. VS Code users are highly suggested to disable automatic type
+acquisition either through the graphical settings UI (labeled: "TypeScript:
+Disable Automatic Type Acquisition") or through the `settings.json` file
+(`"typescript.disableAutomaticTypeAcquisition": false`).
 
-Do not manually edit the workspace. Instead edit the template file in
-`tools/scripts` and regenerate the workspace using `rush generate-workspace`.
+The workspace is generated using a template file (in `tools/scripts`). To
+commit a change to the default workspace, edit this template and regenerate the
+workspace using `rush generate-workspace`.
 
 ## Platforms
 
@@ -152,5 +154,4 @@ __[1]__: see [The Paradox of Tolerance](https://en.wikipedia.org/wiki/Paradox_of
 
 [design]: https://github.com/willmtemple/serendipity/tree/master/DESIGN.md
 [rush]: https://rushjs.io/
-[workspace]: https://github.com/willmtemple/serendipity/tree/master/serendipity.code-workspace
 
