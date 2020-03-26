@@ -2,9 +2,10 @@
   "name": "@serendipity/syntax-abstract",
   "version": "0.1.0-dev",
   "description": "Defines abstract lower syntax for serendipity runtime",
-  "main": "dist/index.js",
+  "main": "dist-esm/index.js",
+  "module": "dist-esm/index.js",
   "files": [
-    "dist/"
+    "dist-esm/"
   ],
   "author": "Serendipity Project Contributors",
   "contributors": [

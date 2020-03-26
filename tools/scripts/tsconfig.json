@@ -1,18 +1,10 @@
 {
+  "extends": "../../tsconfig.esm",
   "compilerOptions": {
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "target": "es6",
-    "lib": [],
-    "types": ["node"],
-    "noImplicitAny": true,
-    "noImplicitThis": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "alwaysStrict": true,
-    "removeComments": true,
-    "resolveJsonModule": true,
-    "noEmit": true
+    "outDir": "dist-esm/",
+    "rootDir": "src/"
   },
-  "exclude": ["node_modules"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["dist*/**/*.ts", "node_modules"]
 }
+

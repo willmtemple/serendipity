@@ -10,8 +10,8 @@ import * as readlineSync from "readline-sync";
 
 import { createLoweringCompiler } from "@serendipity/compiler-desugar";
 import { Interpreter, InterpreterOptions } from "@serendipity/interpreter";
-import { writeAbstract } from "@serendipity/interpreter/dist/print";
-import { unwrap, ok } from "@serendipity/syntax/dist/util/Result";
+import { writeAbstract } from "@serendipity/interpreter/dist-esm/print";
+import { unwrap, ok } from "@serendipity/syntax/dist-esm/util/Result";
 
 import { Module, Expression } from "@serendipity/syntax-abstract";
 

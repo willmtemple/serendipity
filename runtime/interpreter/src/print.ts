@@ -3,10 +3,11 @@
 // Licensed under the terms of the GNU General Public License v3 or later.
 
 import { Expression } from "@serendipity/syntax-abstract";
-import { matchExpression } from "@serendipity/syntax-abstract/dist/expression";
+
+import { match } from "omnimatch";
 
 export function writeAbstract(s: Expression): string {
-  return matchExpression({
+  return match(s, {
     Accessor: ({ accessee, index }) => `${writeAbstract(accessee)}[${writeAbstract(index)}]`,
     BinaryOp: ({ left, op, right }) => `(${op} ${writeAbstract(left)} ${writeAbstract(right)})`,
     Boolean: ({ value }) => value.toString(),
@@ -19,6 +20,7 @@ export function writeAbstract(s: Expression): string {
     Void: (_) => "∅",
     If: ({ cond, then, _else }) =>
       `(${writeAbstract(cond)} ? ${writeAbstract(then)} : ${writeAbstract(_else)})`,
-    Closure: ({ body, parameter }) => `λ${parameter.trimLeft() || ""}.${writeAbstract(body)}`
-  })(s);
+    Closure: ({ body, parameter }) =>
+      `λ${parameter ? parameter.trimLeft() : ""}.${writeAbstract(body)}`
+  });
 }

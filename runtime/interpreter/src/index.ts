@@ -4,13 +4,9 @@
 
 /// <reference lib="es6" />
 
-import {
-  Module,
-  BinaryOperator,
-  BinaryOp,
-  matchExpression,
-  Expression
-} from "@serendipity/syntax-abstract";
+import { Module, BinaryOperator, BinaryOp, Expression } from "@serendipity/syntax-abstract";
+
+import { match } from "omnimatch";
 
 import { Value, NumberV, IntrinsicV } from "./value";
 import { Scope } from "./scope";
@@ -54,6 +50,8 @@ function arithOp(l: NumberV, r: NumberV, op: BinaryOperator): Value {
       return { kind: "number", value: lv + rv };
     case "%":
       return { kind: "number", value: lv % rv };
+    default:
+      throw new Error("Encountered unimplemented arithmetic operator " + op);
   }
 }
 
@@ -127,6 +125,8 @@ function compareOp(lv: Value, rv: Value, op: BinaryOperator): Value {
             throw new Error("Cannot compare incomplete values.");
           }
           return negate ? !result : result;
+        default:
+          throw new Error("Unimplemented comparison operator " + op);
       }
     })()
   };
@@ -172,7 +172,7 @@ export class Interpreter {
     if (main) {
       this.evalExpr(
         {
-          exprKind: "name",
+          kind: "Name",
           name: "__start"
         },
         scope
@@ -198,7 +198,7 @@ export class Interpreter {
               kind: "closure",
               value: {
                 body: scope.bind({
-                  exprKind: "name",
+                  kind: "Name",
                   name: "__ident"
                 }),
                 parameter: "__ident"
@@ -267,14 +267,14 @@ export class Interpreter {
                   value: [
                     {
                       expr: {
-                        exprKind: "string",
+                        kind: "String",
                         value: leftStr
                       },
                       scope: emptyScope
                     },
                     {
                       expr: {
-                        exprKind: "string",
+                        kind: "String",
                         value: rightStr
                       },
                       scope: emptyScope
@@ -308,6 +308,8 @@ export class Interpreter {
             };
           }
         };
+      default:
+        throw new Error("Unimplemented intrinsic " + _name);
     }
   }
 
@@ -360,11 +362,11 @@ export class Interpreter {
 
   private evalExpr(e: Expression, scope: Scope): Value {
     this.options.beforeEval(e, scope);
-    return matchExpression<Value>({
-      Number: ({ value }) => ({ kind: "number", value }),
-      String: ({ value }) => ({ kind: "string", value }),
-      Boolean: ({ value }) => ({ kind: "boolean", value }),
-      Name: ({ name: _name }) => {
+    return match(e, {
+      Number: ({ value }): Value => ({ kind: "number", value }),
+      String: ({ value }): Value => ({ kind: "string", value }),
+      Boolean: ({ value }): Value => ({ kind: "boolean", value }),
+      Name: ({ name: _name }): Value => {
         if (_name.startsWith("__core")) {
           return this.getIntrinsic(scope, _name);
         }
@@ -375,7 +377,7 @@ export class Interpreter {
 
         return res;
       },
-      Accessor: ({ accessee, index }) => {
+      Accessor: ({ accessee, index }): Value => {
         const aVal = this.evalExpr(accessee, scope);
 
         if (aVal.kind !== "tuple") {
@@ -395,12 +397,12 @@ export class Interpreter {
         const resExpr = aVal.value[iVal.value];
         return this.evalExpr(resExpr.expr, resExpr.scope);
       },
-      Call: ({ callee, parameter }) => {
+      Call: ({ callee, parameter }): Value => {
         const calleeValue = this.evalExpr(callee, scope);
 
         if (calleeValue.kind === "intrinsic") {
           // Handle intrinsics specially for now
-          return calleeValue.fn(this.evalExpr(parameter, scope));
+          return calleeValue.fn(parameter ? this.evalExpr(parameter, scope) : undefined);
         }
 
         if (calleeValue.kind !== "closure") {
@@ -410,26 +412,29 @@ export class Interpreter {
         const evalScope = new Scope(this.evalExpr.bind(this), calleeValue.value.body.scope);
 
         if (parameter) {
+          if (!calleeValue.value.parameter) {
+            throw new Error("Callee does not accept a parameter, but one was given.");
+          }
           evalScope.rebind(calleeValue.value.parameter, scope.bind(parameter));
         }
 
         return this.evalExpr(calleeValue.value.body.expr, evalScope);
       },
-      Closure: ({ body, parameter }) => ({
+      Closure: ({ body, parameter }): Value => ({
         kind: "closure",
         value: {
           body: scope.bind(body),
           parameter
         }
       }),
-      Tuple: ({ values }) => {
+      Tuple: ({ values }): Value => {
         const vals = values.map((exprBind) => scope.bind(exprBind));
         return {
           kind: "tuple",
           value: vals
         };
       },
-      If: ({ cond, then, _else }) => {
+      If: ({ cond, then, _else }): Value => {
         if (isTrue(this.evalExpr(cond, scope))) {
           return this.evalExpr(then, scope);
         } else {
@@ -437,7 +442,7 @@ export class Interpreter {
         }
       },
       BinaryOp: (v) => this.binaryOperator(v, scope),
-      Void: (_) => ({ kind: "void" })
-    })(e);
+      Void: (): Value => ({ kind: "void" })
+    });
   }
 }

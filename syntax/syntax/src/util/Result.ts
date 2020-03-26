@@ -8,7 +8,7 @@ import { Fn } from "./FuncTools";
  * Rust-style Results for TypeScript
  */
 
-export type Result<T, E> = Ok<T> | Error<E>;
+export type Result<T, E> = Ok<T> | ResultError<E>;
 
 export interface Ok<T> {
   kind: "ok";
@@ -22,12 +22,12 @@ export function ok<T>(value: T): Ok<T> {
   };
 }
 
-export interface Error<E> {
+export interface ResultError<E> {
   kind: "error";
   error: E;
 }
 
-export function error<E>(err: E): Error<E> {
+export function error<E>(err: E): ResultError<E> {
   return {
     kind: "error",
     error: err
@@ -36,7 +36,7 @@ export function error<E>(err: E): Error<E> {
 
 export interface ResultMatcher<T, OkT, ErrT> {
   Ok: Fn<Ok<OkT>, T>;
-  Error: Fn<Error<ErrT>, T>;
+  Error: Fn<ResultError<ErrT>, T>;
 }
 
 export function matchResult<T, OkT, ErrT>(
@@ -60,7 +60,7 @@ export function unwrap<T, E>(r: Result<T, E>): T {
   if (r.kind === "ok") {
     return r.value;
   } else if (r.kind === "error") {
-    throw new Error(r.error.toString());
+    throw new Error("" + r.error);
   } else {
     const __exhaust: never = r;
     return __exhaust;

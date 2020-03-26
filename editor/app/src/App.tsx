@@ -3,13 +3,18 @@ import React from "react";
 import { Workspace } from "@serendipity/camino";
 import { StoreProvider } from "@serendipity/editor-stores";
 
+import { Navbar } from "./components/Navbar";
+
+import "./styles/App.scss";
+import Terminal from "./components/Terminal";
+
 const App: React.FC = () => {
   return (
-    <div className="App">
+    <div className="editor">
+      <Navbar />
       <div
+        className="body"
         style={{
-          width: "77%",
-          height: "77%",
           backgroundColor: "magenta"
         }}
       >
@@ -17,6 +22,7 @@ const App: React.FC = () => {
           <Workspace />
         </StoreProvider>
       </div>
+      <Terminal />
     </div>
   );
 };

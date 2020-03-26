@@ -4,7 +4,7 @@
 
 import * as fs from "fs";
 
-import { Module, global as glb, expression, statement } from "@serendipity/syntax-surface";
+import { Module, Global, Expression, Statement } from "@serendipity/syntax-surface";
 
 import {
   atomize,
@@ -20,11 +20,11 @@ export interface Parser {
   parse(input: fs.ReadStream): Promise<Module>;
 }
 
-export function intoExpression(sexpr: SExpression): expression.Expression {
+export function intoExpression(sexpr: SExpression): Expression {
   if (typeof sexpr === "number") {
     // Expr is a number, so it just becomes a number
     return {
-      exprKind: "number",
+      kind: "Number",
       value: sexpr
     };
   } else if (typeof sexpr === "string") {
@@ -34,7 +34,7 @@ export function intoExpression(sexpr: SExpression): expression.Expression {
 
     if (sexpr.startsWith('"')) {
       return {
-        exprKind: "string",
+        kind: "String",
         value: sexpr.slice(1, sexpr.length - 1)
       };
     }
@@ -43,7 +43,7 @@ export function intoExpression(sexpr: SExpression): expression.Expression {
     return maybeValue
       ? maybeValue
       : {
-          exprKind: "name",
+          kind: "Name",
           name: sexpr
         };
   } else {
@@ -61,7 +61,7 @@ export function intoExpression(sexpr: SExpression): expression.Expression {
     // Type checks down the line will catch issues such as calling a number and etc.
     // No need to worry about this now.
     return {
-      exprKind: "call",
+      kind: "Call",
       callee: intoExpression(sexpr[0]),
       parameters: sexpr.slice(1).map(intoExpression)
     };
@@ -76,7 +76,7 @@ function requireLength(n: number, sexpr: SExpressionArray): void {
   }
 }
 
-export function intoStatement(sexpr: SExpression): statement.Statement {
+export function intoStatement(sexpr: SExpression): Statement {
   if (!(sexpr instanceof Array) || sexpr.length < 1) {
     throw new Error(
       "Attempted to parse a singular atom as a statement. Expected a non-empty list but got " +
@@ -90,7 +90,7 @@ export function intoStatement(sexpr: SExpression): statement.Statement {
     case "print":
       assertLength(2);
       return {
-        statementKind: "print",
+        kind: "Print",
         value: intoExpression(sexpr[1])
       };
     case "let":
@@ -101,7 +101,7 @@ export function intoStatement(sexpr: SExpression): statement.Statement {
         throw new Error(`Attempted to redefine builtin '${sexpr[1]} : '` + sexpr);
       }
       return {
-        statementKind: "let",
+        kind: "Let",
         name: sexpr[1],
         value: intoExpression(sexpr[2])
       };
@@ -113,7 +113,7 @@ export function intoStatement(sexpr: SExpression): statement.Statement {
         throw new Error(`Attempted to set builtin '${sexpr[1]} : '` + sexpr);
       }
       return {
-        statementKind: "set",
+        kind: "Set",
         name: sexpr[1],
         value: intoExpression(sexpr[2])
       };
@@ -125,12 +125,12 @@ export function intoStatement(sexpr: SExpression): statement.Statement {
       }
       return sexpr.length === 3
         ? {
-            statementKind: "if",
+            kind: "If",
             condition: intoExpression(sexpr[1]),
             body: intoStatement(sexpr[2])
           }
         : {
-            statementKind: "if",
+            kind: "If",
             condition: intoExpression(sexpr[1]),
             body: intoStatement(sexpr[2]),
             _else: intoStatement(sexpr[3])
@@ -150,7 +150,7 @@ export function intoStatement(sexpr: SExpression): statement.Statement {
         throw new Error(`Attempted to redefine builtin '${sexpr[1][0]} : '` + sexpr);
       }
       return {
-        statementKind: "forin",
+        kind: "ForIn",
         binding: sexpr[1][0],
         value: intoExpression(sexpr[1][1]),
         body: intoStatement(sexpr[2])
@@ -158,19 +158,19 @@ export function intoStatement(sexpr: SExpression): statement.Statement {
     case "loop":
       assertLength(2);
       return {
-        statementKind: "forever",
+        kind: "Forever",
         body: intoStatement(sexpr[1])
       };
     case "do":
       assertLength(2);
       return {
-        statementKind: "do",
+        kind: "Do",
         body: intoExpression(sexpr[1])
       };
     case "break":
       assertLength(1);
       return {
-        statementKind: "break"
+        kind: "Break"
       };
     default:
       throw new Error(
@@ -179,7 +179,7 @@ export function intoStatement(sexpr: SExpression): statement.Statement {
   }
 }
 
-function intoGlobal(sexpr: SExpression): glb.Global {
+function intoGlobal(sexpr: SExpression): Global {
   if (!(sexpr instanceof Array) || sexpr.length < 1) {
     throw new Error(
       "Attempted to parse a singular atom as a global. Expected a non-empty list but got " + sexpr
@@ -194,7 +194,7 @@ function intoGlobal(sexpr: SExpression): glb.Global {
         );
       }
       return {
-        globalKind: "main",
+        kind: "Main",
         body: intoExpression(sexpr[1])
       };
     case "define":
@@ -218,7 +218,7 @@ function intoGlobal(sexpr: SExpression): glb.Global {
         }
 
         return {
-          globalKind: "definefunc",
+          kind: "DefineFunction",
           name: fnDef[0],
           parameters: fnDef.slice(1),
           body: intoExpression(sexpr[2])
@@ -231,14 +231,13 @@ function intoGlobal(sexpr: SExpression): glb.Global {
         }
 
         return {
-          globalKind: "define",
+          kind: "Define",
           name: sexpr[1],
           value: intoExpression(sexpr[2])
         };
       } else {
         throw new Error("Attempted to define a number.");
       }
-      break;
     default:
       throw new Error(`Unrecognized global: ${sexpr[0]}. Expected one of: main, define`);
   }

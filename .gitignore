@@ -69,6 +69,7 @@ common/temp/**
 
 # Require intentional and explicit git add to check in vscode settings
 .vscode
+*.code-workspace
 
 # Build directories
 dist/

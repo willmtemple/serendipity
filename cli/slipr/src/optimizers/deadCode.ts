@@ -2,8 +2,10 @@
 // All rights reserved.
 // Licensed under the terms of the GNU General Public License v3 or later.
 
-import { Module, matchExpression, Expression } from "@serendipity/syntax-abstract";
-import { writeAbstract } from "@serendipity/interpreter/dist/print";
+import { Module, Expression } from "@serendipity/syntax-abstract";
+import { writeAbstract } from "@serendipity/interpreter/dist-esm/print";
+
+import { match } from "omnimatch";
 
 type Environment = { [k: string]: number };
 
@@ -30,49 +32,56 @@ function reduceDeadCode(input: Expression, env: Environment): Expression {
   if (input.metadata === undefined) {
     input.metadata = {};
   }
-  return matchExpression<Expression>({
+  return match(input, {
     // Closure and name are the only ones that need to check the env
-    Closure: (clos) => {
-      clos.metadata.dead = false;
-      const saved = env[clos.parameter];
-      env[clos.parameter] = 0;
-      const body = reduceDeadCode(clos.body, env);
-      if (env[clos.parameter] === 0) {
-        if (process.env.DEBUG) {
-          // eslint-disable-next-line no-console
-          console.log("[deadcode] This function is dead: ", writeAbstract(clos));
-        }
-        clos.metadata.dead = true;
+    Closure: (clos): Expression => {
+      clos.metadata!.dead = false;
+      let saved = undefined;
+      if (clos.parameter) {
+        saved = env[clos.parameter];
+        env[clos.parameter] = 0;
       }
-      env[clos.parameter] = saved;
+      const body = reduceDeadCode(clos.body, env);
+      if (clos.parameter) {
+        if (env[clos.parameter] === 0) {
+          if (process.env.DEBUG) {
+            // eslint-disable-next-line no-console
+            console.log("[deadcode] This function is dead: ", writeAbstract(clos));
+          }
+          clos.metadata!.dead = true;
+        }
+        if (saved) {
+          env[clos.parameter] = saved;
+        }
+      }
 
       return {
         ...clos,
-        exprKind: "closure",
+        kind: "Closure",
         body
       };
     },
-    Name(n) {
+    Name(n): Expression {
       env[n.name] += 1;
       return n;
     },
     // Simple order 1 exprs
-    Accessor: (e) => ({
+    Accessor: (e): Expression => ({
       ...e,
-      exprKind: "accessor",
+      kind: "Accessor",
       accessee: reduce(e.accessee),
       index: reduce(e.index)
     }),
-    BinaryOp: (e) => ({
+    BinaryOp: (e): Expression => ({
       ...e,
-      exprKind: "binop",
+      kind: "BinaryOp",
       left: reduce(e.left),
       right: reduce(e.right)
     }),
-    Call: (e) => {
+    Call: (e): Expression => {
       const callee = reduce(e.callee);
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      if (callee.exprKind === "closure" && callee.metadata.dead! === true) {
+      if (callee.kind === "Closure" && callee.metadata?.dead === true) {
         if (process.env.DEBUG) {
           // eslint-disable-next-line no-console
           console.log("[deadcode] eliminated: ", writeAbstract(e));
@@ -81,28 +90,28 @@ function reduceDeadCode(input: Expression, env: Environment): Expression {
       } else {
         return {
           ...e,
-          exprKind: "call",
+          kind: "Call",
           callee,
           parameter: e.parameter && reduce(e.parameter)
         };
       }
     },
-    If: (e) => ({
+    If: (e): Expression => ({
       ...e,
-      exprKind: "if",
+      kind: "If",
       cond: reduce(e.cond),
       then: reduce(e.then),
       _else: e._else && reduce(e._else)
     }),
-    Tuple: (e) => ({
+    Tuple: (e): Expression => ({
       ...e,
-      exprKind: "tuple",
+      kind: "Tuple",
       values: e.values.map(reduce)
     }),
     // Order 0 values
-    Number: (e) => e,
-    Boolean: (e) => e,
-    String: (e) => e,
-    Void: (e) => e
-  })(input);
+    Number: (e): Expression => e,
+    Boolean: (e): Expression => e,
+    String: (e): Expression => e,
+    Void: (e): Expression => e
+  });
 }

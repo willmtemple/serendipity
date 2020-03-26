@@ -128,7 +128,7 @@ export function intoSExpression(atoms: Atom[]): SExpressionArray {
           );
         } else {
           markerStack[markerStack.length - 1][1].push(acc);
-          acc = markerStack.pop()[1];
+          acc = markerStack.pop()![1];
         }
         break;
       default:

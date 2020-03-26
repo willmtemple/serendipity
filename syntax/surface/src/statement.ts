@@ -2,115 +2,57 @@
 // All rights reserved.
 // Licensed under the terms of the GNU General Public License v3 or later.
 
-import { Fn } from "@serendipity/syntax/dist/util/FuncTools";
 import { SyntaxObject } from "@serendipity/syntax";
 import { Expression } from "./expression";
 
 export type Statement = Print | Let | Set | If | ForIn | Forever | Do | Break | Hole;
 
 export interface Print extends SyntaxObject {
-  statementKind: "print";
+  kind: "Print";
   value: Expression;
 }
 
 export interface Let extends SyntaxObject {
-  statementKind: "let";
+  kind: "Let";
   name: string;
   value: Expression;
 }
 
 export interface Set extends SyntaxObject {
-  statementKind: "set";
+  kind: "Set";
   name: string;
   value: Expression;
 }
 
 export interface If extends SyntaxObject {
-  statementKind: "if";
+  kind: "If";
   condition: Expression;
   body: Statement;
   _else?: Statement;
 }
 
 export interface ForIn extends SyntaxObject {
-  statementKind: "forin";
+  kind: "ForIn";
   binding: string;
   value: Expression;
   body: Statement;
 }
 
 export interface Forever extends SyntaxObject {
-  statementKind: "forever";
+  kind: "Forever";
   body: Statement;
 }
 
 export interface Do extends SyntaxObject {
-  statementKind: "do";
+  kind: "Do";
   body: Expression;
 }
 
 export interface Break extends SyntaxObject {
-  statementKind: "break";
+  kind: "Break";
 }
 
 export interface Hole extends SyntaxObject {
-  statementKind: "@hole";
+  kind: "@hole";
 }
 
-// Statement tools
-
-export interface StatementPattern<T> {
-  Print: Fn<Print, T>;
-  Let: Fn<Let, T>;
-  Set: Fn<Set, T>;
-  If: Fn<If, T>;
-  ForIn: Fn<ForIn, T>;
-  Forever: Fn<Forever, T>;
-  Do: Fn<Do, T>;
-  Break: Fn<Break, T>;
-  Hole: Fn<Hole, T>;
-}
-
-export interface ExhaustiveStatementPattern<T> extends StatementPattern<T> {
-  Default?: undefined;
-}
-
-export interface PartialStatementPattern<T> extends Partial<StatementPattern<T>> {
-  Default: (s?: Statement) => T;
-}
-
-export type StatementMatcher<T> = ExhaustiveStatementPattern<T> | PartialStatementPattern<T>;
-
-/**
- * A Fn for destructuring a Statement
- *
- * @param p The StatementPattern instance to use
- */
-export function matchStatement<T>(p: StatementMatcher<T>): Fn<Statement, T> {
-  return (s: Statement): T => {
-    switch (s.statementKind) {
-      case "print":
-        return p.Print ? p.Print(s) : p.Default(s);
-      case "let":
-        return p.Let ? p.Let(s) : p.Default(s);
-      case "set":
-        return p.Set ? p.Set(s) : p.Default(s);
-      case "if":
-        return p.If ? p.If(s) : p.Default(s);
-      case "forin":
-        return p.ForIn ? p.ForIn(s) : p.Default(s);
-      case "forever":
-        return p.Forever ? p.Forever(s) : p.Default(s);
-      case "do":
-        return p.Do ? p.Do(s) : p.Default(s);
-      case "break":
-        return p.Break ? p.Break(s) : p.Default(s);
-      case "@hole":
-        return p.Hole ? p.Hole(s) : p.Default(s);
-      default: {
-        const __exhaust: never = s;
-        return __exhaust;
-      }
-    }
-  };
-}

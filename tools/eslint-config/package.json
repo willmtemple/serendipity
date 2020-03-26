@@ -1,10 +1,11 @@
 {
   "name": "@serendipity/eslint-config",
   "version": "0.1.0-dev",
-  "description": "Configuration files and build tools for serendipity",
+  "private": true,
+  "description": "ESLint/Prettier configuration module for Serendipity Monorepo",
   "main": ".eslintrc.json",
   "scripts": {
-    "build": "true"
+    "build": "echo skipped"
   },
   "author": "Will Temple",
   "license": "MIT",

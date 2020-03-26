@@ -1,43 +1,10 @@
 {
+  "extends": "../../tsconfig.esm",
   "compilerOptions": {
-    "rootDir": "src",
-    "target": "es5",
-    "lib": [
-      "esnext",
-      "dom",
-      "dom.iterable"
-    ],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "suppressImplicitAnyIndexErrors": true,
-    "noUnusedLocals": true,
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "outDir": "dist",
-    "jsx": "react",
-    "importHelpers": true,
-    "experimentalDecorators": true,
-    "declaration": true,
-    "sourceMap": true
+    "outDir": "dist-esm/",
+    "rootDir": "src/"
   },
-  "exclude": [
-    "node_modules",
-    "build",
-    "public",
-    "acceptance-tests",
-    "webpack",
-    "jest"
-  ],
-  "include": [
-    "src"
-  ]
+  "include": ["src/**/*.ts"],
+  "exclude": ["dist*/**/*.ts", "node_modules"]
 }
+

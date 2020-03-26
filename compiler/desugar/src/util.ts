@@ -13,31 +13,28 @@ import { lowerExpr } from ".";
  * @param parameters the parameters to curry (may be empty)
  * @param body the body that results from the calling of the closure with all parameters
  */
-export function curry(
-  parameters: string[],
-  body: surface.expression.Expression
-): abstract.Closure {
-  let val: abstract.Closure;
+export function curry(parameters: string[], body: surface.Expression): abstract.Closure {
+  let val: abstract.Closure | undefined = undefined;
 
   if (parameters.length === 0) {
     // No parameter for this closure
     val = {
-      exprKind: "closure",
+      kind: "Closure",
       body: lowerExpr(body)
     };
   } else {
     // Curry the paramters into separate closures.
     for (const p of parameters) {
       val = {
-        exprKind: "closure",
+        kind: "Closure",
         parameter: p,
         // Stack the closures
-        body: val || lowerExpr(body)
+        body: val ?? lowerExpr(body)
       };
     }
   }
 
-  return val;
+  return val as abstract.Closure;
 }
 
 /**
@@ -48,45 +45,45 @@ export function curry(
  */
 export function Y(c: abstract.Closure): abstract.Call {
   return {
-    exprKind: "call",
+    kind: "Call",
     parameter: c,
     callee: {
-      exprKind: "closure",
+      kind: "Closure",
       parameter: "f",
       body: {
-        exprKind: "call",
+        kind: "Call",
         callee: {
-          exprKind: "closure",
+          kind: "Closure",
           parameter: "x",
           body: {
-            exprKind: "call",
+            kind: "Call",
             callee: {
-              exprKind: "name",
+              kind: "Name",
               name: "x"
             },
             parameter: {
-              exprKind: "name",
+              kind: "Name",
               name: "x"
             }
           }
         },
         parameter: {
-          exprKind: "closure",
+          kind: "Closure",
           parameter: "x",
           body: {
-            exprKind: "call",
+            kind: "Call",
             callee: {
-              exprKind: "name",
+              kind: "Name",
               name: "f"
             },
             parameter: {
-              exprKind: "call",
+              kind: "Call",
               callee: {
-                exprKind: "name",
+                kind: "Name",
                 name: "x"
               },
               parameter: {
-                exprKind: "name",
+                kind: "Name",
                 name: "x"
               }
             }

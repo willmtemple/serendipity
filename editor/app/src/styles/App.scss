@@ -1,0 +1,50 @@
+@import "./colors";
+
+// Root application div
+.editor {
+  display: flex;
+  flex-flow: column;
+  height: 100%;
+
+  .body {
+    flex-grow: 1;
+  }
+
+  .terminal {
+    height: 30%;
+  }
+}
+
+// Application Navbar
+header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+
+  background-color: $background;
+  padding: 1rem 1rem 1rem 1rem;
+
+  * {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  h1 {
+    display: inline-block;
+    color: $foreground;
+  }
+
+  ul {
+    display: inline-block;
+    list-item-style: none;
+  }
+
+  .right button {
+    padding: 0.5rem 0.66rem 0.5rem 0.66rem;
+    background-color: unset;
+    border: 2px solid $color2;
+    border-radius: 5px;
+    color: $color2;
+  }
+}

@@ -1,0 +1,2 @@
+(main [proc
+  (print (with [x 10] x))])

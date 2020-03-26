@@ -4,11 +4,7 @@
 
 import * as surface from "@serendipity/syntax-surface";
 
-const { matchStatement } = surface.statement;
-
-type Closure = surface.expression.Closure;
-type Statement = surface.statement.Statement;
-type Expression = surface.expression.Expression;
+import { match } from "omnimatch";
 
 const internalNames = {
   k: "__k",
@@ -19,14 +15,17 @@ const internalNames = {
   next: "__next"
 };
 
+type Expression = surface.Expression;
+type Closure = surface.Closure;
+
 /**
  * Constructor for reserved names.
  *
  * @param name The name to transform
  */
-export function res(name: keyof typeof internalNames): surface.expression.Name {
+export function res(name: keyof typeof internalNames): surface.Name {
   return {
-    exprKind: "name",
+    kind: "Name",
     name: internalNames[name]
   };
 }
@@ -35,7 +34,7 @@ const cpsClosParams = [internalNames.world, internalNames.k];
 
 function cpsClosed(body: Expression): Closure {
   return {
-    exprKind: "closure",
+    kind: "Closure",
     parameters: cpsClosParams,
     body
   };
@@ -43,72 +42,72 @@ function cpsClosed(body: Expression): Closure {
 
 function cpsContinue(continuation: Expression): Closure {
   return {
-    exprKind: "closure",
+    kind: "Closure",
     parameters: [internalNames.world],
     body: {
-      exprKind: "call",
+      kind: "Call",
       callee: continuation,
       parameters: [res("world"), res("k")]
     }
   };
 }
 
-function getStatementCPS(s: Statement, continuation: Expression): Closure {
-  return matchStatement({
+function getStatementCPS(s: surface.Statement, continuation: Expression): Closure {
+  return match(s, {
     // (\ (w k) (body w (\ w (continuation w k))))
-    Do: ({ body }) =>
+    Do: ({ body }): Closure =>
       cpsClosed({
-        exprKind: "call",
+        kind: "Call",
         callee: body,
         parameters: [res("world"), cpsContinue(continuation)]
       }),
     // (\ (w k) (_prn value (continuation w k)))
-    Print: ({ value }) =>
+    Print: ({ value }): Closure =>
       cpsClosed({
-        exprKind: "call",
+        kind: "Call",
         callee: {
-          exprKind: "name",
+          kind: "Name",
           name: "__core.print_stmt"
         },
         parameters: [
           {
-            exprKind: "call",
+            kind: "Call",
             callee: continuation,
             parameters: [res("world"), res("k")]
           },
           value
         ]
       }),
-    If: ({ condition, body, _else: elseStmt }) => {
+    If: ({ condition, body, _else: elseStmt }): Closure => {
       const doContinue: Expression = {
-        exprKind: "call",
+        kind: "Call",
         callee: res("next"),
         parameters: [res("world")]
       };
       const nextContinuation: Expression = {
-        exprKind: "closure",
+        kind: "Closure",
         parameters: cpsClosParams,
         body: doContinue
       };
 
       const _else: Expression = elseStmt
         ? {
-            exprKind: "call",
+            kind: "Call",
             callee: getStatementCPS(elseStmt, nextContinuation),
             parameters: [res("world"), res("k")]
           }
         : doContinue;
 
       return cpsClosed({
-        exprKind: "call",
+        kind: "Call",
         callee: {
-          exprKind: "closure",
+          kind: "Closure",
           parameters: [internalNames.next],
           body: {
-            exprKind: "if",
+            kind: "If",
             cond: condition,
             then: {
-              exprKind: "call",
+              kind: "Call",
               callee: getStatementCPS(body, nextContinuation),
               parameters: [res("world"), res("k")]
             },
@@ -117,10 +116,10 @@ function getStatementCPS(s: Statement, continuation: Expression): Closure {
         },
         parameters: [
           {
-            exprKind: "closure",
+            kind: "Closure",
             parameters: [internalNames.world],
             body: {
-              exprKind: "call",
+              kind: "Call",
               callee: continuation,
               parameters: [res("world"), res("k")]
             }
@@ -128,19 +127,19 @@ function getStatementCPS(s: Statement, continuation: Expression): Closure {
         ]
       });
     },
-    Break: (_) =>
+    Break: (_): Closure =>
       cpsClosed({
-        exprKind: "call",
+        kind: "Call",
         callee: res("break"),
         parameters: [res("world")]
       }),
-    Forever: ({ body }) => {
-      const invoker: surface.expression.Call = {
-        exprKind: "call",
+    Forever: ({ body }): Closure => {
+      const invoker: surface.Call = {
+        kind: "Call",
         callee: getStatementCPS(
           body,
           cpsClosed({
-            exprKind: "call",
+            kind: "Call",
             callee: res("loop"),
             parameters: [res("world")]
           })
@@ -148,22 +147,22 @@ function getStatementCPS(s: Statement, continuation: Expression): Closure {
         parameters: [res("world"), res("k")]
       };
       return cpsClosed({
-        exprKind: "call",
+        kind: "Call",
         callee: {
-          exprKind: "closure",
+          kind: "Closure",
           parameters: [internalNames.break],
           body: {
-            exprKind: "with",
+            kind: "With",
             binding: [
               internalNames.loop,
               {
-                exprKind: "closure",
+                kind: "Closure",
                 parameters: [internalNames.world],
                 body: invoker
               }
             ],
             expr: {
-              exprKind: "call",
+              kind: "Call",
               callee: res("loop"),
               parameters: [res("world")]
             }
@@ -171,10 +170,10 @@ function getStatementCPS(s: Statement, continuation: Expression): Closure {
         },
         parameters: [
           {
-            exprKind: "closure",
+            kind: "Closure",
             parameters: [internalNames.world],
             body: {
-              exprKind: "call",
+              kind: "Call",
               callee: continuation,
               parameters: [res("world"), res("k")]
             }
@@ -182,25 +181,25 @@ function getStatementCPS(s: Statement, continuation: Expression): Closure {
         ]
       });
     },
-    ForIn: ({ binding, value, body }) => {
-      const invoker: surface.expression.Call = {
-        exprKind: "call",
+    ForIn: ({ binding, value, body }): Closure => {
+      const invoker: surface.Call = {
+        kind: "Call",
         callee: {
-          exprKind: "closure",
+          kind: "Closure",
           parameters: [binding],
           body: {
-            exprKind: "call",
+            kind: "Call",
             callee: getStatementCPS(
               body,
               cpsClosed({
-                exprKind: "call",
+                kind: "Call",
                 callee: res("loop"),
                 parameters: [
                   {
-                    exprKind: "accessor",
+                    kind: "Accessor",
                     accessee: res("it"),
                     index: {
-                      exprKind: "number",
+                      kind: "Number",
                       value: 1
                     }
                   },
@@ -213,37 +212,37 @@ function getStatementCPS(s: Statement, continuation: Expression): Closure {
         },
         parameters: [
           {
-            exprKind: "accessor",
+            kind: "Accessor",
             accessee: res("it"),
             index: {
-              exprKind: "number",
+              kind: "Number",
               value: 0
             }
           }
         ]
       };
       return cpsClosed({
-        exprKind: "call",
+        kind: "Call",
         callee: {
-          exprKind: "closure",
+          kind: "Closure",
           parameters: [internalNames.break],
           body: {
-            exprKind: "with",
+            kind: "With",
             binding: [
               internalNames.loop,
               {
-                exprKind: "closure",
+                kind: "Closure",
                 parameters: [internalNames.it, internalNames.world],
                 body: {
-                  exprKind: "if",
+                  kind: "If",
                   cond: {
-                    exprKind: "compare",
+                    kind: "Compare",
                     op: "==",
                     left: res("it"),
-                    right: { exprKind: "void" }
+                    right: { kind: "Void" }
                   },
                   then: {
-                    exprKind: "call",
+                    kind: "Call",
                     callee: res("break"),
                     parameters: [res("world")]
                   },
@@ -252,7 +251,7 @@ function getStatementCPS(s: Statement, continuation: Expression): Closure {
               }
             ],
             expr: {
-              exprKind: "call",
+              kind: "Call",
               callee: res("loop"),
               parameters: [value, res("world")]
             }
@@ -260,21 +259,18 @@ function getStatementCPS(s: Statement, continuation: Expression): Closure {
         },
         parameters: [
           {
-            exprKind: "closure",
+            kind: "Closure",
             parameters: [internalNames.world],
             body: {
-              exprKind: "call",
+              kind: "Call",
               callee: continuation,
               parameters: [res("world"), res("k")]
             }
           }
         ]
       });
-    },
-    Default(stmt) {
-      throw new Error("Not implemented: foldProcedure([...," + stmt.statementKind + "])");
     }
-  })(s);
+  }) ?? (() => { throw new Error("Not implemented: " + s.kind); })();
 }
 
 /**
@@ -283,9 +279,9 @@ function getStatementCPS(s: Statement, continuation: Expression): Closure {
  *
  * @param body The list of statements to fold into an expression
  */
-export function foldProcedureCPS(procBody: Statement[]): Closure {
+export function foldProcedureCPS(procBody: surface.Statement[]): Closure {
   let tail: Expression = cpsClosed({
-    exprKind: "call",
+    kind: "Call",
     callee: res("k"),
     parameters: [res("world")]
   });

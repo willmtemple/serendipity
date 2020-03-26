@@ -7,13 +7,7 @@ import { fit } from "xterm/lib/addons/fit/fit";
 
 import "xterm/dist/xterm.css";
 
-interface ITermDetailedProps {
-  termDivProps: TermDivProps;
-}
-
-type TermDivProps = React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement>;
-
-export const Terminal: React.FC<ITermDetailedProps> = ({ termDivProps }) => {
+export const Terminal: React.FC = () => {
   const termDiv: React.RefObject<HTMLDivElement> = React.createRef();
 
   const { Prefs } = useStores();
@@ -21,7 +15,8 @@ export const Terminal: React.FC<ITermDetailedProps> = ({ termDivProps }) => {
   React.useEffect(() => {
     if (termDiv.current) {
       const term = new XTerm({
-        fontFamily: "Source Code Pro",
+        fontFamily:
+          "Source Code Pro, Monaco, Menlo, Ubuntu Mono, courier-new, monospace",
         fontWeight: "600"
       });
 
@@ -32,7 +27,7 @@ export const Terminal: React.FC<ITermDetailedProps> = ({ termDivProps }) => {
       term.writeln("");
 
       const handleEvent = (evt: CustomEvent<{ message: string }>) => {
-        term.write(evt.detail.message);
+        term.write(evt.detail.message + "\r\n");
       };
       Prefs.eventBus.addEventListener("data", handleEvent);
 
@@ -44,8 +39,7 @@ export const Terminal: React.FC<ITermDetailedProps> = ({ termDivProps }) => {
     }
   }, []);
 
-  return <div ref={termDiv} {...termDivProps} />;
+  return <div ref={termDiv} className="terminal" />;
 };
 
 export default Terminal;
-

@@ -2,9 +2,11 @@
 // All rights reserved.
 // Licensed under the terms of the GNU General Public License v3 or later.
 
-import { expression, statement, global as glb } from "@serendipity/syntax-surface";
+import { Expression, Statement, Global } from "@serendipity/syntax-surface";
 
-export function writeExpression(e: expression.Expression, level: number): string {
+import { match } from "omnimatch";
+
+export function writeExpression(e: Expression, level: number): string {
   let accum = "";
 
   let indent = "";
@@ -12,8 +14,8 @@ export function writeExpression(e: expression.Expression, level: number): string
     indent += "  ";
   }
 
-  const wx = (ex: expression.Expression): string => writeExpression(ex, level);
-  expression.matchExpression<void>({
+  const wx = (ex: Expression): string => writeExpression(ex, level);
+  match(e, {
     Accessor: ({ accessee, index }) => {
       accum += wx(accessee) + "." + wx(index);
     },
@@ -77,14 +79,14 @@ export function writeExpression(e: expression.Expression, level: number): string
     Compare: ({ left, right, op }) => {
       accum += "(" + [op, wx(left), wx(right)].join(" ") + ")";
     },
-    Hole: () => {
+    "@hole": () => {
       accum += "...";
     }
-  })(e);
+  });
   return accum;
 }
 
-export function writeStatement(s: statement.Statement, level: number, skipIndent: boolean): string {
+export function writeStatement(s: Statement, level: number, skipIndent: boolean): string {
   let accum = "";
   let indent = "";
   if (!skipIndent) {
@@ -94,7 +96,7 @@ export function writeStatement(s: statement.Statement, level: number, skipIndent
   }
   accum += indent;
 
-  statement.matchStatement<void>({
+  match(s, {
     Print: ({ value }) => {
       accum += "print " + writeExpression(value, level);
     },
@@ -129,16 +131,16 @@ export function writeStatement(s: statement.Statement, level: number, skipIndent
     Break: (_) => {
       accum += "break";
     },
-    Hole: (_) => {
+    "@hole": (_) => {
       accum += "<@>";
     }
-  })(s);
+  });
   return accum;
 }
 
-export function writeGlobal(g: glb.Global): string {
+export function writeGlobal(g: Global): string {
   let accum = "";
-  glb.matchGlobal<void>({
+  match(g, {
     Main: ({ body }) => {
       accum += "main " + writeExpression(body, 0);
     },
@@ -148,6 +150,6 @@ export function writeGlobal(g: glb.Global): string {
     DefineFunction: ({ name, parameters, body }) => {
       accum += "define " + name + "(" + parameters.join(", ") + ") = " + writeExpression(body, 0);
     }
-  })(g);
+  });
   return accum;
 }

@@ -17,7 +17,7 @@
     "url": "https://github.com/willmtemple/serendipity.git",
     "directory": "compiler/desugar"
   },
-  "main": "dist/index.js",
+  "main": "dist-esm/index.js",
   "files": [
     "dist"
   ],
@@ -46,5 +46,8 @@
     "eslint-plugin-promise": "^4.2.1",
     "prettier": "~1.18.2",
     "typescript": "^3.7.2"
+  },
+  "dependencies": {
+    "omnimatch": "~1.0.0-development.1"
   }
 }

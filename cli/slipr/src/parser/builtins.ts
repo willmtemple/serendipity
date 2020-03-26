@@ -2,12 +2,12 @@
 // All rights reserved.
 // Licensed under the terms of the GNU General Public License v3 or later.
 
-import { expression } from "@serendipity/syntax-surface";
+import { Expression } from "@serendipity/syntax-surface";
 
-import { SExpressionArray, SExpression } from "./sexpression";
+import { SExpressionArray } from "./sexpression";
 import { intoExpression, intoStatement } from ".";
 
-type ExpressionReducer = (e: SExpressionArray) => expression.Expression;
+type ExpressionReducer = (e: SExpressionArray) => Expression;
 
 const requireExact = (len: number, fn: ExpressionReducer): ExpressionReducer =>
   requireBetween([len, len], fn);
@@ -54,20 +54,20 @@ export function assertAllSymbols(sexpr: SExpressionArray): string[] {
  * Currently, the only value is
  * - empty (type void)
  */
-export const builtinValues: { [k: string]: expression.Expression } = {
+export const builtinValues: { [k: string]: Expression } = {
   empty: {
-    exprKind: "void"
+    kind: "Void"
   },
   true: {
-    exprKind: "boolean",
+    kind: "Boolean",
     value: true
   },
   false: {
-    exprKind: "boolean",
+    kind: "Boolean",
     value: false
   },
   "...": {
-    exprKind: "@hole"
+    kind: "@hole"
   }
 };
 
@@ -82,48 +82,51 @@ export const builtinValues: { [k: string]: expression.Expression } = {
  * - if expressions
  * - list constructor (to be removed pending variadic macros)
  */
-export const builtinConstructors: { [k: string]: (sexpr: SExpression) => expression.Expression } = {
-  ">": requireExact(3, (sexpr: SExpressionArray) => ({
-    exprKind: "compare",
-    op: ">",
-    left: intoExpression(sexpr[1]),
-    right: intoExpression(sexpr[2])
-  })),
+export const builtinConstructors: { [k: string]: ExpressionReducer } = {
+  ">": requireExact(
+    3,
+    (sexpr: SExpressionArray): Expression => ({
+      kind: "Compare",
+      op: ">",
+      left: intoExpression(sexpr[1]),
+      right: intoExpression(sexpr[2])
+    })
+  ),
   "<": requireExact(3, (sexpr: SExpressionArray) => ({
-    exprKind: "compare",
+    kind: "Compare",
     op: "<",
     left: intoExpression(sexpr[1]),
     right: intoExpression(sexpr[2])
   })),
   ">=": requireExact(3, (sexpr: SExpressionArray) => ({
-    exprKind: "compare",
+    kind: "Compare",
     op: ">=",
     left: intoExpression(sexpr[1]),
     right: intoExpression(sexpr[2])
   })),
   "<=": requireExact(3, (sexpr: SExpressionArray) => ({
-    exprKind: "compare",
+    kind: "Compare",
     op: "<=",
     left: intoExpression(sexpr[1]),
     right: intoExpression(sexpr[2])
   })),
   "=": requireExact(3, (sexpr: SExpressionArray) => ({
-    exprKind: "compare",
+    kind: "Compare",
     op: "==",
     left: intoExpression(sexpr[1]),
     right: intoExpression(sexpr[2])
   })),
   "!=": requireExact(3, (sexpr: SExpressionArray) => ({
-    exprKind: "compare",
+    kind: "Compare",
     op: "!=",
     left: intoExpression(sexpr[1]),
     right: intoExpression(sexpr[2])
   })),
   "+": requireAtLeast(3, (sexpr: SExpressionArray) => {
-    const folder = (inExpr: SExpressionArray): expression.Expression =>
+    const folder = (inExpr: SExpressionArray): Expression =>
       inExpr.length > 1
         ? {
-            exprKind: "arithmetic",
+            kind: "Arithmetic",
             op: "+",
             left: intoExpression(inExpr[0]),
             right: folder(inExpr.slice(1))
@@ -132,10 +135,10 @@ export const builtinConstructors: { [k: string]: (sexpr: SExpression) => express
     return folder(sexpr.slice(1));
   }),
   "*": requireAtLeast(3, (sexpr: SExpressionArray) => {
-    const folder = (inExpr: SExpressionArray): expression.Expression =>
+    const folder = (inExpr: SExpressionArray): Expression =>
       inExpr.length > 1
         ? {
-            exprKind: "arithmetic",
+            kind: "Arithmetic",
             op: "*",
             left: intoExpression(inExpr[0]),
             right: folder(inExpr.slice(1))
@@ -144,53 +147,53 @@ export const builtinConstructors: { [k: string]: (sexpr: SExpression) => express
     return folder(sexpr.slice(1));
   }),
   "-": requireExact(3, (sexpr: SExpressionArray) => ({
-    exprKind: "arithmetic",
+    kind: "Arithmetic",
     op: "-",
     left: intoExpression(sexpr[1]),
     right: intoExpression(sexpr[2])
   })),
   "/": requireExact(3, (sexpr: SExpressionArray) => ({
-    exprKind: "arithmetic",
+    kind: "Arithmetic",
     op: "/",
     left: intoExpression(sexpr[1]),
     right: intoExpression(sexpr[2])
   })),
   cons: requireAtLeast(2, (sexpr: SExpressionArray) => ({
-    exprKind: "tuple",
+    kind: "Tuple",
     values: sexpr.slice(1).map(intoExpression)
   })),
   "get-property": requireExact(3, (sexpr: SExpressionArray) => ({
-    exprKind: "accessor",
+    kind: "Accessor",
     accessee: intoExpression(sexpr[1]),
     index: intoExpression(sexpr[2])
   })),
   // TODO: this should be a lib function rather than a syntax-level intrinsic
   readline: requireBetween([1, 2], (sexpr: SExpressionArray) => ({
-    exprKind: "call",
+    kind: "Call",
     callee: {
-      exprKind: "name",
+      kind: "Name",
       name: "__core.read_line"
     },
     parameters: [intoExpression(sexpr[1])]
   })),
   "str-split": requireExact(3, (sexpr: SExpressionArray) => ({
-    exprKind: "call",
+    kind: "Call",
     callee: {
-      exprKind: "name",
+      kind: "Name",
       name: "__core.str_split"
     },
     parameters: [intoExpression(sexpr[1]), intoExpression(sexpr[2])]
   })),
   "str-cat": requireExact(3, (sexpr: SExpressionArray) => ({
-    exprKind: "call",
+    kind: "Call",
     callee: {
-      exprKind: "name",
+      kind: "Name",
       name: "__core.str_cat"
     },
     parameters: [intoExpression(sexpr[1]), intoExpression(sexpr[2])]
   })),
   proc: requireAtLeast(1, (sexpr: SExpressionArray) => ({
-    exprKind: "procedure",
+    kind: "Procedure",
     body: sexpr.slice(1).map(intoStatement)
   })),
   fn: requireExact(3, (sexpr: SExpressionArray) => {
@@ -204,19 +207,19 @@ export const builtinConstructors: { [k: string]: (sexpr: SExpression) => express
     const parameters = assertAllSymbols(sexpr[1]);
 
     return {
-      exprKind: "closure",
+      kind: "Closure",
       parameters,
       body: intoExpression(sexpr[2])
     };
   }),
   if: requireExact(4, (sexpr: SExpressionArray) => ({
-    exprKind: "if",
+    kind: "If",
     cond: intoExpression(sexpr[1]),
     then: intoExpression(sexpr[2]),
     _else: intoExpression(sexpr[3])
   })),
   list: (sexpr: SExpressionArray) => ({
-    exprKind: "list",
+    kind: "List",
     contents: sexpr.slice(1).map(intoExpression)
   }),
   with: requireExact(3, (sexpr: SExpressionArray) => {
@@ -227,7 +230,7 @@ export const builtinConstructors: { [k: string]: (sexpr: SExpression) => express
       );
     }
     return {
-      exprKind: "with",
+      kind: "With",
       binding: [sexpr[1][0], intoExpression(sexpr[1][1])],
       expr: intoExpression(sexpr[2])
     };

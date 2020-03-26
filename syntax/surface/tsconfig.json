@@ -1,28 +1,10 @@
 {
-    "compilerOptions": {
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "target": "es5",
-        "lib": [],
-        "types": [
-            "node"
-        ],
-        "noImplicitAny": true,
-        "noImplicitThis": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "alwaysStrict": true,
-        "removeComments": true,
-        "outDir": "dist/",
-        "sourceMap": true,
-        "declaration": true,
-        "rootDir": "src"
-    },
-    "include": [
-        "src/**/*.ts",
-    ],
-    "exclude": [
-        "dist",
-        "node_modules"
-    ]
+  "extends": "../../tsconfig.esm",
+  "compilerOptions": {
+    "outDir": "dist-esm/",
+    "rootDir": "src/"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["dist*/**/*.ts", "node_modules"]
 }
+

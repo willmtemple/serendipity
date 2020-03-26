@@ -1,5 +1,7 @@
 import { action, autorun, observable, set, toJS } from "mobx";
 
+import { Module } from "@serendipity/syntax-surface";
+
 const LOCAL_STORE_KEY = "userPrefs";
 
 const defaultPrefs = {
@@ -11,21 +13,22 @@ const defaultPrefs = {
   terminal: false
 };
 
-export type ICheckedEvent<T extends Event, K> = {
+export type CheckedEvent<T extends Event, K> = {
   [P in keyof T]: T[P];
 } & { type: K };
 
-interface ICheckedEventTarget<T extends { [k: string]: Event }> {
+interface CheckedEventTarget<T extends { [k: string]: Event }> {
   addEventListener<K extends keyof T>(name: K, h: (e: T[K]) => void): void;
   removeEventListener<K extends keyof T>(name: K, h: (e: T[K]) => void): void;
-  dispatchEvent<K extends keyof T>(evt: ICheckedEvent<T[K], K>): void;
+  dispatchEvent<K extends keyof T>(evt: CheckedEvent<T[K], K>): void;
 }
 
 export class PrefsStore {
   @observable public prefs = defaultPrefs;
 
-  public eventBus = new EventTarget() as ICheckedEventTarget<{
+  public eventBus = new EventTarget() as CheckedEventTarget<{
     data: CustomEvent<{ message: string }>;
+    runProgram: CustomEvent<{ program: Module }>;
   }>;
 
   constructor() {
@@ -44,6 +47,11 @@ export class PrefsStore {
       }
       firstRun = false;
     });
+
+    // TODO: For debugging purposes
+    this.eventBus.addEventListener("data", (event) => {
+      console.log("[stdout]", event.detail.message);
+    });
   }
 
   @action public setPosition(x: number, y: number) {
@@ -57,4 +65,3 @@ export class PrefsStore {
 }
 
 export const DefaultPrefsStore = new PrefsStore();
-

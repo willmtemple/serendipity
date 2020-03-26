@@ -2,136 +2,132 @@
 // All rights reserved.
 // Licensed under the terms of the GNU General Public License v3 or later.
 
+import { match } from "omnimatch";
+
 import * as abstract from "@serendipity/syntax-abstract";
+import * as surface from "@serendipity/syntax-surface";
 
 import { Compiler, CompilerOutput } from "@serendipity/syntax";
-import * as surface from "@serendipity/syntax-surface";
-import { ok, error } from "@serendipity/syntax/dist/util/Result";
+import { ok, error } from "@serendipity/syntax/dist-esm/util/Result";
 
 import { curry, Y } from "./util";
 import { foldProcedureCPS } from "./foldProcedure";
 
-// Rename for convenience
-const { matchGlobal } = surface.global;
-
-type SExpression = surface.expression.Expression;
-type AbsExpression = abstract.Expression;
-
-export function lowerExpr(e: SExpression): AbsExpression {
-  return surface.expression.matchExpression<AbsExpression>({
+export function lowerExpr(e: surface.Expression): abstract.Expression {
+  return match(e, {
     Number: (n) => n,
     String: (s) => s,
-    Name: (n) => n,
     Boolean: (b) => b,
+    Name: (n) => n,
     Accessor: ({ accessee, index }) => ({
-      exprKind: "accessor",
+      kind: "Accessor",
       accessee: lowerExpr(accessee),
       index: lowerExpr(index)
-    }),
+    } as const),
     Arithmetic: ({ op, left, right }) => ({
-      exprKind: "binop",
+      kind: "BinaryOp",
       op: op as abstract.BinaryOperator,
       left: lowerExpr(left),
       right: lowerExpr(right)
-    }),
+    } as const),
     With: ({ binding, expr }) => {
       // Use a Y combinator to get letrec semantics
 
-      const almost: AbsExpression = {
-        exprKind: "closure",
+      const almost: abstract.Expression = {
+        kind: "Closure",
         parameter: binding[0],
         body: lowerExpr(binding[1])
       };
 
       return {
-        exprKind: "call",
+        kind: "Call",
         callee: {
-          exprKind: "closure",
+          kind: "Closure",
           parameter: binding[0],
           body: lowerExpr(expr)
         },
         parameter: Y(almost)
-      };
+      } as const;
     },
     Call: ({ callee, parameters }) => {
       const calleeLowered = lowerExpr(callee);
       if (parameters.length === 0) {
         return {
-          exprKind: "call",
+          kind: "Call",
           callee: calleeLowered
-        };
+        } as const;
       } else {
-        let call: AbsExpression;
+        let call: abstract.Expression | undefined = undefined;
         for (let i = parameters.length - 1; i >= 0; i--) {
           call = {
-            exprKind: "call",
-            callee: call || calleeLowered,
+            kind: "Call",
+            callee: call ?? calleeLowered,
             parameter: lowerExpr(parameters[i])
           };
         }
-        return call;
+        return call as abstract.Expression;
       }
     },
     Closure: ({ parameters, body }) => curry(parameters, body),
     List: ({ contents }) => {
-      let list: AbsExpression = {
-        exprKind: "void"
+      let list: abstract.Expression = {
+        kind: "Void"
       };
 
       for (let i = contents.length - 1; i >= 0; i--) {
         list = {
-          exprKind: "tuple",
+          kind: "Tuple",
           values: [lowerExpr(contents[i]), list]
         };
       }
 
       return list;
     },
-    Tuple: ({ values }) => ({ exprKind: "tuple", values: values.map(lowerExpr) }),
+    Tuple: ({ values }) => ({ kind: "Tuple", values: values.map(lowerExpr) } as const),
     Procedure: ({ body }) => lowerExpr(foldProcedureCPS(body)),
     If: ({ cond, then, _else }) => ({
-      exprKind: "if",
+      kind: "If",
       cond: lowerExpr(cond),
       then: lowerExpr(then),
       _else: lowerExpr(_else)
-    }),
+    } as const),
     Compare: ({ op, left, right }) => ({
-      exprKind: "binop",
+      kind: "BinaryOp",
       op: op as abstract.BinaryOperator,
       left: lowerExpr(left),
       right: lowerExpr(right)
-    }),
+    } as const),
     Void: (v) => v,
-    Hole: () => {
+    "@hole": (): never => {
       throw new Error("encountered a hole in the program");
-    }
-  })(e);
+    },
+  });
 }
 
 function lower(i: surface.Module): CompilerOutput<abstract.Module> {
   const definitions: Array<{
     name: string;
-    value: AbsExpression;
+    value: abstract.Expression;
   }> = [];
 
   for (const glb of i.globals) {
     try {
-      matchGlobal({
+      match(glb, {
         Main({ body }) {
           definitions.push({
             name: "__start",
             value: lowerExpr({
-              exprKind: "call",
+              kind: "Call",
               callee: body,
               parameters: [
                 {
-                  exprKind: "void"
+                  kind: "Void"
                 },
                 {
-                  exprKind: "closure",
+                  kind: "Closure",
                   parameters: ["__world"],
                   body: {
-                    exprKind: "name",
+                    kind: "Name",
                     name: "__world"
                   }
                 }
@@ -151,7 +147,7 @@ function lower(i: surface.Module): CompilerOutput<abstract.Module> {
             value: curry(parameters, body)
           });
         }
-      })(glb);
+      });
     } catch (e) {
       return error(e);
     }
