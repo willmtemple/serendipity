@@ -16,7 +16,8 @@
     "noUnusedParameters": true,
 
     "sourceMap": true,
-    "declaration": true
+    "declaration": true,
+
+    "allowSyntheticDefaultImports": true
   }
 }
-

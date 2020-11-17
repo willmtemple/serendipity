@@ -10,8 +10,38 @@ import * as surface from "@serendipity/syntax-surface";
 import { Compiler, CompilerOutput } from "@serendipity/syntax";
 import { ok, error } from "@serendipity/syntax/dist-esm/util/Result";
 
-import { curry, Y } from "./util";
+import { Y } from "./util";
 import { foldProcedureCPS } from "./foldProcedure";
+
+/**
+ * Create a curried function for a given set of parameters and a function body
+ *
+ * @param parameters the parameters to curry (may be empty)
+ * @param body the body that results from the calling of the closure with all parameters
+ */
+export function curry(parameters: string[], body: surface.Expression): abstract.Closure {
+  let val: abstract.Closure | undefined = undefined;
+
+  if (parameters.length === 0) {
+    // No parameter for this closure
+    val = {
+      kind: "Closure",
+      body: lowerExpr(body)
+    };
+  } else {
+    // Curry the paramters into separate closures.
+    for (const p of parameters) {
+      val = {
+        kind: "Closure",
+        parameter: p,
+        // Stack the closures
+        body: val ?? lowerExpr(body)
+      };
+    }
+  }
+
+  return val as abstract.Closure;
+}
 
 export function lowerExpr(e: surface.Expression): abstract.Expression {
   return match(e, {

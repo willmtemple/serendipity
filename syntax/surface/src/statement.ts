@@ -2,57 +2,56 @@
 // All rights reserved.
 // Licensed under the terms of the GNU General Public License v3 or later.
 
-import { SyntaxObject } from "@serendipity/syntax";
 import { Expression } from "./expression";
 
 export type Statement = Print | Let | Set | If | ForIn | Forever | Do | Break | Hole;
 
-export interface Print extends SyntaxObject {
+export interface Print {
   kind: "Print";
   value: Expression;
 }
 
-export interface Let extends SyntaxObject {
+export interface Let {
   kind: "Let";
   name: string;
   value: Expression;
 }
 
-export interface Set extends SyntaxObject {
+export interface Set {
   kind: "Set";
   name: string;
   value: Expression;
 }
 
-export interface If extends SyntaxObject {
+export interface If {
   kind: "If";
   condition: Expression;
   body: Statement;
   _else?: Statement;
 }
 
-export interface ForIn extends SyntaxObject {
+export interface ForIn {
   kind: "ForIn";
   binding: string;
   value: Expression;
   body: Statement;
 }
 
-export interface Forever extends SyntaxObject {
+export interface Forever {
   kind: "Forever";
   body: Statement;
 }
 
-export interface Do extends SyntaxObject {
+export interface Do {
   kind: "Do";
   body: Expression;
 }
 
-export interface Break extends SyntaxObject {
+export interface Break {
   kind: "Break";
 }
 
-export interface Hole extends SyntaxObject {
+export interface Hole {
   kind: "@hole";
 }
 

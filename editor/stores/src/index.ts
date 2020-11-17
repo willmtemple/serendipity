@@ -1,3 +1,8 @@
+// Copyright (c) Serendipity Project Contributors
+// Licensed under the GNU General Public License version 3 or later.
+
+/// <reference lib="dom" />
+
 export {
   DefaultProjectStore as Project,
   EditorDetachedSyntax,

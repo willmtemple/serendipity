@@ -4,13 +4,17 @@ import { surfaceExample } from "../defaultProject";
 
 import guid from "uuid/v4";
 
-import * as expr from "@serendipity/syntax-surface/dist/expression";
-
 import { SyntaxObject } from "@serendipity/syntax";
 import { Module } from "@serendipity/syntax-surface";
-import { Expression } from "@serendipity/syntax-surface/dist/expression";
-import { Define, DefineFunction, Global, Main } from "@serendipity/syntax-surface/dist/global";
-import { Statement } from "@serendipity/syntax-surface/dist/statement";
+import {
+  Define,
+  DefineFunction,
+  Expression,
+  ExpressionHole,
+  Global,
+  Main,
+  Statement
+} from "@serendipity/syntax-surface";
 
 interface Position {
   x: number;
@@ -236,8 +240,8 @@ export class ProjectStore {
       }
     });
 
-    const newHole: expr.Hole = {
-      exprKind: "@hole",
+    const newHole: ExpressionHole = {
+      kind: "@hole",
       metadata: {
         editor: {
           guid: guid()
@@ -427,4 +431,3 @@ export class ProjectStore {
 }
 
 export const DefaultProjectStore = new ProjectStore();
-

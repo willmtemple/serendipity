@@ -27,13 +27,15 @@
 	  (contains? (get-property tree 1) n)
 	  (contains? (get-property tree 2) n))))))
 
+(define (false? v) (= false v))
+
 (main (proc
-  (print "Tests:")
+  (print "Binary Search Tree Tests:")
   (print (= 50 (get-property example-tree 0)))
   (print (= 35 (get-property (get-property example-tree 1) 0)))
   (print (contains? example-tree 50))
   (print (contains? example-tree 62))
-  (print (= false (contains? example-tree 5)))
+  (print (false? (contains? example-tree 5)))
   (print (contains? example-tree 35))
   (print (contains? example-tree 62))
-  (print (= false (contains? example-tree 0)))))
+  (print (false? (contains? example-tree 0)))))

@@ -46,6 +46,6 @@
     "eslint-plugin-header": "^3.0.0",
     "eslint-plugin-promise": "^4.2.1",
     "prettier": "~1.18.2",
-    "typescript": "^3.7.2"
+    "typescript": "~3.9.0"
   }
 }

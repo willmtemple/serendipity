@@ -2,7 +2,6 @@
 // All rights reserved.
 // Licensed under the terms of the GNU General Public License v3 or later.
 
-import { SyntaxObject } from "@serendipity/syntax";
 import { Statement } from "./statement";
 
 export type Expression =
@@ -23,91 +22,91 @@ export type Expression =
   | Void
   | Hole;
 
-export interface Number extends SyntaxObject {
+export interface Number {
   kind: "Number";
   value: number;
 }
 
-export interface String extends SyntaxObject {
+export interface String {
   kind: "String";
   value: string;
 }
 
-export interface Boolean extends SyntaxObject {
+export interface Boolean {
   kind: "Boolean";
   value: boolean;
 }
 
-export interface Name extends SyntaxObject {
+export interface Name {
   kind: "Name";
   name: string;
 }
 
-export interface Accessor extends SyntaxObject {
+export interface Accessor {
   kind: "Accessor";
   accessee: Expression;
   index: Expression;
 }
 
-export interface Arithmetic extends SyntaxObject {
+export interface Arithmetic {
   kind: "Arithmetic";
   op: "+" | "-" | "/" | "*" | "%";
   left: Expression;
   right: Expression;
 }
 
-export interface With extends SyntaxObject {
+export interface With {
   kind: "With";
   binding: [string, Expression];
   expr: Expression;
 }
 
-export interface Call extends SyntaxObject {
+export interface Call {
   kind: "Call";
   callee: Expression;
   parameters: Expression[];
 }
 
-export interface Closure extends SyntaxObject {
+export interface Closure {
   kind: "Closure";
   parameters: string[];
   body: Expression;
 }
 
-export interface List extends SyntaxObject {
+export interface List {
   kind: "List";
   contents: Expression[];
 }
 
-export interface Tuple extends SyntaxObject {
+export interface Tuple {
   kind: "Tuple";
   values: Expression[];
 }
 
-export interface Procedure extends SyntaxObject {
+export interface Procedure {
   kind: "Procedure";
   body: Statement[];
 }
 
-export interface If extends SyntaxObject {
+export interface If {
   kind: "If";
   cond: Expression;
   then: Expression;
   _else: Expression;
 }
 
-export interface Compare extends SyntaxObject {
+export interface Compare {
   kind: "Compare";
   op: "<" | ">" | "<=" | ">=" | "==" | "!=";
   left: Expression;
   right: Expression;
 }
 
-export interface Void extends SyntaxObject {
+export interface Void {
   kind: "Void";
 }
 
-export interface Hole extends SyntaxObject {
+export interface Hole {
   kind: "@hole";
 }
 

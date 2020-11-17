@@ -4,7 +4,7 @@
   "description": "Defines surface upper syntax for serendipity code",
   "main": "dist-esm/index.js",
   "files": [
-    "dist/"
+    "dist-esm/"
   ],
   "author": "Serendipity Project Contributors",
   "contributors": [
@@ -35,7 +35,8 @@
   },
   "prettier": "@serendipity/eslint-config/prettier.json",
   "dependencies": {
-    "@serendipity/syntax": "0.1.0-dev"
+    "@serendipity/syntax": "0.1.0-dev",
+    "omnimatch": "1.0.0-development.2"
   },
   "devDependencies": {
     "@serendipity/eslint-config": "0.1.0-dev",
@@ -45,6 +46,6 @@
     "eslint-plugin-header": "^3.0.0",
     "eslint-plugin-promise": "^4.2.1",
     "prettier": "~1.18.2",
-    "typescript": "^3.7.2"
+    "typescript": "~3.9.0"
   }
 }

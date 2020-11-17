@@ -16,6 +16,7 @@ import { unwrap, ok } from "@serendipity/syntax/dist-esm/util/Result";
 import { Module, Expression } from "@serendipity/syntax-abstract";
 
 import defaultParser from "../parser";
+import { parse as newParser } from "../new-parser";
 import { removeUnusedFunctionCalls } from "../optimizers/deadCode";
 import { CompilerOutput } from "@serendipity/syntax";
 
@@ -24,7 +25,9 @@ async function main(): Promise<void> {
 
   const stream = fs.createReadStream(fn);
 
-  const parseTree = await defaultParser.parse(stream);
+  const parseTree = await (process.env.NEW_PARSER
+    ? newParser(stream)
+    : defaultParser.parse(stream));
 
   const compiler = createLoweringCompiler().then({
     run(out: Module): CompilerOutput<Module> {
@@ -58,7 +61,6 @@ async function main(): Promise<void> {
   interpreter.execModule(program);
 }
 
-main().catch((e) => {
-  console.error(`Error: ${e}`);
+main().catch(() => {
   process.exit(1);
 });
