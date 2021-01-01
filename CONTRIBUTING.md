@@ -13,35 +13,12 @@ programs, and of course error reports are all welcome. Please create a new
 issue or pull request.
 
 I am unlikely to accept large contributions without first having a
-comprehensive discussion about its impact on the project's design goals. If you
+discussion about its impact on the project's design goals. If you
 are considering implementing a new feature, please use the issue form to start
 a design discussion first to ensure that your contributions will be aligned
 with Serendipity's design goals. Otherwise, your contribution may be rejected.
 
 The first step to contributing is to read the [design guide][design].
-
-### Disclaimer of Affiliation
-
-Will is an employee of Microsoft. His opinions do not necessarily reflect the
-opinions of Microsoft. The Serendipity Project is not affiliated with Microsoft
-or any other institution.
-
-### Licensure
-
-Serendipity follows a traditional free-software contribution model.
-
-When you contribute to a Serendipity package, you agree to incorporate it under
-the terms of the license of that package. No further contributor license
-agreement or copyright assignment will be required, and you will continue to
-own the copyright on your contributions.
-
-### Conduct
-
-All are welcome to participate in the Serendipity project. All participants
-are asked to assume the best intentions from others and to critique, clarify,
-and debate in a spirited, but positive manner. Conduct that demeans or excludes
-any contributor from participation on the basis of their person will not be
-tolerated [[1]](#endnote-1).
 
 ## Workflow
 
@@ -147,10 +124,6 @@ update or, if updating is not a possibility due to the age and/or capabilities
 of your hardware, to consider installing a distrbution of Linux as an
 alternative.
 
-<a id="endnote-1"></a>
-__[1]__: see [The Paradox of Tolerance](https://en.wikipedia.org/wiki/Paradox_of_tolerance)
-
 [design]: https://github.com/willmtemple/serendipity/tree/master/DESIGN.md
 [rush]: https://rushjs.io/
 [workspace]: https://github.com/willmtemple/serendipity/tree/master/serendipity.code-workspace
-
