@@ -9,7 +9,7 @@ import { makeDraggable } from "./util/Draggable";
 import { useStores } from "@serendipity/editor-stores";
 import WorkspaceSvgDefs from "./WorkspaceSvgDefs";
 
-export const Workspace: React.FC<{}> = observer(() => {
+export const Workspace = observer(() => {
   const svg: React.RefObject<SVGSVGElement> = React.useRef(null);
 
   React.useEffect(() => {
@@ -30,15 +30,14 @@ export const Workspace: React.FC<{}> = observer(() => {
       <WorkspaceSvgDefs />
       <rect
         id="workspaceBackground"
-        x={0}
-        y={0}
-        width="140%"
-        height="140%"
+        x="-20%"
+        y="-20%"
+        width="200%"
+        height="200%"
         fill="url(#bgPattern)"
-        style={{ height: "140%", width: "140%" }}
       />
       {Project.program.globals.map((glb, idx) => {
-        const meta = Project.metadataFor(glb);
+        const meta = untracked(() => Project.metadataFor(glb));
         return (
           <g
             key={untracked(() => meta.guid)}
@@ -46,9 +45,9 @@ export const Workspace: React.FC<{}> = observer(() => {
             data-guid={meta.guid}
             data-idx={idx}
             data-port-compatibility={
-              glb.globalKind === "_editor_detachedsyntax" ? glb.syntaxKind : undefined
+              glb.kind === "_editor_detachedsyntax" ? glb.syntaxKind : undefined
             }
-            className={"draggable global " + glb.globalKind}
+            className={"draggable global " + glb.kind}
             transform={untracked(() => `translate(${meta.pos.x}, ${meta.pos.y})`)}
           >
             <Global global={glb} />
@@ -58,4 +57,3 @@ export const Workspace: React.FC<{}> = observer(() => {
     </svg>
   );
 });
-

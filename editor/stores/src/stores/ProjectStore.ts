@@ -1,4 +1,4 @@
-import { action, autorun, computed, observable, set, toJS } from "mobx";
+import { action, autorun, makeAutoObservable, observable, set, toJS } from "mobx";
 
 import { surfaceExample } from "../defaultProject";
 
@@ -10,7 +10,6 @@ import {
   Define,
   DefineFunction,
   Expression,
-  ExpressionHole,
   Global,
   Main,
   Statement
@@ -44,7 +43,7 @@ export interface EditorDefineFunction extends DefineFunction {
 }
 
 interface EditorDetachedSyntaxBase {
-  globalKind: "_editor_detachedsyntax";
+  kind: "_editor_detachedsyntax";
   metadata: EditorMetadataWrapper;
 }
 
@@ -79,14 +78,15 @@ export interface EditorModule {
 }
 
 export class ProjectStore {
-  @observable public program: EditorModule = {
+  public program: EditorModule = {
     globals: []
   };
 
   private byGUID: { [k: string]: SyntaxObject } = {};
 
   constructor() {
-    const that = this;
+    console.trace("Creating new proeject store.");
+    makeAutoObservable(this);
     const storedData = localStorage.getItem(KEY_PROJECT);
     if (storedData) {
       set(this.program, JSON.parse(storedData));
@@ -98,7 +98,7 @@ export class ProjectStore {
 
     let firstRun = true;
     autorun(() => {
-      const json = JSON.stringify(toJS(that.program));
+      const json = JSON.stringify(toJS(this.program));
       if (!firstRun) {
         localStorage.setItem(KEY_PROJECT, json);
       }
@@ -110,10 +110,10 @@ export class ProjectStore {
    * Returns the "clean" AST with no detached syntax objects,
    * suitable for passing into the compiler.
    */
-  @computed get canonicalProgram(): Module {
+  get canonicalProgram(): Module {
     return {
       globals: toJS(this.program).globals.filter(
-        (g) => g.globalKind !== "_editor_detachedsyntax"
+        (g) => g.kind !== "_editor_detachedsyntax"
       ) as Global[]
     };
   }
@@ -121,7 +121,7 @@ export class ProjectStore {
   /**
    * Clear the entire program
    */
-  @action public clear() {
+  public clear() {
     this.program.globals = [];
     this.byGUID = {};
   }
@@ -130,7 +130,7 @@ export class ProjectStore {
    * Delete a node from the AST by integer index
    * @param idx the index of the global to remove
    */
-  @action public rmNode(idx: number) {
+  public rmNode(idx: number) {
     const glb = this.program.globals[idx];
     if (glb) {
       this.program.globals.splice(idx, 1);
@@ -142,51 +142,53 @@ export class ProjectStore {
    * Delete a node from the AST by its GUID
    * @param guid the unique id of the global node to remove
    */
-  @action public rmNodeByGUID(id: string) {
+  public rmNodeByGUID(id: string) {
     this.program.globals = this.program.globals.filter((glb) => glb.metadata.editor.guid !== id);
     delete this.byGUID[id];
   }
 
-  @action public reset() {
+  public reset() {
     // TODO find some way to get rid of distinction between editor module
     // and stx module
     this.program = surfaceExample as EditorModule;
     this.loadGUIDTable();
   }
 
-  @action public insertInto(vid: string, into: string, key: string, idx?: number) {
+  public insertInto(vid: string, into: string, key: string, idx?: number) {
+    console.log("Insert", vid, "into", into, key, idx);
     const parent = this.byGUID[into];
     const setNode = action((n: any, mode?: string) => {
-      const l = parent && parent[key];
+      const l = parent && (parent as any)[key];
+      console.log("INSERT", n, mode);
       if (l) {
         if (idx !== undefined && l[idx]) {
-          if (mode === "statement" && l[idx].statementKind !== "@hole") {
-            parent[key] = (l as any[]).concat(n as any[]);
+          console.log("idx-based insert");
+          if (mode === "statement" && l[idx].kind !== "@hole") {
+            (parent as any)[key] = (l as any[]).concat(n as any[]);
           } else if (mode === "statement") {
-            parent[key] = n;
+            (parent as any)[key] = n;
           } else {
-            parent[key][idx] = n;
+            (parent as any)[key][idx] = n;
           }
           this.rmNodeByGUID(this.metadataFor(v).guid);
           return;
         } else if (idx === undefined) {
+          console.log("non-idx insert");
           if (mode === "statement") {
             // Break the first statement of the list off
-            parent[key] = (n as any[]).splice(0, 1)[0];
-            console.log(parent[key], n);
+            (parent as any)[key] = (n as any[]).splice(0, 1)[0];
             // Clean up v if it is done
             if (n.length === 0) {
               this.rmNodeByGUID(this.metadataFor(v).guid);
             }
           } else {
-            parent[key] = n;
+            (parent as any)[key] = n;
             this.rmNodeByGUID(this.metadataFor(v).guid);
           }
           return;
         }
       }
 
-      console.log(into, key, idx);
       throw new Error("No such key(s) on that object");
     });
 
@@ -198,10 +200,10 @@ export class ProjectStore {
     setNode(v.element, v.syntaxKind);
   }
 
-  @action public detachExpression(id: string, key: string, pos: Position, idx?: number): string {
+  public detachExpression(id: string, key: string, pos: Position, idx?: number): string {
     const parent = this.byGUID[id];
     const node = (() => {
-      const v = parent && parent[key];
+      const v = parent && (parent as any)[key];
       if (idx !== undefined) {
         return v[idx];
       } else {
@@ -214,13 +216,13 @@ export class ProjectStore {
     }
 
     const setNode = action((n: Expression) => {
-      const v = parent && parent[key];
+      const v = parent && (parent as any)[key];
       if (v) {
         if (idx !== undefined && v[idx]) {
           v[idx] = n;
           return;
         } else if (idx === undefined) {
-          parent[key] = n;
+          (parent as any)[key] = n;
           return;
         }
       }
@@ -229,7 +231,7 @@ export class ProjectStore {
     });
 
     const newGlobalObject: EditorGlobal = observable({
-      globalKind: "_editor_detachedsyntax",
+      kind: "_editor_detachedsyntax",
       syntaxKind: "expression",
       element: node as Expression,
       metadata: {
@@ -240,14 +242,14 @@ export class ProjectStore {
       }
     });
 
-    const newHole: ExpressionHole = {
+    const newHole = {
       kind: "@hole",
       metadata: {
         editor: {
           guid: guid()
         }
       }
-    };
+    } as const;
     setNode(newHole);
     this.byGUID[newHole.metadata!.editor.guid] = newHole;
 
@@ -258,10 +260,10 @@ export class ProjectStore {
     return newGlobalObject.metadata.editor.guid;
   }
 
-  @action public detachStatement(id: string, key: string, pos: Position, idx?: number): string {
+  public detachStatement(id: string, key: string, pos: Position, idx?: number): string {
     const parent = this.byGUID[id];
     const node = (() => {
-      const v = parent && parent[key];
+      const v = parent && (parent as any)[key];
       if (idx !== undefined) {
         return v[idx];
       } else {
@@ -274,7 +276,7 @@ export class ProjectStore {
     }
 
     const killNode = action((): Statement[] => {
-      const v = parent && parent[key];
+      const v = parent && (parent as any)[key];
       if (v) {
         if (idx !== undefined && v[idx]) {
           const l = v as any[];
@@ -282,9 +284,9 @@ export class ProjectStore {
             return (v as any[]).splice(idx, v.length - idx);
           } else {
             const g = guid();
-            parent[key] = [
+            (parent as any)[key] = [
               {
-                statementKind: "@hole",
+                kind: "@hole",
                 metadata: {
                   editor: {
                     guid: g
@@ -296,9 +298,9 @@ export class ProjectStore {
           }
         } else if (idx === undefined) {
           const g = guid();
-          const old = parent[key];
-          parent[key] = {
-            statementKind: "@hole",
+          const old = (parent as any)[key];
+          (parent as any)[key] = {
+            kind: "@hole",
             metadata: {
               editor: {
                 guid: g
@@ -312,8 +314,8 @@ export class ProjectStore {
       throw new Error("No such key(s) on that object");
     });
 
-    const newGlobalObject: EditorGlobal = observable({
-      globalKind: "_editor_detachedsyntax",
+    const newGlobalObject = observable({
+      kind: "_editor_detachedsyntax",
       syntaxKind: "statement",
       element: killNode(),
       metadata: {
@@ -322,7 +324,7 @@ export class ProjectStore {
           pos: { ...pos }
         }
       }
-    });
+    } as const);
 
     // Put the clone onto the globals stack
     this.byGUID[newGlobalObject.metadata.editor.guid] = newGlobalObject;
@@ -331,28 +333,35 @@ export class ProjectStore {
     return newGlobalObject.metadata.editor.guid;
   }
 
-  @action public register(g: EditorUnregisteredGlobal): EditorGlobal {
-    const id = this.loadGUID(g as EditorGlobal);
-    this.updatePos(id, { x: 0, y: 0 });
-    return g as EditorGlobal;
-  }
-
-  @action public addGlobal(g: EditorUnregisteredGlobal) {
-    this.program.globals.push(this.register(g));
+  public addGlobal(newGlobal: EditorUnregisteredGlobal, pos?: Position): string {
+    const g = observable(newGlobal) as EditorGlobal;
+    this.loadSyntaxObject(g);
+    const id = this.metadataFor(g as SyntaxObject).guid;
+    this.updatePos(id, pos ?? { x: 0, y: 0 });
+    this.program.globals.push(g);
+    return id;
   }
 
   public dump() {
     console.log(toJS(this.program));
   }
 
-  @action public bump(idx: number) {
+  public getText(): string {
+    return JSON.stringify(
+      toJS(this.program.globals.filter((g) => g.kind !== "_editor_detachedsyntax")),
+      undefined,
+      2
+    );
+  }
+
+  public bump(idx: number) {
     if (idx + 1 < this.program.globals.length) {
       const g = this.program.globals.splice(idx, 1);
       this.program.globals.push(g[0]);
     }
   }
 
-  @action public initMetadata(g: EditorGlobal) {
+  public initMetadata(g: EditorGlobal) {
     if (!g.metadata) {
       g.metadata = {
         editor: {
@@ -366,7 +375,7 @@ export class ProjectStore {
     }
   }
 
-  @action public updatePos(id: string, pos: Position) {
+  public updatePos(id: string, pos: Position) {
     const glb = this.byGUID[id];
     if (glb) {
       this.metadataFor(glb).pos = pos;
@@ -379,7 +388,7 @@ export class ProjectStore {
     return node.metadata!.editor as EditorMetadata;
   }
 
-  @action public loadGUID(node: SyntaxObject): string {
+  public loadGUID(node: SyntaxObject): string {
     if (!node.metadata) {
       node.metadata = {
         editor: {
@@ -390,6 +399,8 @@ export class ProjectStore {
       node.metadata.editor = {
         guid: guid()
       };
+    } else if (!node.metadata.editor.guid) {
+      node.metadata.editor.guid = guid();
     }
 
     this.byGUID[node.metadata.editor.guid] = node;
@@ -397,35 +408,28 @@ export class ProjectStore {
     return node.metadata.editor.guid;
   }
 
+  private loadSyntaxObject(v: any) {
+    if (typeof v === "object") {
+      if (v.hasOwnProperty("kind") || v.hasOwnProperty("syntaxKind")) {
+        this.loadGUID(v);
+      }
+
+      Object.keys(v)
+        .filter((k) => k !== "kind" && k !== "metadata")
+        .forEach((k) => {
+          this.loadSyntaxObject(v[k]);
+        });
+    }
+  }
+
   private loadGUIDTable() {
     this.byGUID = {};
-
-    // TODO: This is going to be some technical debt
-    // I want to traverse the AST and dynamically figure out which
-    // nodes are SyntaxObjects based on their ownprops and recursively
-    // loadguid on all of them.
-    const that = this;
-    function considerSyntaxObject(v: any) {
-      if (typeof v === "object") {
-        if (v.hasOwnProperty("exprKind") || v.hasOwnProperty("statementKind")) {
-          that.loadGUID(v);
-        }
-
-        Object.keys(v)
-          .filter((k) => k !== "exprKind" && k !== "statementKind" && k !== "metadata")
-          .forEach((k) => {
-            if (v.hasOwnProperty) {
-              considerSyntaxObject(v[k]);
-            }
-          });
-      }
-    }
 
     // Bootstrap the process with the globals.
     this.program.globals.forEach((g) => {
       this.initMetadata(g);
       this.byGUID[this.loadGUID(g)] = g;
-      considerSyntaxObject(g);
+      this.loadSyntaxObject(g);
     });
   }
 }

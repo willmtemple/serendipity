@@ -36,28 +36,21 @@ function reduceDeadCode(input: Expression, env: Environment): Expression {
     // Closure and name are the only ones that need to check the env
     Closure: (clos): Expression => {
       clos.metadata!.dead = false;
-      let saved = undefined;
+      const nextEnv = { ...env };
       if (clos.parameter) {
-        saved = env[clos.parameter];
-        env[clos.parameter] = 0;
+        nextEnv[clos.parameter] = 0;
       }
-      const body = reduceDeadCode(clos.body, env);
-      if (clos.parameter) {
-        if (env[clos.parameter] === 0) {
+      const body = reduceDeadCode(clos.body, nextEnv);
+      if (clos.parameter && nextEnv[clos.parameter] === 0) {
           if (process.env.DEBUG) {
             // eslint-disable-next-line no-console
             console.log("[deadcode] This function is dead: ", writeAbstract(clos));
           }
           clos.metadata!.dead = true;
-        }
-        if (saved) {
-          env[clos.parameter] = saved;
-        }
       }
 
       return {
         ...clos,
-        kind: "Closure",
         body
       };
     },
@@ -84,7 +77,7 @@ function reduceDeadCode(input: Expression, env: Environment): Expression {
       if (callee.kind === "Closure" && callee.metadata?.dead === true) {
         if (process.env.DEBUG) {
           // eslint-disable-next-line no-console
-          console.log("[deadcode] eliminated: ", writeAbstract(e));
+          console.log("[deadcode] preemptively eliminated: ", writeAbstract(e));
         }
         return callee.body;
       } else {

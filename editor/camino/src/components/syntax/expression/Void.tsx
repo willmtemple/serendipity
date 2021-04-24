@@ -1,11 +1,15 @@
-import * as React from 'react';
+import * as React from "react";
 
-import { useResizeParentEffect } from '../../../hooks/measure';
+import { useResizeParentEffect } from "../../../hooks/measure";
 
 const Void = React.forwardRef<SVGTextElement>((_, ref) => {
-    useResizeParentEffect();
+  useResizeParentEffect();
 
-    return <text ref={ref}>void</text>
-})
+  return (
+    <text ref={ref} transform="translate(0,4)">
+      void
+    </text>
+  );
+});
 
 export default Void;

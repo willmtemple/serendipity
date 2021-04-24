@@ -3,6 +3,7 @@ import { Prefs, Project } from "@serendipity/editor-stores";
 import { distance, Position } from "./Position";
 
 import normalizeWheel from "normalize-wheel";
+import { action } from "mobx";
 
 // This module handles all of the dynamic drag operations using direct DOM
 // manipulation. We have to be careful here not to piss off React,
@@ -13,6 +14,20 @@ import normalizeWheel from "normalize-wheel";
 // I have been very careful to only change things that I have not added as
 // reactions in the components.
 
+type BlockSourceFunction = (pos: Position) => string;
+const registry: Map<symbol, BlockSourceFunction> = new Map();
+
+export function registerSource(handler: BlockSourceFunction): symbol {
+  const id = Symbol();
+  registry.set(id, handler);
+
+  return id;
+}
+
+export function unregister(id: symbol): void {
+  registry.delete(id);
+}
+
 // This code is spaghett bad typescript
 export function makeDraggable(svg: SVGSVGElement) {
   svg.addEventListener("mousedown", startDrag);
@@ -20,7 +35,7 @@ export function makeDraggable(svg: SVGSVGElement) {
   svg.addEventListener("mouseup", endDrag);
   svg.addEventListener("mouseleave", endDrag);
 
-  svg.addEventListener("wheel", zoom);
+  svg.addEventListener("wheel", action(zoom));
 
   // Add a hook to resize events on the window that will adjust the
   // SVG viewBox to keep it at the correct size
@@ -32,7 +47,7 @@ export function makeDraggable(svg: SVGSVGElement) {
     left: Prefs.prefs.editorPosition.x,
     scale: Prefs.prefs.editorScale,
     top: Prefs.prefs.editorPosition.y,
-    width: initialRect.width
+    width: initialRect.width,
   };
 
   function resizeViewBox() {
@@ -70,7 +85,7 @@ export function makeDraggable(svg: SVGSVGElement) {
     const ctm = svg.getScreenCTM() as DOMMatrix;
     return {
       x: (evt.clientX - ctm.e) / ctm.a,
-      y: (evt.clientY - ctm.f) / ctm.d
+      y: (evt.clientY - ctm.f) / ctm.d,
     };
   }
 
@@ -186,10 +201,6 @@ export function makeDraggable(svg: SVGSVGElement) {
       setViewBox();
     } else if (selectedElement && dragMode === "detach") {
       if (distance(dragStart!, getMousePosition(evt)) > 7) {
-        const guid = selectedElement.getAttribute("data-parent-guid");
-        const key = selectedElement.getAttribute("data-mutation-key");
-        const idx = selectedElement.getAttribute("data-mutation-idx") || undefined;
-
         const eltPos = selectedElement.getBoundingClientRect();
 
         const ctm = svg.getScreenCTM()!;
@@ -198,40 +209,59 @@ export function makeDraggable(svg: SVGSVGElement) {
 
         const newPosition = {
           x: eltX + (mouse.x - dragStart!.x),
-          y: eltY + (mouse.y - dragStart!.y)
+          y: eltY + (mouse.y - dragStart!.y),
         };
 
-        if (guid && key) {
-          let newGuid;
-          if (selectedElement.classList.contains("expression")) {
-            heldItemKind = "expression";
-            newGuid = Project.detachExpression(
-              guid,
-              key,
-              newPosition,
-              idx ? parseInt(idx, 10) : undefined
-            );
-          } else {
-            // statement
-            heldItemKind = "statement";
-            newGuid = Project.detachStatement(
-              guid,
-              key,
-              newPosition,
-              idx ? parseInt(idx, 10) : undefined
-            );
-          }
+        if (selectedElement.classList.contains("source")) {
+          // We need to run the registered handler
+          const handlerId = (selectedElement as any)["data-ondetach"];
+          const handler = registry.get(handlerId)!;
           dragMode = undefined;
           offset = {
             x: mouse.x,
-            y: mouse.y
+            y: mouse.y,
           };
-          resume = newGuid;
+          heldItemKind = "expression";
+          resume = handler(newPosition);
+          drag(evt);
         } else {
-          console.warn(
-            "Tried to detach an element that is marked 'draggable expression' but did not have access info",
-            selectedElement
-          );
+          const guid = selectedElement.getAttribute("data-parent-guid");
+          const key = selectedElement.getAttribute("data-mutation-key");
+          const idx = selectedElement.getAttribute("data-mutation-idx") || undefined;
+
+          if (guid && key) {
+            let newGuid;
+            if (selectedElement.classList.contains("expression")) {
+              heldItemKind = "expression";
+              newGuid = Project.detachExpression(
+                guid,
+                key,
+                newPosition,
+                idx ? parseInt(idx, 10) : undefined
+              );
+            } else {
+              // statement
+              heldItemKind = "statement";
+              newGuid = Project.detachStatement(
+                guid,
+                key,
+                newPosition,
+                idx ? parseInt(idx, 10) : undefined
+              );
+            }
+            dragMode = undefined;
+            offset = {
+              x: mouse.x,
+              y: mouse.y,
+            };
+            resume = newGuid;
+            drag(evt);
+          } else {
+            console.warn(
+              "Tried to detach an element that is marked 'draggable expression' but did not have access info",
+              selectedElement
+            );
+          }
         }
       }
     } else if (selectedElement) {
@@ -255,7 +285,7 @@ export function makeDraggable(svg: SVGSVGElement) {
           if (heldItemKind && !mouseOver.classList.contains(heldItemKind)) {
             Project.updatePos(draggedGuid, {
               x: transform.matrix.e,
-              y: transform.matrix.f
+              y: transform.matrix.f,
             });
           } else {
             const overGuid = mouseOver.getAttribute("data-parent-guid");
@@ -271,7 +301,7 @@ export function makeDraggable(svg: SVGSVGElement) {
         } else {
           Project.updatePos(draggedGuid, {
             x: transform.matrix.e,
-            y: transform.matrix.f
+            y: transform.matrix.f,
           });
         }
       }

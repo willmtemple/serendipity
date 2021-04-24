@@ -1,31 +1,44 @@
-import { observer } from 'mobx-react';
-import * as React from 'react';
+import { observer } from "mobx-react";
+import * as React from "react";
 
-import { useResizeParentEffect } from '../../hooks/measure';
+import { useResizeParentEffect } from "../../hooks/measure";
 
-interface IDropDownProps<V> {
-    callback?: (v: V) => void,
+interface DropDownProps<Opts extends string[]> {
+  onChange?: (v: Opts[number]) => void;
 
-    options: Array<{ label: string, value: V }>
-    selected?: number
+  options: Opts;
+  selected?: number;
+
+  transform?: string;
 }
 
-const DropDown = (<T extends {}>() => React.forwardRef<SVGForeignObjectElement, IDropDownProps<T>>((props, ref) => {
-    useResizeParentEffect();
+function DropDown<Opts extends string[]>(
+  props: DropDownProps<Opts>,
+  ref: React.ForwardedRef<SVGForeignObjectElement>
+) {
+  useResizeParentEffect();
 
-    function change(evt: React.ChangeEvent<HTMLSelectElement>) {
-        const v = parseInt(evt.target.value, 10);
+  function stop(evt: React.MouseEvent<HTMLSelectElement>) {
+    evt.stopPropagation();
+  }
 
-        props.callback!(props.options[v].value);
-    }
+  function change(evt: React.ChangeEvent<HTMLSelectElement>) {
+    const v = parseInt(evt.target.value, 10);
 
-    return (
-        <foreignObject ref={ref} width={67} height={30}>
-            <select value={props.selected} onChange={props.callback && change}>
-                {props.options.map((o, i) => <option value={i}>{o.label}</option>)}
-            </select>
-        </foreignObject>
-    );
-}))()
+    props.onChange?.(props.options[v]);
+  }
 
-export default observer(DropDown);
+  return (
+    <foreignObject ref={ref} width={67} height={30} transform={props.transform}>
+      <select value={props.selected} onChange={change} onMouseDownCapture={stop}>
+        {props.options.map((o, idx) => (
+          <option value={idx}>{o}</option>
+        ))}
+      </select>
+    </foreignObject>
+  );
+}
+
+export default observer(
+  React.forwardRef<SVGForeignObjectElement, DropDownProps<string[]>>(DropDown)
+);

@@ -1,17 +1,67 @@
 @import "./colors";
+@import "./fonts";
 
-// Root application div
-.editor {
+:root {
+  --foreground: #{$black};
+  --background: #{$white};
+
+  --primary: #{$cyan};
+  --error: #{$red};
+  --success: #{$green};
+}
+
+.serendipity-app {
   display: flex;
   flex-flow: column;
   height: 100%;
 
-  .body {
+  .workspace {
     flex-grow: 1;
   }
 
-  .terminal {
-    height: 30%;
+  .tray {
+    width: 100%;
+    background-color: var(--primary);
+
+    .panel {
+      display: flex;
+      flex-direction: row;
+      height: 1.4rem;
+
+      * {
+        margin-top: 0;
+        margin-bottom: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+      }
+
+      ul {
+        display: inline-block;
+        list-style: none;
+        height: 100%;
+
+        li {
+          height: 100%;
+
+          button {
+            background-color: darken($cyan, 20);
+            border: none;
+            height: 100%;
+            color: var(--background);
+            font-family: $fontStack;
+            font-weight: 700;
+          }
+        }
+      }
+    }
+  }
+
+  .ast-viewer {
+    width: 100%;
+    height: 100%;
+
+    padding-top: 0.25em;
+    padding-left: 1em;
   }
 }
 
@@ -22,7 +72,6 @@ header {
   align-items: center;
   justify-content: space-between;
 
-  background-color: $background;
   padding: 1rem 1rem 1rem 1rem;
 
   * {
@@ -32,19 +81,23 @@ header {
 
   h1 {
     display: inline-block;
-    color: $foreground;
+    color: var(--background);
   }
 
   ul {
     display: inline-block;
-    list-item-style: none;
+    list-style: none;
   }
 
   .right button {
     padding: 0.5rem 0.66rem 0.5rem 0.66rem;
     background-color: unset;
-    border: 2px solid $color2;
+    border: 2px solid var(--background);
     border-radius: 5px;
-    color: $color2;
+    color: var(--background);
   }
+}
+
+.primary {
+  background-color: var(--primary);
 }

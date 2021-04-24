@@ -6,9 +6,13 @@ export interface SvgFlexProps {
   align?: "beginning" | "middle" | "end";
   direction: "horizontal" | "vertical";
   padding?: number;
+  transform?: string;
+  children: React.ReactElement<{ transform: string }> | React.ReactElement<{ transform: string }>[];
 }
 
-type CompleteProps = MeasurementProps & React.PropsWithChildren<SvgFlexProps>;
+type CompleteProps = MeasurementProps & SvgFlexProps;
+
+const TEXT_BASELINE_OFFSET = 5;
 
 const SvgFlex = measureChildren(
   React.forwardRef<SVGGElement, CompleteProps>((props, ref) => {
@@ -22,22 +26,30 @@ const SvgFlex = measureChildren(
     }, 0);
 
     // Alignment helper function
-    const align: (rect: Rect) => number =
+    const _align: (rect: Rect) => number =
       props.align === "end"
         ? (r) => oDim - oSel(r)
         : props.align === "middle"
         ? (r) => (oDim - oSel(r)) / 2
-        : (r) => 0;
+        : () => 0;
 
     const pad = props.padding || 0;
 
     return (
-      <g className="flex" ref={ref}>
+      <g className="flex" ref={ref} transform={props.transform}>
         {(() => {
           let accumulator = 0;
           return React.Children.map(props.children, (c, idx) => {
-            console.log("child", c, "has width", props.sizes[idx].width);
             let translation;
+
+            const align =
+              props.direction === "horizontal" && React.isValidElement(c) && c.type === "text"
+                ? // This is needed because SVG text aligns strangely. We manually correc the
+                  // baseline of text children in the SvgFlex to match the baseline of inline
+                  // input expr blocks
+                  (rect: Rect) => _align(rect) + TEXT_BASELINE_OFFSET
+                : _align;
+
             const rect = props.sizes[idx];
             if (props.direction === "horizontal") {
               translation = `translate(${accumulator},${align(rect)})`;
@@ -47,8 +59,9 @@ const SvgFlex = measureChildren(
               translation = `translate(${align(rect)},${accumulator})`;
               accumulator += rect.height + pad;
             }
+
             return React.cloneElement(c as JSX.Element, {
-              transform: translation
+              transform: translation,
             });
           });
         })()}

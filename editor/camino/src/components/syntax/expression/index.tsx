@@ -1,7 +1,9 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 
-import * as expression from "@serendipity/syntax-surface/dist/expression";
+import { match } from "omnimatch";
+
+import * as expression from "@serendipity/syntax-surface";
 import { useStores } from "@serendipity/editor-stores";
 
 import ExpressionBlock from "../../layout/ExpressionBlock";
@@ -20,6 +22,7 @@ import Procedure from "./Procedure";
 import Tuple from "./Tuple";
 import Void from "./Void";
 import With from "./With";
+import { SyntaxObject } from "@serendipity/syntax";
 
 export {
   Accessor,
@@ -34,65 +37,68 @@ export {
   Procedure,
   Tuple,
   Void,
-  With
+  With,
 };
 
-function getColor(kind: string) {
+function getColor(kind: expression.Expression["kind"]) {
   switch (kind) {
-    case "if":
+    case "If":
       return "mediumvioletred";
-    case "void":
+    case "Void":
       return "black";
-    case "tuple":
+    case "Tuple":
       return "green";
-    case "number":
+    case "Number":
       return "red";
-    case "list":
+    case "List":
       return "darkgreen";
-    case "name":
+    case "Name":
       return "darkorange";
-    case "closure":
+    case "Closure":
       return "purple";
-    case "compare":
+    case "Compare":
       return "darkcyan";
-    case "arithmetic":
+    case "Arithmetic":
       return "midnightblue";
-    case "accessor":
+    case "Accessor":
       return "darkslategrey";
-    case "call":
+    case "Call":
       return "blueviolet";
-    case "procedure":
+    case "Procedure":
       return "firebrick";
-    case "with":
+    case "With":
       return "palevioletred";
     default:
       return "black";
   }
 }
 
-export interface IExpressionProps {
+export interface ExpressionProps {
   bind: any;
   bindKey: string;
   bindIdx?: number;
 
+  transform?: string;
+
   fixed?: boolean;
 }
 
-type CompleteProps = React.PropsWithChildren<IExpressionProps>;
+type CompleteProps = React.PropsWithChildren<ExpressionProps>;
 
-const Expression = React.forwardRef<any, CompleteProps>((props, ref) => {
+function Expression(props: CompleteProps, ref: React.ForwardedRef<unknown>) {
   const { Project } = useStores();
 
   const expr = (props.bindIdx === undefined
     ? props.bind[props.bindKey]
     : props.bind[props.bindKey][props.bindIdx]) as expression.Expression;
 
-  const kind = expr.exprKind;
+  const kind = expr.kind;
 
   if (kind === "@hole") {
     return (
       <SyntaxHole
-        ref={ref}
+        ref={ref as any}
+        transform={props.transform}
         bind={props.bind}
         bindKey={props.bindKey}
         bindIdx={props.bindIdx}
@@ -101,49 +107,32 @@ const Expression = React.forwardRef<any, CompleteProps>((props, ref) => {
     );
   }
 
-  const body = (() => {
-    switch (kind) {
-      case "if":
-        return <If _if={expr as expression.If} />;
-      case "void":
-        return <Void />;
-      case "tuple":
-        return <Tuple tuple={expr as expression.Tuple} />;
-      case "number":
-        return <Number number={expr as expression.Number} />;
-      case "closure":
-        return <Closure closure={expr as expression.Closure} />;
-      case "compare":
-        return <Compare compare={expr as expression.Compare} />;
-      case "name":
-        return <Name name={expr as expression.Name} />;
-      case "arithmetic":
-        return <Arithmetic arithmetic={expr as expression.Arithmetic} />;
-      case "call":
-        return <Call call={expr as expression.Call} />;
-      case "accessor":
-        return <Accessor accessor={expr as expression.Accessor} />;
-      case "procedure":
-        return <Procedure procedure={expr as expression.Procedure} />;
-      case "list":
-        return <List list={expr as expression.List} />;
-      case "with":
-        return <With with={expr as expression.With} />;
-      default:
-        return (
-          <text ref={ref} fill="white" fontFamily="Source Code Pro" fontWeight="600">
-            {expr.exprKind} (unimplemented)
-          </text>
-        );
-    }
-  })();
+  const body = match(expr, {
+    If: (expr) => <If _if={expr} />,
+    Void: () => <Void />,
+    Tuple: (expr) => <Tuple tuple={expr} />,
+    Number: (expr) => <Number number={expr} />,
+    Closure: (expr) => <Closure closure={expr} />,
+    Compare: (expr) => <Compare compare={expr} />,
+    Name: (expr) => <Name name={expr} />,
+    Arithmetic: (expr) => <Arithmetic arithmetic={expr} />,
+    Call: (expr) => <Call call={expr} />,
+    Accessor: (expr) => <Accessor accessor={expr} />,
+    Procedure: (expr) => <Procedure procedure={expr} />,
+    List: (expr) => <List list={expr} />,
+    With: (expr) => <With with={expr} />,
+  }) ?? (
+    <text ref={ref as any} fill="white" fontFamily="Source Code Pro" fontWeight="600">
+      {expr.kind} (unimplemented)
+    </text>
+  );
 
   // Set up node metadata for DOM access
   const containerProps: { [k: string]: any } = {};
-  const guid = Project.metadataFor(expr).guid;
+  const guid = Project.metadataFor(expr as SyntaxObject).guid;
   containerProps.id = guid;
   containerProps.className = props.fixed ? "expression" : "draggable syntax expression";
-  containerProps["data-guid"] = Project.metadataFor(expr).guid;
+  containerProps["data-guid"] = Project.metadataFor(expr as SyntaxObject).guid;
   containerProps["data-parent-guid"] = Project.metadataFor(props.bind).guid;
   containerProps["data-mutation-key"] = props.bindKey;
   if (props.bindIdx !== undefined) {
@@ -151,10 +140,15 @@ const Expression = React.forwardRef<any, CompleteProps>((props, ref) => {
   }
 
   return (
-    <ExpressionBlock ref={ref} color={getColor(kind)} containerProps={containerProps}>
+    <ExpressionBlock
+      ref={ref}
+      color={getColor(kind)}
+      containerProps={containerProps}
+      transform={props.transform}
+    >
       {body}
     </ExpressionBlock>
   );
-});
+}
 
-export default observer(Expression);
+export default observer(React.forwardRef<unknown, CompleteProps>(Expression));

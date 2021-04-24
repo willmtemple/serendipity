@@ -4,10 +4,10 @@
     "outDir": "dist-esm/",
     "rootDir": "src/",
 
-    "jsx": "react",
-    "experimentalDecorators": true
+    "lib": ["DOM", "ES2018"],
+
+    "jsx": "react-jsx"
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["dist*/**/*.ts", "node_modules"]
+  "include": ["src/**/*.ts?"]
 }
 

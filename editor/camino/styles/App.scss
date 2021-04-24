@@ -26,9 +26,30 @@ svg.caminoWorkspace {
     touch-action: none;
   }
 
+  .inline.button {
+    stroke: #ffffffff;
+    stroke-width: 2px;
+    fill: #ffffff20;
+
+    opacity: 0.4;
+
+    cursor: pointer;
+
+    &:hover {
+      opacity: 0.75;
+    }
+
+    line {
+      stroke: #ffffffff;
+      stroke-linecap: round;
+      stroke-width: 4px;
+    }
+  }
+
   text {
     font-family: "Source Code Pro", monospace;
-    font-weight: 600;
+    font-weight: 400;
+    font-size: 16pt;
     fill: white;
     pointer-events: none;
     /* Linters mark this as unused, but it does actually change the baseline */
@@ -50,7 +71,8 @@ svg.caminoWorkspace {
 
     input {
       font-family: "Source Code Pro", monospace;
-      font-weight: 600;
+      font-weight: 800;
+      font-size: 16pt;
       color: black;
       box-shadow: none;
       width: calc(100% - 8px);
@@ -60,6 +82,7 @@ svg.caminoWorkspace {
       border: 1px solid black;
       background-color: #ffffffaa;
       padding: 0 0 0 6px;
+      margin: 0;
     }
     input[type="number"] {
       appearance: textfield;
@@ -75,12 +98,62 @@ svg.caminoWorkspace {
     input[type="text"]:focus {
       outline-width: 0;
     }
-  }
-  path.expression:hover {
-    filter: url(#dropGlow);
+
+    select {
+      width: 100%;
+      height: 100%;
+
+      font-family: "Source Code Pro", monospace;
+      font-weight: 800;
+      font-size: 14pt;
+      color: white;
+      box-shadow: none;
+
+      text-align: center;
+      text-align-last: center;
+
+      background-color: #ffffff20;
+      border-radius: 5px;
+      border: 1px solid black;
+
+      option {
+        color: black;
+        font-size: 14pt;
+      }
+    }
   }
 
   path.drop:hover {
     filter: url(#dropGlow);
+  }
+
+  .expression.source {
+    &:hover {
+      path {
+        opacity: unset;
+        stroke-width: 1px;
+        stroke-dasharray: unset;
+        stroke: scale-color($color: darkorange, $lightness: -35%);
+        fill: darkorange;
+      }
+      filter: url(#dropShadow);
+    }
+
+    path {
+      opacity: 0.8;
+      stroke-width: 2px;
+      stroke-dasharray: 6 4;
+      stroke: white;
+      fill: #ffffff00;
+    }
+  }
+
+  .detached.global > .expression,
+  .detached.global > g > g.statement > path {
+    filter: url(#dropShadow);
+  }
+
+  .global > rect {
+    filter: url(#dropShadow);
   }
 }

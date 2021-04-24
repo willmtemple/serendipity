@@ -1,0 +1,5 @@
+main #[
+  // test
+  print str_cat("You said:", readline("echo>"));
+  /* also test */
+]

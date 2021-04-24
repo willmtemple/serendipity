@@ -1,33 +1,53 @@
-import { observer } from 'mobx-react';
-import * as React from 'react';
-import { useResizeParentEffect } from '../../hooks/measure';
+import { action } from "mobx";
+import { observer } from "mobx-react";
+import * as React from "react";
+import { useResizeParent, useResizeParentEffect } from "../../hooks/measure";
 
-interface IBinderProps {
-    bind: any,
-    bindKey: number | string
+export interface BinderProps {
+  bind: any;
+  bindKey: number | string;
+
+  transform?: string;
 }
 
-const Binder = React.forwardRef<SVGForeignObjectElement, IBinderProps>((props, ref) => {
-    useResizeParentEffect();
+const WIDTH_FACTOR = 12.9;
+const WIDTH_OFFSET = 2;
 
-    function change(evt: React.ChangeEvent<HTMLInputElement>) {
-        const v = evt.target.value;
+function Binder(props: BinderProps, ref: React.ForwardedRef<SVGForeignObjectElement>) {
+  useResizeParentEffect();
 
-        if (v === '' && typeof props.bindKey === 'number') {
-            props.bind.splice(props.bindKey, 1);
-            return;
-        }
+  const resize = useResizeParent();
 
-        props.bind[props.bindKey] = v;
+  const value = props.bind[props.bindKey] as string;
+
+  const [width, setWidth] = React.useState(value.length);
+
+  function _change(evt: React.ChangeEvent<HTMLInputElement>) {
+    const v = evt.target.value;
+
+    if (v === "" && typeof props.bindKey === "number") {
+      props.bind.splice(props.bindKey, 1);
+      return;
     }
 
-    return (
-        <foreignObject ref={ref} width={67} height={30}>
-            <input type="text"
-                value={props.bind[props.bindKey]}
-                onChange={change} />
-        </foreignObject>
-    );
-})
+    setWidth(v.length);
+    resize();
 
-export default observer(Binder);
+    props.bind[props.bindKey] = v;
+  }
+
+  const change = action(_change);
+
+  return (
+    <foreignObject
+      ref={ref}
+      width={(width + 1) * WIDTH_FACTOR + WIDTH_OFFSET}
+      height={30}
+      transform={props.transform}
+    >
+      <input type="text" value={props.bind[props.bindKey]} onChange={change} />
+    </foreignObject>
+  );
+}
+
+export default observer(React.forwardRef<SVGForeignObjectElement, BinderProps>(Binder));

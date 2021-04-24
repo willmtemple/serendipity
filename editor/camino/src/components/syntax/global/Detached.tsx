@@ -36,11 +36,10 @@ const Detached = React.forwardRef<SVGGElement, DetachedProps>((props, ref) => {
   })();
 
   return (
-    <g ref={ref} filter="url(#detachedElement)" opacity="0.8">
+    <g ref={ref} filter="url(#detachedElement)" opacity="0.8" className="detached global">
       {body}
     </g>
   );
 });
 
 export default observer(Detached);
-

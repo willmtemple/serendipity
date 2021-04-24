@@ -10,5 +10,5 @@ export {
   EditorDetachedStatements,
   EditorGlobal
 } from "./stores/ProjectStore";
-export { DefaultPrefsStore as Prefs } from "./stores/PrefsStore";
+export { DefaultPrefsStore as Prefs, CheckedEvent } from "./stores/PrefsStore";
 export { useStores, StoreProvider } from "./hook";

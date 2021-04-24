@@ -2,12 +2,13 @@
 // All rights reserved.
 // Licensed under the terms of the GNU General Public License v3 or later.
 
-import { Module, Global, makeExpr } from "@serendipity/syntax-surface";
+import { Module, Global, makeExpr, Statement } from "@serendipity/syntax-surface";
 
 import { factory } from "omnimatch";
 
-const { Define, DefineFunction } = factory<Global>();
-const { Accessor, Arithmetic, Call, Compare, If, Name, Number, Tuple, Void } = makeExpr;
+const { Define, DefineFunction, Main } = factory<Global>();
+const { Accessor, Arithmetic, Call, Compare, If, Name, Number, Procedure, Tuple, Void } = makeExpr;
+const { ForIn, Print } = factory<Statement>();
 
 export const surfaceExample: Module = {
   globals: [
@@ -30,7 +31,17 @@ export const surfaceExample: Module = {
           )
         )
       )
+    }),
+    Main({
+      body: Procedure(
+        ForIn({
+          binding: "i",
+          value: Call(Name("take"), Number(10), Name("recList")),
+          body: Print({
+            value: Name("i")
+          })
+        })
+      )
     })
   ]
 };
-

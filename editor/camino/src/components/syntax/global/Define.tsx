@@ -1,32 +1,33 @@
-import { observer } from 'mobx-react';
-import * as React from 'react';
+import { observer } from "mobx-react";
+import * as React from "react";
 
-import * as global from '@serendipity/syntax-surface/dist/global';
+import * as global from "@serendipity/syntax-surface";
 
-import Binder from '../../editor/Binder';
-import CloseButton from '../../editor/CloseButton';
-import Indent from '../../layout/Indent';
-import Expression from '../expression';
+import CloseButton from "../../editor/CloseButton";
+import Indent from "../../layout/Indent";
+import Expression from "../expression";
+import { SvgFlex } from "../../layout";
+import NameSource from "../../editor/NameSource";
 
-interface IDefineProps {
-    define: global.Define,
+interface DefineProps {
+  define: global.Define;
 
-    onDelete(): void,
+  onDelete(): void;
 }
 
-const Define = React.forwardRef<SVGGElement, IDefineProps>((props, ref) => (
+function Define(props: DefineProps, ref: React.ForwardedRef<SVGGElement>) {
+  return (
     <g ref={ref}>
+      <SvgFlex direction="horizontal" padding={10} align={"middle"}>
         <CloseButton onClick={props.onDelete} />
-        <Indent x={32} y={8}>
-            <text>define</text>
-        </Indent>
-        <Indent x={96}>
-            <Binder bind={props.define} bindKey="name" />
-        </Indent>
-        <Indent x={36} y={48}>
-            <Expression bind={props.define} bindKey="value" />
-        </Indent>
+        <text>define</text>
+        <NameSource binderProps={{ bind: props.define, bindKey: "name" }} />
+      </SvgFlex>
+      <Indent x={36} y={60}>
+        <Expression bind={props.define} bindKey="value" />
+      </Indent>
     </g>
-))
+  );
+}
 
-export default observer(Define);
+export default observer(React.forwardRef<SVGGElement, DefineProps>(Define));

@@ -1,0 +1,78 @@
+// Copyright (c) Serendipity Project Contributors
+// Licensed under the terms of the MIT license.
+
+Module ::= ListContents
+
+<ListContents> ::= Expression (ws-req Expression)*
+BracketList ::= '[' ws-opt ListContents? ws-opt ']'
+ParenList ::= '(' ws-opt ListContents? ws-opt ')'
+BraceList ::= '{' ws-opt ListContents? ws-opt '}'
+
+Expression ::= 
+  | '#' AltExpression
+  | Tuple
+  | Array
+  | Map
+  | <Atom>
+
+Atom ::= Number | String | Symbol
+
+// (foo, "bar", "ba" + "z", qux(value))
+Tuple ::= <ParenList>
+Array ::= <BracketList>
+
+// Map literals are like object literals in JS
+// {
+//   sym: "foo",
+//   0: "ba" + "r",
+//   "str": "baz",
+//   ...rest,
+//   [computed + "key"]: "qux"
+// }
+Map ::= '{' MapInterior? '}'
+MapInterior ::= MapElement (',' MapElement)* ','?
+MapElement ::=
+  | KeyValuePair
+  | MapSpread
+KeyValuePair ::= MapKey ':' MapValue
+MapKey ::= Atom | BracketList
+MapValue ::= Expression+
+MapSpread ::= '...' MapValue
+
+<AltExpression> ::= Set | Procedure
+
+// #{this, that, the(other).thing}
+Set ::= <BraceList>
+
+// #[print foo(); if x #[ break; ] else #[ exit err.GENERIC_ERROR ]]
+Procedure ::= <BracketList>
+
+// +0
+// -0
+// -5
+// +0x1A
+Number ::= /[+-]?[0-9]([bqodx][0-9a-fA-F])?[0-9a-fA-F]*(\.[0-9a-fA-F]+)?/
+
+String ::=
+  | '"' /([^"\n]|\\"|\\\n)*/ '"'
+  | '\'' /([^'\n]|\\'|\\\n)*/ '\''
+
+Symbol ::=
+  | Sigil
+  | Name
+
+Sigil ::= /[,.:;<>?|!@#$%^&*-=+]/
+
+Name ::= /[!<Sigil>]+/
+
+Comment ::= /\/\/[^\n]*/
+
+BlockComment ::= '/*' InsideBlockComment '*/'
+InsideBlockComment ::=
+  | /[^\*]/ InsideBlockComment
+  | /\*[^\/]/ InsideBlockComment
+
+Whitespace ::= /\s+/ | Comment | BlockComment
+
+ws-req ::= Whitespace+
+ws-opt ::= Whitespace*

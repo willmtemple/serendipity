@@ -1,12 +1,12 @@
-import { Expression } from "@serendipity/syntax-surface/dist/expression";
-import { Global } from "@serendipity/syntax-surface/dist/global";
-import { Statement } from "@serendipity/syntax-surface/dist/statement";
+import { Expression } from "@serendipity/syntax-surface";
+import { Global } from "@serendipity/syntax-surface";
+import { Statement } from "@serendipity/syntax-surface";
 
 import { Project } from "@serendipity/editor-stores";
 
 function hole(): Expression {
   const e: Expression = {
-    exprKind: "@hole"
+    kind: "@hole",
   };
 
   Project.loadGUID(e as any);
@@ -16,7 +16,7 @@ function hole(): Expression {
 
 function stmtHole(): Statement {
   const s: Statement = {
-    statementKind: "@hole"
+    kind: "@hole",
   };
 
   Project.loadGUID(s as any);
@@ -34,54 +34,54 @@ function rq<T>(v: any, type: string): T {
 
 // tslint:disable-next-line: no-namespace
 export namespace spawn {
-  export function statement(skind: string, ..._args: any[]) {
-    const s = { statementKind: skind } as Statement;
+  export function statement(skind: string, ..._args: unknown[]) {
+    const s = { kind: skind } as Statement;
     const sm: Statement = ((): Statement => {
-      switch (s.statementKind) {
-        case "do":
+      switch (s.kind) {
+        case "Do":
           return {
-            statementKind: "do",
-            body: hole()
+            kind: "Do",
+            body: hole(),
           };
-        case "break":
+        case "Break":
           return {
-            statementKind: "break"
+            kind: "Break",
           };
-        case "forever":
+        case "Forever":
           return {
-            statementKind: "forever",
-            body: stmtHole()
+            kind: "Forever",
+            body: stmtHole(),
           };
-        case "forin":
+        case "ForIn":
           return {
-            statementKind: "forin",
+            kind: "ForIn",
             binding: "",
             value: hole(),
-            body: stmtHole()
+            body: stmtHole(),
           };
-        case "if":
+        case "If":
           return {
-            statementKind: "if",
+            kind: "If",
             condition: hole(),
             body: stmtHole(),
-            _else: undefined
+            _else: undefined,
           };
-        case "let":
+        case "Let":
           return {
-            statementKind: "let",
+            kind: "Let",
             name: "",
-            value: hole()
+            value: hole(),
           };
-        case "set":
+        case "Set":
           return {
-            statementKind: "set",
+            kind: "Set",
             name: "",
-            value: hole()
+            value: hole(),
           };
-        case "print":
+        case "Print":
           return {
-            statementKind: "print",
-            value: hole()
+            kind: "Print",
+            value: hole(),
           };
         case "@hole":
           throw new Error("Cannot instantiate a floating hole.");
@@ -93,33 +93,33 @@ export namespace spawn {
     })();
 
     Project.addGlobal({
-      globalKind: "_editor_detachedsyntax",
+      kind: "_editor_detachedsyntax",
       syntaxKind: "statement",
-      element: [sm]
+      element: [sm],
     });
   }
 
-  export function global(gkind: string, ...args: any[]) {
-    const g = { globalKind: gkind } as Global;
+  export function global(gkind: string, ..._args: unknown[]) {
+    const g = { kind: gkind } as Global;
     const s: Global = ((): Global => {
-      switch (g.globalKind) {
-        case "define":
+      switch (g.kind) {
+        case "Define":
           return {
-            globalKind: "define",
+            kind: "Define",
             name: "",
-            value: hole()
+            value: hole(),
           };
-        case "definefunc":
+        case "DefineFunction":
           return {
-            globalKind: "definefunc",
+            kind: "DefineFunction",
             name: "",
             body: hole(),
-            parameters: []
+            parameters: [],
           };
-        case "main":
+        case "Main":
           return {
-            globalKind: "main",
-            body: hole()
+            kind: "Main",
+            body: hole(),
           };
         default:
           // tslint:disable-next-line: variable-name
@@ -131,97 +131,97 @@ export namespace spawn {
     Project.addGlobal(s);
   }
 
-  export function expr(ekind: string, ...args: any[]) {
-    const e = { exprKind: ekind } as Expression;
+  export function expr(ekind: string, ...args: unknown[]) {
+    const e = { kind: ekind } as Expression;
     const s: Expression = ((): Expression => {
-      switch (e.exprKind) {
-        case "accessor":
+      switch (e.kind) {
+        case "Accessor":
           return {
-            exprKind: "accessor",
+            kind: "Accessor",
             accessee: hole(),
-            index: hole()
+            index: hole(),
           };
-        case "arithmetic":
+        case "Arithmetic":
           return {
-            exprKind: "arithmetic",
+            kind: "Arithmetic",
             left: hole(),
             right: hole(),
-            op: "+"
+            op: "+",
           };
-        case "number":
+        case "Number":
           return {
-            exprKind: "number",
-            value: 0
+            kind: "Number",
+            value: 0,
           };
-        case "string":
+        case "String":
           return {
-            exprKind: "string",
-            value: ""
+            kind: "String",
+            value: "",
           };
-        case "boolean":
+        case "Boolean":
           return {
-            exprKind: "boolean",
-            value: false
+            kind: "Boolean",
+            value: false,
           };
-        case "name":
+        case "Name":
           return {
-            exprKind: "name",
-            name: ""
+            kind: "Name",
+            name: "",
           };
-        case "with":
+        case "With":
           return {
-            exprKind: "with",
+            kind: "With",
             binding: ["", hole()],
-            expr: hole()
+            expr: hole(),
           };
-        case "call":
+        case "Call":
           return {
-            exprKind: "call",
+            kind: "Call",
             parameters: [],
-            callee: hole()
+            callee: hole(),
           };
-        case "closure":
+        case "Closure":
           return {
-            exprKind: "closure",
+            kind: "Closure",
             body: hole(),
-            parameters: []
+            parameters: [],
           };
-        case "list":
+        case "List":
           return {
-            exprKind: "list",
-            contents: []
+            kind: "List",
+            contents: [],
           };
-        case "tuple":
+        case "Tuple":
           return {
-            exprKind: "tuple",
-            values: []
+            kind: "Tuple",
+            values: [],
           };
-        case "procedure":
+        case "Procedure":
           return {
-            exprKind: "procedure",
+            kind: "Procedure",
             body: [
               {
-                statementKind: "@hole"
-              }
-            ]
+                kind: "@hole",
+              },
+            ],
           };
-        case "void":
+        case "Void":
           return {
-            exprKind: "void"
+            kind: "Void",
           };
-        case "if":
+        case "If":
           return {
-            exprKind: "if",
+            kind: "If",
             cond: hole(),
             then: hole(),
-            _else: hole()
+            _else: hole(),
           };
-        case "compare":
+        case "Compare":
           return {
-            exprKind: "compare",
+            kind: "Compare",
             left: hole(),
             right: hole(),
-            op: rq(args[0], "string")
+            op: rq(args[0], "string"),
           };
         case "@hole":
           throw new Error("Cannot instantiate a floating hole.");
@@ -233,9 +233,9 @@ export namespace spawn {
     })();
 
     Project.addGlobal({
-      globalKind: "_editor_detachedsyntax",
+      kind: "_editor_detachedsyntax",
       syntaxKind: "expression",
-      element: s
+      element: s,
     });
   }
 }
@@ -246,4 +246,3 @@ export namespace project {
     Project.reset();
   }
 }
-

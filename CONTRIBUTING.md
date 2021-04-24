@@ -6,13 +6,12 @@ programming language for everyday use in scripting, software development, etc.
 
 ## Maintainership
 
-Currently, I ([Will Temple](https://wtemple.info)) am the project's sole
-maintainer in my free time. Contributions of implementation code, design
-suggestions, artwork, documentation, experience reports, test cases, example
-programs, and of course error reports are all welcome. Please create a new
-issue or pull request.
+I ([Will Temple](https://wtemple.info)) am the project's sole maintainer in my
+free time. Contributions of implementation code, design suggestions, artwork,
+documentation, experience reports, test cases, example programs, and of course
+error reports are all welcome. Please create a new issue or pull request.
 
-I am unlikely to accept large contributions without first having a
+I am unlikely to accept structural contributions without first having a
 comprehensive discussion about its impact on the project's design goals. If you
 are considering implementing a new feature, please use the issue form to start
 a design discussion first to ensure that your contributions will be aligned
@@ -20,13 +19,7 @@ with Serendipity's design goals. Otherwise, your contribution may be rejected.
 
 The first step to contributing is to read the [design guide][design].
 
-### Disclaimer of Affiliation
-
-Will is an employee of Microsoft. His opinions do not necessarily reflect the
-opinions of Microsoft. The Serendipity Project is not affiliated with Microsoft
-or any other institution.
-
-### Licensure
+### Permissions
 
 Serendipity follows a traditional free-software contribution model.
 
@@ -34,14 +27,6 @@ When you contribute to a Serendipity package, you agree to incorporate it under
 the terms of the license of that package. No further contributor license
 agreement or copyright assignment will be required, and you will continue to
 own the copyright on your contributions.
-
-### Conduct
-
-All are welcome to participate in the Serendipity project. All participants
-are asked to assume the best intentions from others and to critique, clarify,
-and debate in a spirited, but positive manner. Conduct that demeans or excludes
-any contributor from participation on the basis of their person will not be
-tolerated [[1]](#endnote-1).
 
 ## Workflow
 
@@ -119,19 +104,15 @@ workspace using `rush generate-workspace`.
 ## Platforms
 
 Serendipity is developed on Linux with the latest LTS version of Node. I have
-no reason to believe that it would not work on Windows 10 or macOS or that it
-would not work on Node LTS 10 and Node 13. However, I don't currently test on
-any platforms other than what's locally installed on my computers.
-
-In theory, Serendipity should always build and run on active LTS versions of
-Node on Linux, Windows, and macOS. We will not support versions of Node that
-have exceeded their end-of-life.
+no reason to believe that it would not work on other platforms. However, I
+don't currently test on any platforms other than what's locally installed on my
+computers.
 
 ### Windows
 
-Users of msysgit on Windows 10 build 1607 and later are advised to free
-themselves of their 260-character tether by setting the `longpaths` option
-(`git config --system core.longtpaths true`) and setting a registry key:
+Users of msysgit on Windows 10 build 1607 and later are advised to set the
+`longpaths` option (`git config --system core.longtpaths true`) and to set a
+registry key:
 
 __Warning__: I don't use Windows, and so I don't test this registry setting.
 Proceed at your own risk.
@@ -143,14 +124,6 @@ Windows Registry Editor Version 5.00
 "LongPathsEnabled"="dword:1"
 
 ```
-
-Users of Windows versions older than Windows 10 build 1607 are advised to
-update or, if updating is not a possibility due to the age and/or capabilities
-of your hardware, to consider installing a distrbution of Linux as an
-alternative.
-
-<a id="endnote-1"></a>
-__[1]__: see [The Paradox of Tolerance](https://en.wikipedia.org/wiki/Paradox_of_tolerance)
 
 [design]: https://github.com/willmtemple/serendipity/tree/master/DESIGN.md
 [rush]: https://rushjs.io/

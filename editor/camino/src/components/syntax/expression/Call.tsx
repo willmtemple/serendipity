@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
 
-import { Call } from '@serendipity/syntax-surface/dist/expression';
+import { Call } from '@serendipity/syntax-surface';
 
 import SvgFlex from '../../../components/layout/SvgFlex';
 import Expression from '.';

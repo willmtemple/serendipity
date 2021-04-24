@@ -2,7 +2,8 @@
   "name": "@serendipity/syntax-surface",
   "version": "0.1.0-dev",
   "description": "Defines surface upper syntax for serendipity code",
-  "main": "dist-esm/index.js",
+  "module": "dist-esm/index.js",
+  "types": "dist-esm/index.d.ts",
   "files": [
     "dist-esm/"
   ],
@@ -41,11 +42,11 @@
   "devDependencies": {
     "@serendipity/eslint-config": "0.1.0-dev",
     "@types/node": "^12.0.0",
-    "@typescript-eslint/eslint-plugin": "^2.3.0",
-    "eslint": "^6.6.0",
+    "@typescript-eslint/eslint-plugin": "^4.0.0",
+    "eslint": "^7.0.0",
     "eslint-plugin-header": "^3.0.0",
     "eslint-plugin-promise": "^4.2.1",
     "prettier": "~1.18.2",
-    "typescript": "~3.9.0"
+    "typescript": "~4.1.0"
   }
 }

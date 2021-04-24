@@ -1,4 +1,4 @@
-import { action, autorun, observable, set, toJS } from "mobx";
+import { autorun, makeAutoObservable, set, toJS } from "mobx";
 
 import { Module } from "@serendipity/syntax-surface";
 
@@ -24,7 +24,7 @@ interface CheckedEventTarget<T extends { [k: string]: Event }> {
 }
 
 export class PrefsStore {
-  @observable public prefs = defaultPrefs;
+  public prefs = defaultPrefs;
 
   public eventBus = new EventTarget() as CheckedEventTarget<{
     data: CustomEvent<{ message: string }>;
@@ -32,7 +32,7 @@ export class PrefsStore {
   }>;
 
   constructor() {
-    const that = this;
+    makeAutoObservable(this);
     const storedData = localStorage.getItem(LOCAL_STORE_KEY);
     if (storedData) {
       const storedPrefs = JSON.parse(storedData);
@@ -41,26 +41,25 @@ export class PrefsStore {
 
     let firstRun = true;
     autorun(() => {
-      const json = JSON.stringify(toJS(that.prefs));
+      const json = JSON.stringify(toJS(this.prefs));
       if (!firstRun) {
         localStorage.setItem(LOCAL_STORE_KEY, json);
       }
       firstRun = false;
     });
-
-    // TODO: For debugging purposes
-    this.eventBus.addEventListener("data", (event) => {
-      console.log("[stdout]", event.detail.message);
-    });
   }
 
-  @action public setPosition(x: number, y: number) {
+  public setPosition(x: number, y: number) {
     this.prefs.editorPosition.x = x;
     this.prefs.editorPosition.y = y;
   }
 
-  @action public toggleTerminal() {
+  public toggleTerminal() {
     this.prefs.terminal = !this.prefs.terminal;
+  }
+
+  get isTerminalOpen() {
+    return this.prefs.terminal;
   }
 }
 

@@ -6,10 +6,12 @@ import { useStores } from "@serendipity/editor-stores";
 
 import { useResizeParentEffect } from "../../hooks/measure";
 
-interface ISyntaxHoleProps {
+interface SyntaxHoleProps {
   bind: SyntaxObject;
   bindKey: string | number;
   bindIdx?: number;
+
+  transform?: string;
 
   kind: "expression" | "statement";
 }
@@ -30,7 +32,7 @@ function fork(x: number) {
 const path: string = ((): string => {
   const r = {
     width: 120,
-    height: 42 - FORK_HEIGHT
+    height: 42 - FORK_HEIGHT,
   };
   const span = r.width + RADIUS * 2;
   const run = span - FORK_SIZE;
@@ -83,7 +85,7 @@ const path: string = ((): string => {
     `;
 })();
 
-const StatementHole = React.forwardRef<SVGPathElement, ISyntaxHoleProps>((props, ref) => {
+const StatementHole = React.forwardRef<SVGPathElement, SyntaxHoleProps>((props, ref) => {
   const { Project } = useStores();
 
   useResizeParentEffect();
@@ -91,15 +93,18 @@ const StatementHole = React.forwardRef<SVGPathElement, ISyntaxHoleProps>((props,
   return (
     <path
       ref={ref}
+      transform={props.transform}
       className={"drop " + props.kind}
       data-parent-guid={Project.metadataFor(props.bind).guid}
       data-mutation-key={props.bindKey}
       data-mutation-idx={props.bindIdx}
       fill="#FFFFFFA0"
+      stroke="#000000"
+      strokeWidth={2}
+      strokeDasharray="6 4"
       d={path}
     />
   );
 });
 
 export default observer(StatementHole);
-

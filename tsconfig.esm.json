@@ -1,11 +1,12 @@
 {
   "$schema": "http://json.schemastore.org/tsconfig",
+  "compileOnSave": true,
 
   "compilerOptions": {
-    "module": "ES2015",
+    "module": "ES6",
     "moduleResolution": "node",
-    "target": "ES2015",
-    "lib": [],
+    "target": "ES2018",
+    "lib": ["ES2018"],
 
     "strict": true,
     "alwaysStrict": true,
@@ -15,7 +16,8 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
 
-    "sourceMap": true,
+    "inlineSourceMap": true,
+    "inlineSources": true,
     "declaration": true,
 
     "allowSyntheticDefaultImports": true

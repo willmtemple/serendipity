@@ -20,6 +20,7 @@ export interface CachedBinder {
   kind: "binder";
   bind: Binder;
   cache?: Value;
+  expr?: undefined;
 }
 
 export interface ScopedValue {
@@ -96,11 +97,11 @@ export class Scope {
       switch (cexpr.kind) {
         case "expression":
           res = this.evaluator(cexpr.expr, this);
-          delete cexpr.expr;
+          delete (cexpr as any).expr;
           break;
         case "binder":
           res = this.evaluator(cexpr.bind.expr, cexpr.bind.scope);
-          delete cexpr.bind;
+          delete (cexpr as any).bind;
           break;
         default: {
           const __exhaust: never = cexpr;

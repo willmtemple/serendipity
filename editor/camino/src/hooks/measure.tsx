@@ -32,16 +32,6 @@ export interface Rect {
 }
 
 function same(l: Rect, r: Rect): boolean {
-  if (!l) {
-    return r ? false : true;
-  }
-  if (!r) {
-    return false;
-  }
-  // tslint:disable-next-line: triple-equals
-  if (l == r) {
-    return true;
-  }
   return l.x === r.x && l.y === r.y && l.width === r.width && l.height === r.height;
 }
 
@@ -49,34 +39,32 @@ const blankExtent: Rect = {
   x: 0,
   y: 0,
   width: 0,
-  height: 0
+  height: 0,
 };
 
-function extend(l: Rect[], n: number): Rect[] {
-  const final = [...l];
+type HTMLElementWithBBox = HTMLElement & { getBBox(): Rect };
+type SizeableChildRef = React.RefObject<HTMLElementWithBBox> | null;
 
-  for (let i = 0; i < n; i++) {
-    if (!final[i]) {
-      final[i] = { ...blankExtent };
-    }
-  }
-
-  return final;
-}
-
-type SVGRefsType = Array<React.RefObject<SVGGElement>>;
-
-function refChildren(children: React.ReactNodeArray): [React.ReactNodeArray, SVGRefsType] {
-  const refs: SVGRefsType = [];
+function refChildren(children: React.ReactNode) {
+  const refs: SizeableChildRef[] = [];
   function ref() {
-    const r = React.createRef<SVGGElement>();
+    const r = React.createRef<HTMLElementWithBBox>();
     refs.push(r);
     return r;
   }
 
-  const containedChildren = React.Children.map(children, (c) => <g ref={ref()}>{c}</g>);
+  const newChildren = React.Children.map(React.Children.toArray(children), (c) => {
+    if (React.isValidElement(c)) {
+      return React.cloneElement(c, {
+        ref: ref(),
+      });
+    } else {
+      refs.push(null);
+      return c;
+    }
+  });
 
-  return [containedChildren as React.ReactNodeArray, refs];
+  return [newChildren, refs] as const;
 }
 
 export interface MeasurementProps {
@@ -87,49 +75,47 @@ export function measureChildren<P extends {}>(
   WrappedComponent: React.ComponentType<P & MeasurementProps>
 ) {
   return React.forwardRef<any, React.PropsWithChildren<P>>((props, ref) => {
-    const pChildren = React.Children.toArray(props.children);
+    const [children, childRefs] = React.useMemo(() => refChildren(props.children), [
+      props.children,
+    ]);
 
-    const [children, childRefs] = React.useMemo(() => refChildren(pChildren), pChildren);
-    const [rects, setRects] = React.useState<Rect[]>([]);
+    const [rects, setRects] = React.useState<Rect[]>(
+      React.Children.map(children, () => ({ ...blankExtent }))
+    );
 
     const resizeParent = useResizeParent();
 
     const extendedProps: P & MeasurementProps = {
       ...props,
-      sizes: extend(rects, children.length),
+      sizes: rects,
       children,
-      ref
+      ref,
     };
 
     function resize() {
-      const canSize = childRefs.every((r) => r.current !== null);
-      if (ready.current && canSize) {
-        const newRects = childRefs.map((r) => (r.current && r.current.getBBox()) as Rect);
+      if (ready.current && childRefs.every((r) => r === null || r.current !== null)) {
+        const newRects = childRefs.map((r) => r?.current?.getBBox() ?? { ...blankExtent });
 
-        if (!newRects.every((r, idx) => same(r, rects[idx]))) {
+        if (newRects.some((r, idx) => !same(r, rects[idx]))) {
           setRects(newRects);
-        } else {
-          resizeParent();
         }
+
+        resizeParent();
       }
     }
 
     // Update logic
     const ready = React.useRef(false);
-    const shouldResizeOnUpdate = React.useRef(false);
     React.useLayoutEffect(() => {
-      if (ready.current) {
-        shouldResizeOnUpdate.current = false;
-        resize();
-      } else {
+      if (!ready.current) {
         ready.current = true;
-        resize();
       }
+      resize();
     });
 
     return (
       <ParentLayoutContext.Provider value={resize}>
-        <WrappedComponent {...extendedProps} ref={ref} />
+        <WrappedComponent {...extendedProps} />
       </ParentLayoutContext.Provider>
     );
   });

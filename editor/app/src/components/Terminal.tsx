@@ -17,13 +17,15 @@ export const Terminal: React.FC = () => {
       const term = new XTerm({
         fontFamily:
           "Source Code Pro, Monaco, Menlo, Ubuntu Mono, courier-new, monospace",
-        fontWeight: "600"
+        fontWeight: "600",
       });
 
       term.open(termDiv.current);
       fit(term);
 
-      term.writeln("Program Terminal");
+      term.writeln(
+        "xterm... sorry to disappoint, but this isn't a REPL yet ;)"
+      );
       term.writeln("");
 
       const handleEvent = (evt: CustomEvent<{ message: string }>) => {
@@ -37,7 +39,7 @@ export const Terminal: React.FC = () => {
     } else {
       return () => {};
     }
-  }, []);
+  }, [termDiv, Prefs.eventBus]);
 
   return <div ref={termDiv} className="terminal" />;
 };

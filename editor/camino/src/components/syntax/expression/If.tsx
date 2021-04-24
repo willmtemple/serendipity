@@ -1,12 +1,10 @@
-import { observer } from "mobx-react";
-import * as React from "react";
-
-import { If } from "@serendipity/syntax-surface/dist/expression";
+import { If } from "@serendipity/syntax-surface";
 
 import SvgFlex from "../../../components/layout/SvgFlex";
 import Expression from ".";
+import { syntax } from "../../../util/syntaxComponent";
 
-const If = React.forwardRef<any, { _if: If }>((props, ref) => (
+export default syntax<{ _if: If }>("If", (props, ref) => (
   <SvgFlex ref={ref} direction="vertical" padding={20}>
     <SvgFlex direction="horizontal" padding={20}>
       <text>if</text>
@@ -22,5 +20,3 @@ const If = React.forwardRef<any, { _if: If }>((props, ref) => (
     </SvgFlex>
   </SvgFlex>
 ));
-
-export default observer(If);
