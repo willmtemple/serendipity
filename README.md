@@ -88,26 +88,8 @@ several collaborators. My work on [BlockyTalky 3][bt3] influenced how I
 eventually chose to build the Serendipity runtimes and agents.
 
 Some of Serendipity's language and editor features are inspired in part by
-[Racket][racket] (graduated language levels, debugger) and [Hazel][hazel]
-(direct structure editing, partial computation).
-
-## License
-
-This section is a summary does not constitute a waiver of any provision
-of the full text of the licenses found in each package's `LICENSE` file.
-
-In general, we release our code under variations of the GNU GPLv3 or under the
-MIT license. Core libraries and plugins are generally licensed under the LGPL,
-command-line utilities such as `slipr` are licensed under the GPL, web
-application components such as Camino and the user portal are licensed under
-the AGPL, and miscellaneous utilities and scripts are licensed under the MIT
-license. We may eventually develop some plugins and extensions for license
-under the Business Source License, but all components are and always will be
-royalty-free to use for academic and non-commercial purposes.
-
-Compilers and editors have specific license exceptions for code authored by
-end-users, so that authors of software using our tools are not encumbered by
-our licensing decisions. See the LICENSE files for exact details.
+[Racket][racket] (graduated language levels/multiple front-ends, debugger) and [Hazel][hazel]
+(direct structure editing).
 
 [//]: # (Internal Links)
 [contributing]: https://github.com/willmtemple/serendipity/tree/master/CONTRIBUTING.md

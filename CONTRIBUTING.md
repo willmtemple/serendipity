@@ -19,15 +19,6 @@ with Serendipity's design goals. Otherwise, your contribution may be rejected.
 
 The first step to contributing is to read the [design guide][design].
 
-### Permissions
-
-Serendipity follows a traditional free-software contribution model.
-
-When you contribute to a Serendipity package, you agree to incorporate it under
-the terms of the license of that package. No further contributor license
-agreement or copyright assignment will be required, and you will continue to
-own the copyright on your contributions.
-
 ## Workflow
 
 The project consists of many packages organized as a monorepo. It is managed
@@ -114,7 +105,7 @@ Users of msysgit on Windows 10 build 1607 and later are advised to set the
 `longpaths` option (`git config --system core.longtpaths true`) and to set a
 registry key:
 
-__Warning__: I don't use Windows, and so I don't test this registry setting.
+**Warning**: I don't use Windows, and so I don't test this registry setting.
 Proceed at your own risk.
 
 ```reg
@@ -127,4 +118,3 @@ Windows Registry Editor Version 5.00
 
 [design]: https://github.com/willmtemple/serendipity/tree/master/DESIGN.md
 [rush]: https://rushjs.io/
-
