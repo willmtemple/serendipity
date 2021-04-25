@@ -1,6 +1,6 @@
 {
   "name": "@serendipity/syntax-surface",
-  "version": "0.1.0-dev",
+  "version": "0.1.0",
   "description": "Defines surface upper syntax for serendipity code",
   "module": "dist-esm/index.js",
   "types": "dist-esm/index.d.ts",
@@ -36,11 +36,11 @@
   },
   "prettier": "@serendipity/eslint-config/prettier.json",
   "dependencies": {
-    "@serendipity/syntax": "0.1.0-dev",
+    "@serendipity/syntax": "0.1.0",
     "omnimatch": "1.0.0-development.2"
   },
   "devDependencies": {
-    "@serendipity/eslint-config": "0.1.0-dev",
+    "@serendipity/eslint-config": "0.1.0",
     "@types/node": "^12.0.0",
     "@typescript-eslint/eslint-plugin": "^4.0.0",
     "eslint": "^7.0.0",

@@ -1,6 +1,6 @@
 {
   "name": "@serendipity/slipr",
-  "version": "0.1.0-dev",
+  "version": "0.1.0",
   "description": "Serendipity LISP representation and engine",
   "author": "Serendipity Project Contributors",
   "contributors": [
@@ -36,16 +36,16 @@
   },
   "prettier": "@serendipity/eslint-config/prettier.json",
   "dependencies": {
-    "@serendipity/compiler-desugar": "0.1.0-dev",
-    "@serendipity/interpreter": "0.1.0-dev",
-    "@serendipity/syntax": "0.1.0-dev",
-    "@serendipity/syntax-abstract": "0.1.0-dev",
-    "@serendipity/syntax-surface": "0.1.0-dev",
+    "@serendipity/compiler-desugar": "0.1.0",
+    "@serendipity/interpreter": "0.1.0",
+    "@serendipity/syntax": "0.1.0",
+    "@serendipity/syntax-abstract": "0.1.0",
+    "@serendipity/syntax-surface": "0.1.0",
     "readline-sync": "~1.4.10",
     "omnimatch": "1.0.0-development.2"
   },
   "devDependencies": {
-    "@serendipity/eslint-config": "0.1.0-dev",
+    "@serendipity/eslint-config": "0.1.0",
     "@types/node": "^12.0.0",
     "@types/readline-sync": "~1.4.3",
     "@typescript-eslint/eslint-plugin": "^4.0.0",

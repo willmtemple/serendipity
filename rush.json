@@ -56,6 +56,12 @@
       "shouldPublish": false
     },
     {
+      "packageName": "@serendipity/compiler-reader",
+      "projectFolder": "compiler/reader",
+      "reviewCategory": "production",
+      "shouldPublish": false
+    },
+    {
       "packageName": "@serendipity/editor-app",
       "projectFolder": "editor/app",
       "reviewCategory": "production",

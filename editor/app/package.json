@@ -24,12 +24,12 @@
     ]
   },
   "dependencies": {
-    "@serendipity/camino": "0.1.0-dev",
-    "@serendipity/compiler-desugar": "0.1.0-dev",
-    "@serendipity/editor-stores": "0.1.0-dev",
-    "@serendipity/interpreter": "0.1.0-dev",
-    "@serendipity/syntax": "0.1.0-dev",
-    "@serendipity/syntax-surface": "0.1.0-dev",
+    "@serendipity/camino": "0.1.0",
+    "@serendipity/compiler-desugar": "0.1.0",
+    "@serendipity/editor-stores": "0.1.0",
+    "@serendipity/interpreter": "0.1.0",
+    "@serendipity/syntax": "0.1.0",
+    "@serendipity/syntax-surface": "0.1.0",
     "@testing-library/dom": "~6.11.0",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.4.0",

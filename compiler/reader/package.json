@@ -1,8 +1,10 @@
 {
-  "name": "@serendipity/compiler-desugar",
-  "version": "0.1.0-dev",
-  "description": "Serendipity surface language desugaring",
+  "name": "@serendipity/compiler-reader",
+  "version": "0.1.0",
+  "description": "LISP-like primitive syntax parser",
   "author": "Serendipity Project Contributors",
+  "module": "dist-esm/index.js",
+  "types": "dist-esm/index.d.ts",
   "contributors": [
     {
       "name": "Will Temple",
@@ -11,18 +13,11 @@
     }
   ],
   "license": "GPL-3.0-or-later",
-  "homepage": "https://github.com/willmtemple/serendipity/tree/master/compiler/desugar",
+  "homepage": "https://github.com/willmtemple/serendipity/tree/master/compiler/reader",
   "repository": {
     "type": "git",
     "url": "https://github.com/willmtemple/serendipity.git",
-    "directory": "compiler/desugar"
-  },
-  "main": "dist-esm/index.js",
-  "files": [
-    "dist"
-  ],
-  "directories": {
-    "lib": "dist"
+    "directory": "compiler/reader"
   },
   "scripts": {
     "build": "tsc",
@@ -35,10 +30,7 @@
   },
   "prettier": "@serendipity/eslint-config/prettier.json",
   "devDependencies": {
-    "@serendipity/eslint-config": "0.1.0-dev",
-    "@serendipity/syntax": "0.1.0-dev",
-    "@serendipity/syntax-abstract": "0.1.0-dev",
-    "@serendipity/syntax-surface": "0.1.0-dev",
+    "@serendipity/eslint-config": "0.1.0",
     "@types/node": "^12.0.0",
     "@typescript-eslint/eslint-plugin": "^4.0.0",
     "eslint": "^7.0.0",

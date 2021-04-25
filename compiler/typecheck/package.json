@@ -1,6 +1,6 @@
 {
   "name": "@serendipity/compiler-typecheck",
-  "version": "0.1.0-dev",
+  "version": "0.1.0",
   "description": "Serendipity surface language typechecking",
   "author": "Serendipity Project Contributors",
   "contributors": [
@@ -35,9 +35,9 @@
   },
   "prettier": "@serendipity/eslint-config/prettier.json",
   "devDependencies": {
-    "@serendipity/eslint-config": "0.1.0-dev",
-    "@serendipity/syntax": "0.1.0-dev",
-    "@serendipity/syntax-surface": "0.1.0-dev",
+    "@serendipity/eslint-config": "0.1.0",
+    "@serendipity/syntax": "0.1.0",
+    "@serendipity/syntax-surface": "0.1.0",
     "@types/node": "^12.0.0",
     "@typescript-eslint/eslint-plugin": "^4.0.0",
     "eslint": "^7.0.0",

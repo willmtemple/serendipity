@@ -1,6 +1,6 @@
 {
   "name": "@serendipity/camino",
-  "version": "0.1.0-dev",
+  "version": "0.1.0",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w"
@@ -8,11 +8,11 @@
   "module": "dist-esm/index.js",
   "types": "dist-esm/index.d.ts",
   "dependencies": {
-    "@serendipity/compiler-desugar": "0.1.0-dev",
-    "@serendipity/editor-stores": "0.1.0-dev",
-    "@serendipity/interpreter": "0.1.0-dev",
-    "@serendipity/syntax": "0.1.0-dev",
-    "@serendipity/syntax-surface": "0.1.0-dev",
+    "@serendipity/compiler-desugar": "0.1.0",
+    "@serendipity/editor-stores": "0.1.0",
+    "@serendipity/interpreter": "0.1.0",
+    "@serendipity/syntax": "0.1.0",
+    "@serendipity/syntax-surface": "0.1.0",
     "color": "^3.1.2",
     "mobx": "^6.0.0",
     "mobx-react": "^7.0.0",
@@ -25,7 +25,7 @@
     "omnimatch": "1.0.0-development.2"
   },
   "devDependencies": {
-    "@serendipity/eslint-config": "0.1.0-dev",
+    "@serendipity/eslint-config": "0.1.0",
     "@types/color": "^3.0.0",
     "@types/node": "^12.0.0",
     "@types/react": "^17.0.0",

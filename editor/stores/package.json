@@ -1,6 +1,6 @@
 {
   "name": "@serendipity/editor-stores",
-  "version": "0.1.0-dev",
+  "version": "0.1.0",
   "description": "Serendipity editor app project storage",
   "author": "Serendipity Project Contributors",
   "module": "dist-esm/index.js",
@@ -36,8 +36,8 @@
   },
   "prettier": "@serendipity/eslint-config/prettier.json",
   "dependencies": {
-    "@serendipity/syntax": "0.1.0-dev",
-    "@serendipity/syntax-surface": "0.1.0-dev",
+    "@serendipity/syntax": "0.1.0",
+    "@serendipity/syntax-surface": "0.1.0",
     "mobx": "^6.0.0",
     "mobx-react": "^7.0.0",
     "tslib": "~1.10.0",
@@ -46,7 +46,7 @@
     "omnimatch": "1.0.0-development.2"
   },
   "devDependencies": {
-    "@serendipity/eslint-config": "0.1.0-dev",
+    "@serendipity/eslint-config": "0.1.0",
     "@types/node": "^12.0.0",
     "@types/uuid": "^3.4.5",
     "@typescript-eslint/eslint-plugin": "^4.0.0",
