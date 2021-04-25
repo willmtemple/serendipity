@@ -18,9 +18,9 @@ export { Do, ForIn, Print };
 
 function getColor(kind: string) {
   switch (kind) {
-    case "print":
+    case "Print":
       return "#1F75FE";
-    case "forin":
+    case "ForIn":
       return "grey";
     default:
       return "black";
@@ -72,7 +72,7 @@ const Statement = React.forwardRef((props: StatementProps, ref: React.ForwardedR
   const guid = Project.metadataFor(stmt as SyntaxObject).guid;
   containerProps.id = guid;
   containerProps.className =
-    (props.fixed ? "statement" : "draggable syntax statement") + " " + stmt.kind;
+    (props.fixed ? "" : "draggable ") + "syntax statement " + stmt.kind.toLowerCase();
   containerProps["data-guid"] = guid;
   containerProps["data-parent-guid"] = Project.metadataFor(props.bind as SyntaxObject).guid;
   containerProps["data-mutation-key"] = props.bindKey;

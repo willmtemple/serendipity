@@ -23,6 +23,7 @@ import Tuple from "./Tuple";
 import Void from "./Void";
 import With from "./With";
 import { SyntaxObject } from "@serendipity/syntax";
+import String from "./String";
 
 export {
   Accessor,
@@ -39,39 +40,6 @@ export {
   Void,
   With,
 };
-
-function getColor(kind: expression.Expression["kind"]) {
-  switch (kind) {
-    case "If":
-      return "mediumvioletred";
-    case "Void":
-      return "black";
-    case "Tuple":
-      return "green";
-    case "Number":
-      return "red";
-    case "List":
-      return "darkgreen";
-    case "Name":
-      return "darkorange";
-    case "Closure":
-      return "purple";
-    case "Compare":
-      return "darkcyan";
-    case "Arithmetic":
-      return "midnightblue";
-    case "Accessor":
-      return "darkslategrey";
-    case "Call":
-      return "blueviolet";
-    case "Procedure":
-      return "firebrick";
-    case "With":
-      return "palevioletred";
-    default:
-      return "black";
-  }
-}
 
 export interface ExpressionProps {
   bind: any;
@@ -121,6 +89,7 @@ function Expression(props: CompleteProps, ref: React.ForwardedRef<unknown>) {
     Procedure: (expr) => <Procedure procedure={expr} />,
     List: (expr) => <List list={expr} />,
     With: (expr) => <With with={expr} />,
+    String: (expr) => <String string={expr} />,
   }) ?? (
     <text ref={ref as any} fill="white" fontFamily="Source Code Pro" fontWeight="600">
       {expr.kind} (unimplemented)
@@ -131,7 +100,8 @@ function Expression(props: CompleteProps, ref: React.ForwardedRef<unknown>) {
   const containerProps: { [k: string]: any } = {};
   const guid = Project.metadataFor(expr as SyntaxObject).guid;
   containerProps.id = guid;
-  containerProps.className = props.fixed ? "expression" : "draggable syntax expression";
+  containerProps.className =
+    (props.fixed ? "" : "draggable ") + "syntax expression " + expr.kind.toLowerCase();
   containerProps["data-guid"] = Project.metadataFor(expr as SyntaxObject).guid;
   containerProps["data-parent-guid"] = Project.metadataFor(props.bind).guid;
   containerProps["data-mutation-key"] = props.bindKey;
@@ -140,12 +110,7 @@ function Expression(props: CompleteProps, ref: React.ForwardedRef<unknown>) {
   }
 
   return (
-    <ExpressionBlock
-      ref={ref}
-      color={getColor(kind)}
-      containerProps={containerProps}
-      transform={props.transform}
-    >
+    <ExpressionBlock ref={ref} containerProps={containerProps} transform={props.transform}>
       {body}
     </ExpressionBlock>
   );

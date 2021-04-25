@@ -20,7 +20,7 @@ function Binder(props: BinderProps, ref: React.ForwardedRef<SVGForeignObjectElem
 
   const value = props.bind[props.bindKey] as string;
 
-  const [width, setWidth] = React.useState(value.length);
+  const [width, setWidth] = React.useState(value.length || 1);
 
   function _change(evt: React.ChangeEvent<HTMLInputElement>) {
     const v = evt.target.value;
@@ -30,7 +30,7 @@ function Binder(props: BinderProps, ref: React.ForwardedRef<SVGForeignObjectElem
       return;
     }
 
-    setWidth(v.length);
+    setWidth(v.length || 1);
     resize();
 
     props.bind[props.bindKey] = v;
@@ -41,11 +41,12 @@ function Binder(props: BinderProps, ref: React.ForwardedRef<SVGForeignObjectElem
   return (
     <foreignObject
       ref={ref}
+      className="binder"
       width={(width + 1) * WIDTH_FACTOR + WIDTH_OFFSET}
       height={30}
       transform={props.transform}
     >
-      <input type="text" value={props.bind[props.bindKey]} onChange={change} />
+      <input type="text" placeholder="_" value={props.bind[props.bindKey]} onChange={change} />
     </foreignObject>
   );
 }

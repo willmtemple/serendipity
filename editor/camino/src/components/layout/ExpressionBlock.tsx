@@ -1,7 +1,5 @@
 import * as React from "react";
 
-import Color from "color";
-
 import { MeasurementProps, Rect, measureChildren } from "../../hooks/measure";
 
 const PADX = 10;
@@ -74,11 +72,9 @@ export const ExpressionBlock = measureChildren(
   React.forwardRef<SVGGElement, CompleteProps>((props, ref) => {
     const pathDetails = React.useMemo(() => generatePath(props.sizes[0]), props.sizes);
 
-    const color = Color(props.color);
-
     return (
       <g {...props.containerProps} transform={props.transform} ref={ref}>
-        <path stroke={color.darken(0.35).string()} fill={color.string()} d={pathDetails} />
+        <path className="boundary" d={pathDetails} />
         <g transform={`translate(${PADX + CAP_INDENT + CAP_EXTENT},${PADY})`}>{props.children}</g>
       </g>
     );

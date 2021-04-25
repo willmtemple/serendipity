@@ -27,7 +27,7 @@ export const Navbar = () => (
   <header className="primary">
     <h1 className="title">Serendipity</h1>
     <ul className="center mode switcher">
-      <li>
+      <li className="editor mode switcher">
         <Link to="/blocks">
           <button>
             <Icon name="puzzle-piece" />

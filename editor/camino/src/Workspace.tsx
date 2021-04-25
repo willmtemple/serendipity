@@ -23,7 +23,7 @@ export const Workspace = observer(() => {
   return (
     <svg
       ref={svg}
-      className="caminoWorkspace"
+      className="camino"
       preserveAspectRatio="xMinYMin slice"
       xmlns="http://www.w3.org/2000/svg"
     >

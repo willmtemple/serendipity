@@ -10,12 +10,14 @@ import { Project } from "@serendipity/editor-stores";
 import { Position } from "../../util/Position";
 
 interface NameSourceProps {
-  binderProps: BinderProps;
+  binderProps: BinderProps & { bindIdx?: undefined };
 
   transform?: string;
 }
 
-function NameSource(props: NameSourceProps, ref: React.ForwardedRef<SVGGElement>) {
+function NameSource(props: NameSourceProps, ref: React.ForwardedRef<unknown>) {
+  const value = props.binderProps.bind[props.binderProps.bindKey] as string;
+
   const containerProps = {
     className: "draggable syntax name expression source",
   };
@@ -44,7 +46,13 @@ function NameSource(props: NameSourceProps, ref: React.ForwardedRef<SVGGElement>
     }
   });
 
-  return (
+  return value === "" || value === "_" ? (
+    <Binder
+      ref={ref as React.ForwardedRef<SVGForeignObjectElement>}
+      {...props.binderProps}
+      transform={props.transform}
+    />
+  ) : (
     <ExpressionBlock ref={ref} containerProps={containerProps} transform={props.transform}>
       <Binder {...props.binderProps} />
     </ExpressionBlock>

@@ -10,7 +10,7 @@ function Workspace() {
 
   const text = printModule(Project.canonicalProgram);
 
-  return <Editor loading={true} defaultValue={text} onChange={() => {}} />;
+  return <Editor defaultValue={text} onChange={() => {}} />;
 }
 
 export const MonacoWorkspace = observer(Workspace);

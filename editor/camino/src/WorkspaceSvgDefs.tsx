@@ -20,8 +20,8 @@ export default () => {
         <feBlend in="SourceGraphic" in2="blurOut" mode="normal" />
       </filter>
       <pattern id="bgPattern" x={0} y={0} width={50} height={50} patternUnits="userSpaceOnUse">
-        <rect x={0} y={0} width={50} height={50} fill="#F0F0F0" />
-        <circle cx={25} cy={25} r={2} fill="#AAAAAA" />
+        <rect className="background fill" x={0} y={0} width={50} height={50} />
+        <circle className="peg" cx={25} cy={25} r={2} />
       </pattern>
     </defs>
   );

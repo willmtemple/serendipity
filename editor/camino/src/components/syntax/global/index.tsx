@@ -60,7 +60,7 @@ const Global = React.forwardRef<any, { global: EditorGlobal }>((props, ref) => {
     <BoundingBox
       ref={ref}
       color={getColor(glb as surface.Global)}
-      containerProps={{ id: guid, className: "global" }}
+      containerProps={{ id: guid, className: "syntax global " + glb.kind.toLowerCase() }}
     >
       {body}
     </BoundingBox>

@@ -8,6 +8,15 @@
   --primary: #{$cyan};
   --error: #{$red};
   --success: #{$green};
+
+  --ansi-black: #{$black};
+  --ansi-white: #{$white};
+  --ansi-red: #{$red};
+  --ansi-green: #{$green};
+  --ansi-yellow: #{$yellow};
+  --ansi-blue: #{$blue};
+  --ansi-purple: #{$purple};
+  --ansi-cyan: #{$cyan};
 }
 
 .serendipity-app {
@@ -17,6 +26,25 @@
 
   .workspace {
     flex-grow: 1;
+
+    svg.camino {
+      --camino-peg: #00000060;
+
+      --camino-expr-procedure: #{darken($purple, 18%)};
+      --camino-expr-name: #{$yellow};
+      --camino-expr-number: #{$cyan};
+      --camino-expr-string: #{darken($green, 18%)};
+      --camino-expr-void: #{$black};
+      --camino-expr-compare: #{$blue};
+      --camino-expr-tuple: #{$green};
+      --camino-expr-if: #{$pink};
+      --camino-expr-accessor: #{$orange};
+      --camino-expr-arithmetic: #{$indigo};
+
+      --camino-global-main: #{desaturate(darken($red, 5%), 20%)};
+      --camino-global-definefunction: #{$purple};
+      --camino-global-define: #{saturate($blue, 30%)};
+    }
   }
 
   .tray {

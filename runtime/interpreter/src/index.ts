@@ -32,7 +32,7 @@ function isTrue(v: Value): boolean {
     case "boolean":
       return v.value;
     default:
-      throw new Error("Value is not convertible to Boolean: " + v);
+      throw new Error("Value is not convertible to Boolean: " + v.kind);
   }
 }
 
@@ -142,13 +142,15 @@ export interface InterpreterOptions {
 }
 
 const defaultOptions: InterpreterOptions = {
-  printer(_) {
+  printer() {
     throw new Error("No print function provided to interpreter");
   },
-  prompt(_) {
+  prompt() {
     throw new Error("No prompt function provided to interpeter");
   },
-  beforeEval: () => {}
+  beforeEval: () => {
+    /* empty */
+  }
 };
 
 export class Interpreter {
@@ -325,7 +327,7 @@ export class Interpreter {
         return v.kind;
       case "tuple": {
         const vals = v.value.map((bind) => this.evalExpr(bind.expr, bind.scope));
-        return "(" + vals.map(this._strconv.bind(this)) + ")";
+        return "(" + vals.map(this._strconv.bind(this)).join(", ") + ")";
       }
       default: {
         const attrs: string[] = [];
@@ -411,11 +413,13 @@ export class Interpreter {
 
         const evalScope = new Scope(this.evalExpr.bind(this), calleeValue.value.body.scope);
 
-        if (parameter) {
-          if (!calleeValue.value.parameter) {
+        if (parameter !== undefined) {
+          if (calleeValue.value.parameter === undefined) {
             throw new Error("Callee does not accept a parameter, but one was given.");
           }
-          evalScope.rebind(calleeValue.value.parameter, scope.bind(parameter));
+          if (calleeValue.value.parameter !== "" && calleeValue.value.parameter !== "_") {
+            evalScope.rebind(calleeValue.value.parameter, scope.bind(parameter));
+          }
         }
 
         return this.evalExpr(calleeValue.value.body.expr, evalScope);

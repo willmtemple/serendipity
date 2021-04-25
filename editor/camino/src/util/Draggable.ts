@@ -14,6 +14,12 @@ import { action } from "mobx";
 // I have been very careful to only change things that I have not added as
 // reactions in the components.
 
+declare global {
+  interface SVGSVGElement {
+    isDraggable: boolean;
+  }
+}
+
 type BlockSourceFunction = (pos: Position) => string;
 const registry: Map<symbol, BlockSourceFunction> = new Map();
 
@@ -30,6 +36,13 @@ export function unregister(id: symbol): void {
 
 // This code is spaghett bad typescript
 export function makeDraggable(svg: SVGSVGElement) {
+  if (svg.isDraggable) {
+    console.warn("Attempted to register SVG element as draggable twice.")
+    return;
+  }
+  
+  svg.isDraggable = true;
+
   svg.addEventListener("mousedown", startDrag);
   svg.addEventListener("mousemove", drag);
   svg.addEventListener("mouseup", endDrag);
@@ -104,6 +117,11 @@ export function makeDraggable(svg: SVGSVGElement) {
 
   function startDrag(evt: MouseEvent) {
     if (evt.button !== 0) {
+      return;
+    }
+
+    if (evt.shiftKey) {
+      // Shift drag to select
       return;
     }
 
@@ -292,13 +310,13 @@ export function makeDraggable(svg: SVGSVGElement) {
             const overKey = mouseOver.getAttribute("data-mutation-key");
             const overIdxS = mouseOver.getAttribute("data-mutation-idx");
 
-            if (overGuid != null && overKey != null) {
+            if (overGuid != null && overKey != null && overGuid !== draggedGuid && dragMode !== "detach") {
               const overIdx = overIdxS != null ? parseInt(overIdxS, 10) : undefined;
 
               Project.insertInto(draggedGuid, overGuid, overKey, overIdx);
             }
           }
-        } else {
+        } else if (transform) {
           Project.updatePos(draggedGuid, {
             x: transform.matrix.e,
             y: transform.matrix.f,

@@ -6,8 +6,6 @@ import { Icon } from "./util/Icon";
 function Tray() {
   const { Prefs } = useStores();
 
-  const isOpen = Prefs.prefs.terminal;
-
   const toggle = () => Prefs.toggleTerminal();
 
   return (
@@ -22,7 +20,7 @@ function Tray() {
           </li>
         </ul>
       </div>
-      {isOpen && (
+      {Prefs.isTerminalOpen && (
         <div className="terminal" style={{ height: "22rem" }}>
           <Terminal />
         </div>
