@@ -27,44 +27,48 @@ function getColor(glb: surface.Global) {
   );
 }
 
-const Global = React.forwardRef<any, { global: EditorGlobal }>((props, ref) => {
-  const { Project } = useStores();
+const Global = observer(
+  React.forwardRef<any, { global: EditorGlobal }>((props, ref) => {
+    const { Project } = useStores();
 
-  function deleteNode() {
-    Project.rmNodeByGUID(props.global.metadata.editor.guid);
-  }
+    function deleteNode() {
+      Project.rmNodeByGUID(props.global.metadata.editor.guid);
+    }
 
-  const glb = props.global;
-  const kind = glb.kind;
+    const glb = props.global;
+    const kind = glb.kind;
 
-  if (kind === "_editor_detachedsyntax") {
-    return <Detached ref={ref} onDelete={deleteNode} global={glb as EditorDetachedSyntax} />;
-  }
+    if (kind === "_editor_detachedsyntax") {
+      return <Detached ref={ref} onDelete={deleteNode} global={glb as EditorDetachedSyntax} />;
+    }
 
-  const body = match(glb, {
-    Main: (glb) => <Main onDelete={deleteNode} main={glb} />,
-    Define: (glb) => <Define onDelete={deleteNode} define={glb} />,
-    DefineFunction: (glb) => <DefineFunc onDelete={deleteNode} definefunc={glb} />,
-  }) ?? (
-    <g ref={ref}>
-      <CloseButton onClick={deleteNode} />
-      <text style={{ fontFamily: "monospace", fontWeight: 900 }} y={20} x={32} fill="white">
-        {glb.kind} (unimplemented)
-      </text>
-    </g>
-  );
+    const body = match(glb, {
+      Main: (glb) => <Main onDelete={deleteNode} main={glb} />,
+      Define: (glb) => <Define onDelete={deleteNode} define={glb} />,
+      DefineFunction: (glb) => <DefineFunc onDelete={deleteNode} definefunc={glb} />,
+    }) ?? (
+      <g ref={ref}>
+        <CloseButton onClick={deleteNode} />
+        <text style={{ fontFamily: "monospace", fontWeight: 900 }} y={20} x={32} fill="white">
+          {glb.kind} (unimplemented)
+        </text>
+      </g>
+    );
 
-  const guid = glb.metadata.editor.guid;
+    const guid = glb.metadata.editor.guid;
 
-  return (
-    <BoundingBox
-      ref={ref}
-      color={getColor(glb as surface.Global)}
-      containerProps={{ id: guid, className: "syntax global " + glb.kind.toLowerCase() }}
-    >
-      {body}
-    </BoundingBox>
-  );
-});
+    return (
+      <BoundingBox
+        ref={ref}
+        color={getColor(glb as surface.Global)}
+        containerProps={{ id: guid, className: "syntax global " + glb.kind.toLowerCase() }}
+      >
+        {body}
+      </BoundingBox>
+    );
+  })
+);
 
-export default observer(Global);
+Global.displayName = "Global";
+
+export default Global;

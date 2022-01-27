@@ -11,3 +11,5 @@ declare global {
 window.Debug = debug;
 
 export { Workspace } from "./Workspace";
+
+export { resize } from "./util/Draggable";

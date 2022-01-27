@@ -44,13 +44,13 @@ const SvgFlex = measureChildren(
 
             const align =
               props.direction === "horizontal" && React.isValidElement(c) && c.type === "text"
-                ? // This is needed because SVG text aligns strangely. We manually correc the
+                ? // This is needed because SVG text aligns strangely. We manually correct the
                   // baseline of text children in the SvgFlex to match the baseline of inline
                   // input expr blocks
                   (rect: Rect) => _align(rect) + TEXT_BASELINE_OFFSET
                 : _align;
 
-            const rect = props.sizes[idx];
+            const rect: Rect = props.sizes[idx] ?? { x: 0, y: 0, height: 0, width: 0 };
             if (props.direction === "horizontal") {
               translation = `translate(${accumulator},${align(rect)})`;
               accumulator += rect.width + pad;

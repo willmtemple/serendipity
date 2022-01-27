@@ -85,7 +85,6 @@ export class ProjectStore {
   private byGUID: { [k: string]: SyntaxObject } = {};
 
   constructor() {
-    console.trace("Creating new proeject store.");
     makeAutoObservable(this);
     const storedData = localStorage.getItem(KEY_PROJECT);
     if (storedData) {
@@ -155,14 +154,11 @@ export class ProjectStore {
   }
 
   public insertInto(vid: string, into: string, key: string, idx?: number) {
-    console.log("Insert", vid, "into", into, key, idx);
     const parent = this.byGUID[into];
     const setNode = action((n: any, mode?: string) => {
       const l = parent && (parent as any)[key];
-      console.log("INSERT", n, mode);
       if (l) {
         if (idx !== undefined && l[idx]) {
-          console.log("idx-based insert");
           if (mode === "statement" && l[idx].kind !== "@hole") {
             (parent as any)[key] = (l as any[]).concat(n as any[]);
           } else if (mode === "statement") {
@@ -173,7 +169,6 @@ export class ProjectStore {
           this.rmNodeByGUID(this.metadataFor(v).guid);
           return;
         } else if (idx === undefined) {
-          console.log("non-idx insert");
           if (mode === "statement") {
             // Break the first statement of the list off
             (parent as any)[key] = (n as any[]).splice(0, 1)[0];

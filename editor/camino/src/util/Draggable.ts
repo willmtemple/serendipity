@@ -34,27 +34,41 @@ export function unregister(id: symbol): void {
   registry.delete(id);
 }
 
+let _resize: () => void | undefined;
+
+export function resize() {
+  _resize?.();
+}
+
 // This code is spaghett bad typescript
-export function makeDraggable(svg: SVGSVGElement) {
-  if (svg.isDraggable) {
-    console.warn("Attempted to register SVG element as draggable twice.")
-    return;
+export function makeDraggable(_svg: SVGSVGElement) {
+  if (_svg.isDraggable) {
+    console.warn("Attempted to register SVG element as draggable twice.");
   }
-  
-  svg.isDraggable = true;
 
-  svg.addEventListener("mousedown", startDrag);
-  svg.addEventListener("mousemove", drag);
-  svg.addEventListener("mouseup", endDrag);
-  svg.addEventListener("mouseleave", endDrag);
+  _svg.isDraggable = true;
 
-  svg.addEventListener("wheel", action(zoom));
+  _svg.addEventListener("mousedown", startDrag);
+  _svg.addEventListener("mousemove", drag);
+  _svg.addEventListener("mouseup", endDrag);
+  _svg.addEventListener("mouseleave", endDrag);
+
+  _svg.addEventListener("wheel", action(zoom));
+
+  const svg = (document.getElementById("blockSpace") as unknown) as SVGSVGElement;
+  const bgSvg = (document.getElementById(
+    "workspaceBackgroundContainer"
+  ) as unknown) as SVGSVGElement;
+
+  if (!svg || !bgSvg) {
+    throw new Error("Failed to get a reference to the true block workspace.");
+  }
 
   // Add a hook to resize events on the window that will adjust the
   // SVG viewBox to keep it at the correct size
   window.addEventListener("resize", resizeViewBox);
 
-  const initialRect = svg.getClientRects()[0];
+  const initialRect = _svg.getClientRects()[0];
   const svgDims = {
     height: initialRect.height,
     left: Prefs.prefs.editorPosition.x,
@@ -64,11 +78,15 @@ export function makeDraggable(svg: SVGSVGElement) {
   };
 
   function resizeViewBox() {
-    const rect = svg.getClientRects()[0];
-    svgDims.width = rect.width;
-    svgDims.height = rect.height;
-    setViewBox();
+    const rect = _svg.getClientRects()[0];
+    if (rect !== undefined) {
+      svgDims.width = rect.width;
+      svgDims.height = rect.height;
+      setViewBox();
+    }
   }
+
+  _resize = resizeViewBox;
 
   let selectedElement: SVGGraphicsElement | undefined;
   let dragMode: "detach" | undefined;
@@ -84,7 +102,10 @@ export function makeDraggable(svg: SVGSVGElement) {
 
   function setViewBox() {
     const { left, top, width, height, scale } = svgDims;
+
     svg.setAttribute("viewBox", `${left} ${top} ${width * scale} ${height * scale}`);
+    bgSvg.setAttribute("viewBox", `${left} ${top} ${width * scale} ${height * scale}`);
+
     // Adjust for background scroll and 20% width margins
     // (should be width margin on both top and left, as DOM
     // calculates margins by element width)
@@ -106,7 +127,7 @@ export function makeDraggable(svg: SVGSVGElement) {
     let node: Element | null = e;
     while (
       node &&
-      node !== svg &&
+      node !== _svg &&
       !node.classList.contains("draggable") &&
       !node.classList.contains("button")
     ) {
@@ -133,7 +154,7 @@ export function makeDraggable(svg: SVGSVGElement) {
     }
 
     if (t.tagName !== "INPUT") {
-      if (node === svg) {
+      if (node === _svg) {
         // Drag the background
         selectedElement = svg;
         offset = getMousePosition(evt);
@@ -299,8 +320,10 @@ export function makeDraggable(svg: SVGSVGElement) {
         if (mouseOver && mouseOver.classList.contains("drop")) {
           // We are dropping an element into this target
 
-          // If the element doesn't match the drop target, then don't drop it there
-          if (heldItemKind && !mouseOver.classList.contains(heldItemKind)) {
+          if (mouseOver.classList.contains("dumpster")) {
+            console.warn("DELETING", draggedGuid);
+            Project.rmNodeByGUID(draggedGuid);
+          } else if (heldItemKind && !mouseOver.classList.contains(heldItemKind)) {
             Project.updatePos(draggedGuid, {
               x: transform.matrix.e,
               y: transform.matrix.f,
@@ -310,7 +333,12 @@ export function makeDraggable(svg: SVGSVGElement) {
             const overKey = mouseOver.getAttribute("data-mutation-key");
             const overIdxS = mouseOver.getAttribute("data-mutation-idx");
 
-            if (overGuid != null && overKey != null && overGuid !== draggedGuid && dragMode !== "detach") {
+            if (
+              overGuid != null &&
+              overKey != null &&
+              overGuid !== draggedGuid &&
+              dragMode !== "detach"
+            ) {
               const overIdx = overIdxS != null ? parseInt(overIdxS, 10) : undefined;
 
               Project.insertInto(draggedGuid, overGuid, overKey, overIdx);

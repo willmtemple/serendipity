@@ -1,6 +1,3 @@
-import { observer } from "mobx-react";
-import * as React from "react";
-
 import { Procedure } from "@serendipity/syntax-surface";
 import { useStores } from "@serendipity/editor-stores";
 
@@ -9,8 +6,9 @@ import SvgFlex from "../../layout/SvgFlex";
 
 import Statement from "../statement";
 import { SyntaxObject } from "@serendipity/syntax";
+import { syntax } from "../../../util/syntaxComponent";
 
-const Procedure = React.forwardRef<any, { procedure: Procedure }>((props, ref) => {
+export default syntax<{ procedure: Procedure }>("Procedure", (props, ref) => {
   const { Project } = useStores();
 
   return (
@@ -31,5 +29,3 @@ const Procedure = React.forwardRef<any, { procedure: Procedure }>((props, ref) =
     </g>
   );
 });
-
-export default observer(Procedure);

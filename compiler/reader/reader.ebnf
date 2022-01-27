@@ -1,0 +1,42 @@
+(* Copyright (c) Will Temple *)
+(* Licensed under the MIT License. *)
+
+Module ::= ListContents;
+
+<ListContents> ::= Expression (<Split> Expression)*;
+BracketList ::= '[' ws-opt ListContents? ws-opt ']';
+ParenList ::= '(' ws-opt ListContents? ws-opt ')';
+BraceList ::= '{' ws-opt ListContents? ws-opt '}';
+
+ListRest ::= (Sigil ListRest) | (ws-req ListRest);
+
+Expression ::= 
+  | '#' <Alt>
+  | List
+  | Array
+  | <Atom>;
+
+Atom ::= Number | String | Symbol | Sigil;
+List ::= <ParenList>;
+Array ::= <BracketList> | <BraceList>;
+
+Number ::= /[0-9]([bqodx][0-9a-fA-F])?[0-9a-fA-F]*(\.[0-9a-fA-F]+)?/;
+
+String ::= '"' /([^"\n]|\\"|\\\n)*/ '"' | "'" /([^'\n]|\\'|\\\n)*/ "'";
+
+Sigil ::= /[,.:;<>?|!@#$%^&*-=+]+/;
+
+Symbol ::= /[^\s<Sigil>\[{()}]\]]+/;
+
+Comment ::= /\/\/[^\n]*/;
+
+BlockComment ::= '/*' InsideBlockComment '*/';
+
+InsideBlockComment ::=
+  | /[^\*]/ InsideBlockComment
+  | /\*[^\/]/ InsideBlockComment;
+
+Whitespace ::= /\s+/ | Comment | BlockComment;
+
+ws-req ::= Whitespace+;
+ws-opt ::= Whitespace*;

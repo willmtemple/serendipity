@@ -8,6 +8,8 @@ interface DropDownProps<Opts extends string[]> {
 
   options: Opts;
   selected?: number;
+  width?: number;
+  height?: number;
 
   transform?: string;
 }
@@ -29,10 +31,17 @@ function DropDown<Opts extends string[]>(
   }
 
   return (
-    <foreignObject ref={ref} width={67} height={30} transform={props.transform}>
+    <foreignObject
+      ref={ref}
+      width={props.width ?? 67}
+      height={props.height ?? 30}
+      transform={props.transform}
+    >
       <select value={props.selected} onChange={change} onMouseDownCapture={stop}>
         {props.options.map((o, idx) => (
-          <option value={idx}>{o}</option>
+          <option key={o} value={idx}>
+            {o}
+          </option>
         ))}
       </select>
     </foreignObject>

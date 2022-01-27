@@ -17,7 +17,6 @@ import { Module, Expression } from "@serendipity/syntax-abstract";
 
 import defaultParser from "../parser";
 import { parse as newParser } from "../new-parser";
-import { removeUnusedFunctionCalls } from "../optimizers/deadCode";
 import { CompilerOutput } from "@serendipity/syntax";
 
 async function main(): Promise<void> {
@@ -25,14 +24,19 @@ async function main(): Promise<void> {
 
   const stream = fs.createReadStream(fn);
 
+  console.log("Got here");
+
   const parseTree = await (process.env.NEW_PARSER
     ? newParser(stream)
     : defaultParser.parse(stream));
 
+  console.log("And got here.");
+
   const compiler = createLoweringCompiler().then({
     run(out: Module): CompilerOutput<Module> {
-      return ok(removeUnusedFunctionCalls(out));
-    }
+      //return ok(removeUnusedFunctionCalls(out));
+      return ok(out);
+    },
   });
 
   const program = unwrap(compiler.compile(parseTree));
@@ -47,7 +51,7 @@ async function main(): Promise<void> {
       } else {
         return readlineSync.question();
       }
-    }
+    },
   };
 
   if (process.env.DEBUG) {
@@ -61,6 +65,7 @@ async function main(): Promise<void> {
   interpreter.execModule(program);
 }
 
-main().catch(() => {
+main().catch((err) => {
+  console.error(err);
   process.exit(1);
 });

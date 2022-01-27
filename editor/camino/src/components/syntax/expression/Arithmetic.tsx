@@ -1,16 +1,14 @@
-import { observer } from "mobx-react";
-import * as React from "react";
-
 import { Arithmetic } from "@serendipity/syntax-surface";
 
 import SvgFlex from "../../../components/layout/SvgFlex";
 import Expression from ".";
 import { DropDown } from "../../editor";
 import { action } from "mobx";
+import { syntax } from "../../../util/syntaxComponent";
 
 const operators: Arithmetic["op"][] = ["+", "-", "/", "*", "%"];
 
-function Arithmetic(props: { arithmetic: Arithmetic }, ref: React.ForwardedRef<unknown>) {
+export default syntax<{ arithmetic: Arithmetic }>("Arithmetic", (props, ref) => {
   const selectedIdx = operators.indexOf(props.arithmetic.op);
 
   const setOp = action((op: Arithmetic["op"]) => {
@@ -28,6 +26,4 @@ function Arithmetic(props: { arithmetic: Arithmetic }, ref: React.ForwardedRef<u
       <Expression bind={props.arithmetic} bindKey="right" />
     </SvgFlex>
   );
-}
-
-export default observer(React.forwardRef<any, { arithmetic: Arithmetic }>(Arithmetic));
+});

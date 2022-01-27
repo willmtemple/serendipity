@@ -7,9 +7,11 @@ const Void = React.forwardRef<SVGTextElement>((_, ref) => {
 
   return (
     <text ref={ref} transform="translate(0,4)">
-      void
+      none
     </text>
   );
 });
+
+Void.displayName = "Void";
 
 export default Void;

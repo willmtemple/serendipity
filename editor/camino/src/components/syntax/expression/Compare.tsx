@@ -1,16 +1,14 @@
-import { observer } from "mobx-react";
-import * as React from "react";
-
 import { Compare } from "@serendipity/syntax-surface";
 
 import SvgFlex from "../../../components/layout/SvgFlex";
 import Expression from ".";
 import { action } from "mobx";
 import { DropDown } from "../../editor";
+import { syntax } from "../../../util/syntaxComponent";
 
 const operators: Compare["op"][] = ["!=", "<", "<=", "==", ">", ">="];
 
-function Compare(props: { compare: Compare }, ref: React.ForwardedRef<unknown>) {
+export default syntax<{ compare: Compare }>("Compare", (props, ref) => {
   const selectedIdx = operators.indexOf(props.compare.op);
 
   const setOp = action((op: Compare["op"]) => {
@@ -23,6 +21,4 @@ function Compare(props: { compare: Compare }, ref: React.ForwardedRef<unknown>) 
       <Expression bind={props.compare} bindKey={"right"} />
     </SvgFlex>
   );
-}
-
-export default observer(React.forwardRef<any, { compare: Compare }>(Compare));
+});

@@ -1,17 +1,15 @@
-import { observer } from "mobx-react";
-import * as React from "react";
-
-import * as global from "@serendipity/syntax-surface";
 import Indent from "../../layout/Indent";
 import CloseButton from "../../editor/CloseButton";
 import Expression from "../expression";
+import { syntax } from "../../../util/syntaxComponent";
+import { Main } from "@serendipity/syntax-surface";
 
-interface IMainProps {
-  main: global.Main;
+interface MainProps {
+  main: Main;
   onDelete(): void;
 }
 
-const Main = React.forwardRef<SVGGElement, IMainProps>((props, ref) => (
+export default syntax<MainProps>("Main", (props, ref) => (
   <g ref={ref}>
     <CloseButton onClick={props.onDelete} />
     <Indent x={32} y={2}>
@@ -22,5 +20,3 @@ const Main = React.forwardRef<SVGGElement, IMainProps>((props, ref) => (
     </Indent>
   </g>
 ));
-
-export default observer(Main);

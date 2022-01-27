@@ -10,7 +10,11 @@ function Workspace() {
 
   const text = printModule(Project.canonicalProgram);
 
-  return <Editor defaultValue={text} onChange={() => {}} />;
+  return (
+    <div className="monaco workspace">
+      <Editor defaultValue={text} onChange={() => {}} />
+    </div>
+  );
 }
 
 export const MonacoWorkspace = observer(Workspace);

@@ -1,13 +1,11 @@
-import { observer } from "mobx-react";
-import * as React from "react";
-
 import { List } from "@serendipity/syntax-surface";
 
 import Expression from ".";
 import SvgFlex from "../../layout/SvgFlex";
 import Indent from "../../layout/Indent";
+import { syntax } from "../../../util/syntaxComponent";
 
-const List = React.forwardRef<any, { list: List }>((props, ref) => (
+export default syntax<{ list: List }>("List", (props, ref) => (
   <SvgFlex ref={ref} direction="vertical" padding={10}>
     <text>[</text>
     <Indent x={32}>
@@ -20,5 +18,3 @@ const List = React.forwardRef<any, { list: List }>((props, ref) => (
     <text>]</text>
   </SvgFlex>
 ));
-
-export default observer(List);

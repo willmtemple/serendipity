@@ -1,3 +1,6 @@
+import React from "react";
+
+import { resize } from "@serendipity/camino";
 import { useStores } from "@serendipity/editor-stores";
 import { observer } from "mobx-react";
 import Terminal from "./Terminal";
@@ -7,6 +10,10 @@ function Tray() {
   const { Prefs } = useStores();
 
   const toggle = () => Prefs.toggleTerminal();
+
+  React.useLayoutEffect(() => {
+    resize();
+  });
 
   return (
     <div className="tray">

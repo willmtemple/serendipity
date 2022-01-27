@@ -1,6 +1,3 @@
-import { observer } from "mobx-react";
-import * as React from "react";
-
 import { Closure } from "@serendipity/syntax-surface";
 
 import SvgFlex from "../../../components/layout/SvgFlex";
@@ -8,8 +5,9 @@ import Expression from ".";
 import AddButton from "../../editor/AddButton";
 import Indent from "../../layout/Indent";
 import NameSource from "../../editor/NameSource";
+import { syntax } from "../../../util/syntaxComponent";
 
-const Closure = React.forwardRef<any, { closure: Closure }>((props, ref) => {
+export default syntax<{ closure: Closure }>("Closure", (props, ref) => {
   function addParam() {
     props.closure.parameters.push("new");
   }
@@ -43,7 +41,3 @@ const Closure = React.forwardRef<any, { closure: Closure }>((props, ref) => {
     </SvgFlex>
   );
 });
-
-Closure.displayName = "Closure";
-
-export default observer(Closure);

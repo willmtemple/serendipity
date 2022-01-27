@@ -1,8 +1,3 @@
-import { observer } from "mobx-react";
-import * as React from "react";
-
-import * as global from "@serendipity/syntax-surface";
-
 import Indent from "../../layout/Indent";
 import SvgFlex from "../../layout/SvgFlex";
 
@@ -11,14 +6,16 @@ import CloseButton from "../../editor/CloseButton";
 
 import Expression from "../expression";
 import NameSource from "../../editor/NameSource";
+import { DefineFunction } from "@serendipity/syntax-surface";
+import { syntax } from "../../../util/syntaxComponent";
 
-interface IDefineFuncProps {
-  definefunc: global.DefineFunction;
+interface DefineFuncProps {
+  definefunc: DefineFunction;
 
   onDelete(): void;
 }
 
-const DefineFunc = React.forwardRef<SVGGElement, IDefineFuncProps>((props, ref) => {
+export default syntax<DefineFuncProps>("DefineFunction", (props, ref) => {
   function addParam() {
     props.definefunc.parameters.push("new");
   }
@@ -47,7 +44,10 @@ const DefineFunc = React.forwardRef<SVGGElement, IDefineFuncProps>((props, ref) 
     <text key="s_dfn_arrow">{"=>"}</text>,
   ]);
 
-  const finalChildren = [<CloseButton onClick={props.onDelete} />, ...binderLine];
+  const finalChildren = [
+    <CloseButton key="s_dfn_close_button" onClick={props.onDelete} />,
+    ...binderLine,
+  ];
 
   return (
     <g ref={ref}>
@@ -60,5 +60,3 @@ const DefineFunc = React.forwardRef<SVGGElement, IDefineFuncProps>((props, ref) 
     </g>
   );
 });
-
-export default observer(DefineFunc);

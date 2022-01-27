@@ -1,6 +1,3 @@
-import { observer } from "mobx-react";
-import * as React from "react";
-
 import { ForIn } from "@serendipity/syntax-surface";
 
 import SvgFlex from "../../layout/SvgFlex";
@@ -9,8 +6,9 @@ import Indent from "../../layout/Indent";
 import Statement from ".";
 import Expression from "../expression";
 import NameSource from "../../editor/NameSource";
+import { syntax } from "../../../util/syntaxComponent";
 
-const ForIn = React.forwardRef<any, { forin: ForIn }>((props, ref) => (
+export default syntax<{ forin: ForIn }>("ForIn", (props, ref) => (
   <SvgFlex ref={ref} direction="vertical" padding={20}>
     <SvgFlex direction="horizontal" padding={20}>
       <SvgFlex direction="horizontal" padding={20} align="middle">
@@ -25,5 +23,3 @@ const ForIn = React.forwardRef<any, { forin: ForIn }>((props, ref) => (
     </Indent>
   </SvgFlex>
 ));
-
-export default observer(ForIn);

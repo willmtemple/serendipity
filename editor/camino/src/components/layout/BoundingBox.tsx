@@ -27,4 +27,6 @@ export const BoundingBox = measureChildren(
   })
 );
 
+BoundingBox.displayName = "BoundingBox";
+
 export default BoundingBox;

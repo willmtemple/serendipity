@@ -15,7 +15,6 @@ import { Navbar } from "./components/Navbar";
 //import { MonacoWorkspace } from "./components/MonacoWorkspace";
 import "./styles/App.scss";
 import Tray from "./components/Tray";
-import { AstViewer } from "./components/AstViewer";
 import { MonacoWorkspace } from "./components/MonacoWorkspace";
 
 function App() {
@@ -23,26 +22,19 @@ function App() {
     <div className="serendipity-app">
       <Router>
         <Navbar />
-        <div
-          className="workspace"
-          style={{
-            backgroundColor: "magenta",
-          }}
-        >
-          <StoreProvider>
-            <Switch>
-              <Route path="/blocks">
-                <CaminoWorkspace />
-              </Route>
-              <Route path="/text">
-                <MonacoWorkspace />
-              </Route>
-              <Route exact path="/">
-                <Redirect to="/blocks" />
-              </Route>
-            </Switch>
-          </StoreProvider>
-        </div>
+        <StoreProvider>
+          <Switch>
+            <Route path="/blocks">
+              <CaminoWorkspace />
+            </Route>
+            <Route path="/text">
+              <MonacoWorkspace />
+            </Route>
+            <Route exact path="/">
+              <Redirect to="/blocks" />
+            </Route>
+          </Switch>
+        </StoreProvider>
       </Router>
       <Tray />
     </div>

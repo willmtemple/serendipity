@@ -32,6 +32,11 @@ svg.camino {
     padding: 0;
   }
 
+  .fill {
+    height: 100%;
+    width: 100%;
+  }
+
   rect.background.fill {
     fill: var(--background, #f0f0f0);
   }
@@ -119,7 +124,10 @@ svg.camino {
     font-weight: 400;
     font-size: 16pt;
     fill: var(--white, white);
-    pointer-events: none;
+
+    &:not(.button) {
+      pointer-events: none;
+    }
 
     /* Linter marks this as unknown, but it does actually change the baseline. */
     dominant-baseline: hanging;

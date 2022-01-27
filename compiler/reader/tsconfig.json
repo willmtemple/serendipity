@@ -2,8 +2,7 @@
   "extends": "../../tsconfig.esm",
   "compilerOptions": {
     "outDir": "dist-esm/",
-    "rootDir": "src/"
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "test/**/*.ts", "examples/**/*.ts"],
 }
 

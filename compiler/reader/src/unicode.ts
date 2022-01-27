@@ -6,9 +6,29 @@ import { debug } from "./utils";
 
 export type UnicodeScalarValue = number;
 
-export const enum CharacterCode {
-  EOF = -1,
+/**
+ * Produces the code point of a number's character.
+ *
+ * @param n a number from zero to nine
+ */
+export function numeral(n: number): number {
+  if (n < 0 || n > 15) {
+    throw new RangeError("numeral index out of bounds");
+  }
 
+  return Math.trunc(n <= 9 ? 48 + n : 65 + (n - 10));
+}
+
+export const NUMERALS = new Set([
+  // DIGIT 0-9
+  0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39,
+  // CAPITAL A-F
+  0x41, 0x42, 0x43, 0x44, 0x45, 0x46,
+  // SMALL a-f
+  0x61, 0x62, 0x63, 0x64, 0x65, 0x66,
+]);
+
+export const enum CharacterCode {
   OpenParen = 0x28, // LEFT PARENTHESIS
   FullwidthOpenParen = 0xff08, // FULLWIDTH LEFT PARENTHESIS
 
@@ -47,6 +67,11 @@ export const enum CharacterCode {
   SingleQuote = 0x27, // APOSTROPHE
   DoubleQuote = 0x22, // QUOTATION MARK
 
+  ExclamationMark = 0x21, // EXCLAMATION MARK
+  QuestionMark = 0x3f, // QUESTION MARK
+  Pipe = 0x7c, // VERTICAL LINE
+  Underscore = 0x5f, // LOW LINE
+
   // == UTILITY ==
 
   NumberSign = 0x23, // NUMBER SIGN
@@ -54,6 +79,13 @@ export const enum CharacterCode {
   ForwardSlash = 0x2f, // SOLIDUS
   Backslash = 0x5c, // REVERSE SOLIDUS
   Asterisk = 0x2a, // ASTERISK
+  PlusSign = 0x2b, // PLUS SIGN
+  MinusSign = 0x2d, // HYPHEN-MINUS
+  EqualsSign = 0x3d, // EQUALS SIGN
+  AtSign = 0x40, // COMMERCIAL AT
+  PercentSign = 0x25, // PERCENT SIGN
+  Caret = 0x5e, // CIRCUMFLEX ACCENT
+  Ampersand = 0x26, // AMPERSAND
 
   // == TEXT ==
   LowercaseLetterN = 0x4e, // LATIN SMALL LETTER N
@@ -84,7 +116,7 @@ export const enum CharacterCode {
   LineSeparator = 0x2028, // LINE SEPARATOR
   ParagraphSeparator = 0x2029, // PARAGRAPH SEPARATOR
   MediumMathematicalSpace = 0x205f, // MEDIUM MATHEMATICAL SPACE
-  IdeographicSpace = 0x3000 // IDEOGRAPHIC SPACE
+  IdeographicSpace = 0x3000, // IDEOGRAPHIC SPACE
 }
 
 export const WHITESPACE_CHARACTERS: Set<CharacterCode> = new Set([
@@ -111,11 +143,30 @@ export const WHITESPACE_CHARACTERS: Set<CharacterCode> = new Set([
   CharacterCode.LineSeparator,
   CharacterCode.ParagraphSeparator,
   CharacterCode.MediumMathematicalSpace,
-  CharacterCode.IdeographicSpace
+  CharacterCode.IdeographicSpace,
 ]);
 
 export function isNumeric(usv: UnicodeScalarValue): boolean {
   return usv >= 0x30 && usv <= 0x39;
+}
+
+export function utf8Encode(c: number): number[] {
+  if (c < 0x80) {
+    return [(c & 0x7f) | 0x00];
+  } else if (c < 0x800) {
+    return [((c >> 6) & 0x1f) | 0xc0, (c & 0x3f) | 0x80];
+  } else if (c < 0x10000) {
+    return [((c >> 12) & 0x0f) | 0xe0, ((c >> 6) & 0x3f) | 0x80, (c & 0x3f) | 0x80];
+  } else if (c < 0x110000) {
+    return [
+      ((c >> 18) & 0x07) | 0xf0,
+      ((c >> 12) & 0x3f) | 0x80,
+      ((c >> 6) & 0x3f) | 0x80,
+      (c & 0x3f) | 0x80,
+    ];
+  } else {
+    throw new Error(`Invalid input (not a code point): 0x${c.toString(16)}`);
+  }
 }
 
 /**
@@ -139,7 +190,7 @@ export async function* scalars(stream: AsyncIterable<number>): AsyncIterable<Uni
       utf8CodePoint,
       utf8BytesSeen,
       utf8LowerBoundary,
-      utf8UpperBoundary
+      utf8UpperBoundary,
     });
   }
 

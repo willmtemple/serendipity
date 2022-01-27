@@ -23,33 +23,41 @@
   display: flex;
   flex-flow: column;
   height: 100%;
+  pointer-events: none;
+
+  > * {
+    pointer-events: auto;
+  }
 
   .workspace {
     flex-grow: 1;
+  }
 
-    svg.camino {
-      --camino-peg: #00000060;
+  .camino {
+    width: 100%;
+    --camino-peg: #00000060;
+    pointer-events: auto;
 
-      --camino-expr-procedure: #{darken($purple, 18%)};
-      --camino-expr-name: #{$yellow};
-      --camino-expr-number: #{$cyan};
-      --camino-expr-string: #{darken($green, 18%)};
-      --camino-expr-void: #{$black};
-      --camino-expr-compare: #{$blue};
-      --camino-expr-tuple: #{$green};
-      --camino-expr-if: #{$pink};
-      --camino-expr-accessor: #{$orange};
-      --camino-expr-arithmetic: #{$indigo};
+    --camino-expr-procedure: #{darken($purple, 18%)};
+    --camino-expr-name: #{$yellow};
+    --camino-expr-number: #{$cyan};
+    --camino-expr-string: #{darken($green, 18%)};
+    --camino-expr-void: #{$black};
+    --camino-expr-compare: #{$blue};
+    --camino-expr-tuple: #{$green};
+    --camino-expr-if: #{$pink};
+    --camino-expr-accessor: #{$orange};
+    --camino-expr-arithmetic: #{$indigo};
 
-      --camino-global-main: #{desaturate(darken($red, 5%), 20%)};
-      --camino-global-definefunction: #{$purple};
-      --camino-global-define: #{saturate($blue, 30%)};
-    }
+    --camino-global-main: #{desaturate(darken($red, 5%), 20%)};
+    --camino-global-definefunction: #{$purple};
+    --camino-global-define: #{saturate($blue, 30%)};
   }
 
   .tray {
     width: 100%;
     background-color: var(--primary);
+    z-index: 1;
 
     .panel {
       display: flex;
@@ -99,8 +107,9 @@ header {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+  z-index: 1;
 
-  padding: 1rem 1rem 1rem 1rem;
+  padding: 0.6rem 0.6rem 0.6rem 0.6rem;
 
   * {
     margin-top: 0;
@@ -110,19 +119,49 @@ header {
   h1 {
     display: inline-block;
     color: var(--background);
+    font-size: 24pt;
   }
 
-  ul {
-    display: inline-block;
+  .right.action.bar {
     list-style: none;
+    button {
+      padding: 0.5rem 0.66rem 0.5rem 0.66rem;
+      background-color: unset;
+      border: 2px solid var(--background);
+      border-radius: 5px;
+      color: var(--background);
+    }
   }
 
-  .right button {
-    padding: 0.5rem 0.66rem 0.5rem 0.66rem;
-    background-color: unset;
-    border: 2px solid var(--background);
+  ul.editor.mode.switcher {
+    background-color: $blue;
+    padding: 0.2rem;
     border-radius: 5px;
-    color: var(--background);
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    list-style: none;
+
+    li {
+      display: block;
+
+      button {
+        height: 3em;
+        border: none;
+        background-color: $blue;
+        color: $white;
+        border-radius: 5px;
+        font-weight: 600;
+
+        &:hover:not(.active) {
+          background-color: lighten($blue, 10%);
+        }
+
+        &.active {
+          background-color: darken($cyan, 5%);
+        }
+      }
+    }
   }
 }
 

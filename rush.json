@@ -56,7 +56,7 @@
       "shouldPublish": false
     },
     {
-      "packageName": "@serendipity/compiler-reader",
+      "packageName": "@serendipity/reader",
       "projectFolder": "compiler/reader",
       "reviewCategory": "production",
       "shouldPublish": false

@@ -1,15 +1,15 @@
-import { observer } from "mobx-react";
 import * as React from "react";
 
 import { Number } from "@serendipity/syntax-surface";
 
 import { useResizeParent, useResizeParentEffect } from "../../../hooks/measure";
+import { syntax } from "../../../util/syntaxComponent";
 
 const WIDTH_FACTOR = 12.9;
 const WIDTH_OFFSET = 2;
 
 // tslint:disable-next-line: variable-name ban-types
-const Number = React.forwardRef<SVGForeignObjectElement, { number: Number }>((props, ref) => {
+export default syntax<{ number: Number }>("Number", (props, ref) => {
   useResizeParentEffect();
 
   const resize = useResizeParent();
@@ -44,5 +44,3 @@ const Number = React.forwardRef<SVGForeignObjectElement, { number: Number }>((pr
     </foreignObject>
   );
 });
-
-export default observer(Number);

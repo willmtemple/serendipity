@@ -1,18 +1,20 @@
 {
-  "name": "@serendipity/compiler-reader",
+  "name": "@serendipity/reader",
   "version": "0.1.0",
-  "description": "LISP-like primitive syntax parser",
-  "author": "Serendipity Project Contributors",
-  "module": "dist-esm/index.js",
-  "types": "dist-esm/index.d.ts",
+  "description": "LISP-like primitive syntax parser for Serendipity Languages",
+  "author": "Will Temple (contact at wtemple dot net)",
+  "type": "module",
+  "main": "dist-esm/src/index.js",
+  "module": "dist-esm/src/index.js",
+  "types": "dist-esm/src/index.d.ts",
   "contributors": [
     {
       "name": "Will Temple",
-      "email": "will@wtemple.net",
+      "email": "willmtemple@users.noreply.github.com",
       "url": "https://wtemple.info/"
     }
   ],
-  "license": "GPL-3.0-or-later",
+  "license": "MIT",
   "homepage": "https://github.com/willmtemple/serendipity/tree/master/compiler/reader",
   "repository": {
     "type": "git",
@@ -22,24 +24,34 @@
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist/",
-    "format:check": "prettier --check \"src/**/*.ts\"",
-    "format:fix": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format:fix": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "eslint src --ext ts",
     "lint:fix": "eslint src --ext ts",
-    "prebuild": "npm run clean"
+    "prebuild": "npm run clean",
+    "test": "mocha -r esm -r ts-node/register test/**/*.spec.ts"
   },
   "prettier": "@serendipity/eslint-config/prettier.json",
   "devDependencies": {
+    "@rollup/plugin-node-resolve": "latest",
     "@serendipity/eslint-config": "0.1.0",
-    "@types/node": "^12.0.0",
+    "@types/chai": "~4.2.18",
+    "@types/mocha": "~8.2.2",
+    "@types/node": "^12.20.36",
     "@typescript-eslint/eslint-plugin": "^4.0.0",
+    "chai": "~4.3.4",
     "eslint": "^7.0.0",
     "eslint-plugin-header": "^3.0.0",
     "eslint-plugin-promise": "^4.2.1",
-    "prettier": "~1.18.2",
+    "esm": "~3.2.25",
+    "mocha": "~8.4.0",
+    "prettier": "^2.3.0",
+    "rollup": "^2.0.0",
+    "ts-node": "^9.1.1",
     "typescript": "~4.1.0"
   },
   "dependencies": {
-    "omnimatch": "1.0.0-development.2"
+    "omnimatch": "1.0.0-development.2",
+    "bignumber.js": "^9.0.0"
   }
 }

@@ -3,49 +3,45 @@
 
 Module ::= ListContents
 
-<ListContents> ::= Expression (ws-req Expression)*
+<ListContents> ::= Expression (<Split> Expression)*
 BracketList ::= '[' ws-opt ListContents? ws-opt ']'
 ParenList ::= '(' ws-opt ListContents? ws-opt ')'
 BraceList ::= '{' ws-opt ListContents? ws-opt '}'
 
+ListRest ::= (Sigil ListRest) | (ws-req ListRest);
+
 Expression ::= 
-  | '#' AltExpression
+  | '#' Set
   | Tuple
   | Array
   | Map
   | <Atom>
 
-Atom ::= Number | String | Symbol
+Atom ::= Number | String | Symbol | Sigil
 
 // (foo, "bar", "ba" + "z", qux(value))
 Tuple ::= <ParenList>
 Array ::= <BracketList>
 
-// Map literals are like object literals in JS
+// Map literals are like object literals in JS, but using fat arrows
+n
 // {
-//   sym: "foo",
-//   0: "ba" + "r",
-//   "str": "baz",
-//   ...rest,
-//   [computed + "key"]: "qux"
+//   sym => "foo",
+//   0 => "ba" + "r",
+//   "str" => "baz",
+//   [computed + "key"] => "qux",
+//   ...rest
 // }
 Map ::= '{' MapInterior? '}'
-MapInterior ::= MapElement (',' MapElement)* ','?
+MapInterior ::= KeyValuePair (',' KeyValuePair)* (',' MapConjunction)? ','?
 MapElement ::=
-  | KeyValuePair
-  | MapSpread
-KeyValuePair ::= MapKey ':' MapValue
+KeyValuePair ::= MapKey '=>' MapValue
 MapKey ::= Atom | BracketList
 MapValue ::= Expression+
-MapSpread ::= '...' MapValue
-
-<AltExpression> ::= Set | Procedure
+MapConjunction ::= '...' MapValue
 
 // #{this, that, the(other).thing}
 Set ::= <BraceList>
-
-// #[print foo(); if x #[ break; ] else #[ exit err.GENERIC_ERROR ]]
-Procedure ::= <BracketList>
 
 // +0
 // -0
@@ -57,13 +53,9 @@ String ::=
   | '"' /([^"\n]|\\"|\\\n)*/ '"'
   | '\'' /([^'\n]|\\'|\\\n)*/ '\''
 
-Symbol ::=
-  | Sigil
-  | Name
+Sigil ::= /[,.:;<>?|!@#$%^&*-=+]+/
 
-Sigil ::= /[,.:;<>?|!@#$%^&*-=+]/
-
-Name ::= /[!<Sigil>]+/
+Symbol ::= /[^\s<Sigil>]+/
 
 Comment ::= /\/\/[^\n]*/
 

@@ -1,17 +1,13 @@
-import { observer } from 'mobx-react';
-import * as React from 'react';
+import { Do } from "@serendipity/syntax-surface";
+import Indent from "../../layout/Indent";
+import Expression from "../expression";
+import { syntax } from "../../../util/syntaxComponent";
 
-import { Do } from '@serendipity/syntax-surface';
-import Indent from '../../layout/Indent';
-import Expression from '../expression';
-
-const Do = React.forwardRef<SVGGElement, { do: Do }>((props, ref) => (
-    <g ref={ref}>
-        <text>do</text>
-        <Indent x={32}>
-            <Expression bind={props.do} bindKey="body" />
-        </Indent>
-    </g>
-))
-
-export default observer(Do);
+export default syntax<{ do: Do }>("Do", (props, ref) => (
+  <g ref={ref}>
+    <text>do</text>
+    <Indent x={32}>
+      <Expression bind={props.do} bindKey="body" />
+    </Indent>
+  </g>
+));

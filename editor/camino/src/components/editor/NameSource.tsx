@@ -46,7 +46,7 @@ function NameSource(props: NameSourceProps, ref: React.ForwardedRef<unknown>) {
     }
   });
 
-  return value === "" || value === "_" ? (
+  return value === "" || value.startsWith("_") ? (
     <Binder
       ref={ref as React.ForwardedRef<SVGForeignObjectElement>}
       {...props.binderProps}

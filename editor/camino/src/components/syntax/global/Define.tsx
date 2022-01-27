@@ -1,21 +1,19 @@
-import { observer } from "mobx-react";
-import * as React from "react";
-
-import * as global from "@serendipity/syntax-surface";
+import { Define } from "@serendipity/syntax-surface";
 
 import CloseButton from "../../editor/CloseButton";
 import Indent from "../../layout/Indent";
 import Expression from "../expression";
 import { SvgFlex } from "../../layout";
 import NameSource from "../../editor/NameSource";
+import { syntax } from "../../../util/syntaxComponent";
 
 interface DefineProps {
-  define: global.Define;
+  define: Define;
 
   onDelete(): void;
 }
 
-function Define(props: DefineProps, ref: React.ForwardedRef<SVGGElement>) {
+export default syntax<DefineProps>("Define", (props, ref) => {
   return (
     <g ref={ref}>
       <SvgFlex direction="horizontal" padding={10} align={"middle"}>
@@ -28,6 +26,4 @@ function Define(props: DefineProps, ref: React.ForwardedRef<SVGGElement>) {
       </Indent>
     </g>
   );
-}
-
-export default observer(React.forwardRef<SVGGElement, DefineProps>(Define));
+});

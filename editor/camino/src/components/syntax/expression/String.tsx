@@ -1,16 +1,16 @@
-import { observer } from "mobx-react";
 import * as React from "react";
 
 import { String } from "@serendipity/syntax-surface";
 
 import { useResizeParent, useResizeParentEffect } from "../../../hooks/measure";
 import { SvgFlex } from "../../layout";
+import { syntax } from "../../../util/syntaxComponent";
 
 const WIDTH_FACTOR = 12.9;
 const WIDTH_OFFSET = 2;
 
 // tslint:disable-next-line: variable-name ban-types
-const String = React.forwardRef<SVGForeignObjectElement, { string: String }>((props, ref) => {
+export default syntax<{ string: String }>("String", (props, ref) => {
   useResizeParentEffect();
 
   const resize = useResizeParent();
@@ -33,5 +33,3 @@ const String = React.forwardRef<SVGForeignObjectElement, { string: String }>((pr
     </SvgFlex>
   );
 });
-
-export default observer(String);
