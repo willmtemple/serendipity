@@ -26,10 +26,10 @@ export default syntax<DefineFuncProps>("DefineFunction", (props, ref) => {
     <text key="s_dfn_open_paren">(</text>,
   ];
 
-  props.definefunc.parameters.forEach((p, idx) => {
+  props.definefunc.parameters.forEach((_, idx) => {
     binderLine.push(
       <NameSource
-        key={`dfn_bind-${p}-${idx}`}
+        key={`dfn_bind-${idx}`}
         binderProps={{ bind: props.definefunc.parameters, bindKey: idx }}
       />
     );

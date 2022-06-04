@@ -16,7 +16,7 @@ export default syntax<{ closure: Closure }>("Closure", (props, ref) => {
   props.closure.parameters.forEach((p, idx) => {
     binderLine.push(
       <NameSource
-        key={`clos_bind-${p}-${idx}`}
+        key={`clos_bind-${p}}`}
         binderProps={{ bind: props.closure.parameters, bindKey: idx }}
       />
     );

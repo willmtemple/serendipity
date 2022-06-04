@@ -40,7 +40,7 @@
     "@serendipity/syntax": "0.1.0",
     "@serendipity/syntax-abstract": "0.1.0",
     "@serendipity/syntax-surface": "0.1.0",
-    "@types/node": "^12.0.0",
+    "@types/node": "^14.0.0",
     "@typescript-eslint/eslint-plugin": "^4.0.0",
     "eslint": "^7.0.0",
     "eslint-plugin-header": "^3.0.0",

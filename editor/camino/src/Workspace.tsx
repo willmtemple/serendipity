@@ -83,7 +83,7 @@ export const Workspace = observer(() => {
           );
         })}
       </svg>
-      <rect x={0} y={0} width={200} height="100%" fill="#FF0000" className="drop dumpster" />
+      <rect x={0} y={0} width={200} height="100%" fill="#FF000020" className="drop dumpster" />
       <svg
         x="80%"
         width="20%"

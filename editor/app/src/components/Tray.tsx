@@ -22,7 +22,7 @@ function Tray() {
           <li>
             <button onClick={toggle}>
               <Icon name="terminal" />
-              &nbsp;REPL
+              &nbsp;XTerm
             </button>
           </li>
         </ul>

@@ -2,7 +2,15 @@ import { CharacterCode } from "./unicode";
 
 const _sigils: Map<string, symbol> = new Map();
 
-export const Sigils: Record<string, symbol> = {
+export const intern = (sigil: string) =>
+  _sigils.get(sigil) ??
+  (() => {
+    const s = Symbol(sigil);
+    _sigils.set(sigil, s);
+    return s;
+  })();
+
+export const Sigils = {
   Arrow: intern("->"),
   BigArrow: intern("=>"),
   SingleColon: intern(":"),
@@ -10,21 +18,12 @@ export const Sigils: Record<string, symbol> = {
   Pipe: intern("|"),
   Comma: intern(","),
   Semicolon: intern(";"),
+  ColonEqual: intern(":="),
   ColonEqualEqual: intern(":=="),
   Tilde: intern("~"),
   Ampersand: intern("&"),
   At: intern("@"),
 };
-
-export function intern(sigil: string): symbol {
-  if (_sigils.has(sigil)) {
-    return _sigils.get(sigil)!;
-  } else {
-    const s = Symbol(sigil);
-    _sigils.set(sigil, s);
-    return s;
-  }
-}
 
 export const SIGIL_CHARACTERS = new Set<CharacterCode>([
   CharacterCode.ExclamationMark,

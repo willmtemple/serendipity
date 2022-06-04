@@ -32,7 +32,7 @@ export interface Rect {
 }
 
 function same(l: Rect, r: Rect): boolean {
-  return l.x === r.x && l.y === r.y && l.width === r.width && l.height === r.height;
+  return l && r && l.x === r.x && l.y === r.y && l.width === r.width && l.height === r.height;
 }
 
 const blankExtent: Rect = {
@@ -75,9 +75,10 @@ export function measureChildren<P extends {}>(
   WrappedComponent: React.ComponentType<P & MeasurementProps>
 ) {
   return React.forwardRef<any, React.PropsWithChildren<P>>((props, ref) => {
-    const [children, childRefs] = React.useMemo(() => refChildren(props.children), [
-      props.children,
-    ]);
+    const [children, childRefs] = React.useMemo(
+      () => refChildren(props.children),
+      [props.children]
+    );
 
     const [rects, setRects] = React.useState<Rect[]>(
       React.Children.map(children, () => ({ ...blankExtent }))
@@ -96,12 +97,11 @@ export function measureChildren<P extends {}>(
       if (ready.current && childRefs.every((r) => r === null || r.current !== null)) {
         const newRects = childRefs.map((r) => r?.current?.getBBox() ?? { ...blankExtent });
 
-        if (newRects.some((r, idx) => !same(r, rects[idx]))) {
+        if (rects.length !== newRects.length || newRects.some((r, idx) => !same(r, rects[idx]))) {
           setRects(newRects);
         }
-
-        resizeParent();
       }
+      resizeParent();
     }
 
     // Update logic

@@ -23,9 +23,7 @@ export const Terminal: React.FC = () => {
       term.open(termDiv.current);
       fit(term);
 
-      term.writeln(
-        "xterm... sorry to disappoint, but this isn't a REPL yet ;)"
-      );
+      term.writeln("xterm.js");
       term.writeln("");
 
       const handleEvent = (evt: CustomEvent<{ message: string }>) => {
