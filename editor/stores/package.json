@@ -36,9 +36,9 @@
   },
   "prettier": "@serendipity/eslint-config/prettier.json",
   "dependencies": {
-    "@serendipity/syntax": "0.1.0",
-    "@serendipity/syntax-surface": "0.1.0",
-    "mobx": "^6.0.0",
+    "@serendipity/syntax": "workspace:*",
+    "@serendipity/syntax-surface": "workspace:*",
+    "mobx": "^6.6.0",
     "mobx-react": "^7.0.0",
     "tslib": "~1.10.0",
     "uuid": "^3.3.3",
@@ -46,15 +46,12 @@
     "omnimatch": "1.0.0-development.2"
   },
   "devDependencies": {
-    "@serendipity/eslint-config": "0.1.0",
+    "@serendipity/eslint-config": "workspace:*",
     "@types/node": "^14.0.0",
     "@types/uuid": "^3.4.5",
-    "@typescript-eslint/eslint-plugin": "^4.0.0",
-    "eslint": "^7.0.0",
-    "eslint-plugin-header": "^3.0.0",
-    "eslint-plugin-promise": "^4.2.1",
+    "eslint": "^8.17.0",
     "prettier": "^2.3.0",
-    "typescript": "~4.1.0",
+    "typescript": "~4.7.3",
     "@types/react": "^17.0.0"
   }
 }

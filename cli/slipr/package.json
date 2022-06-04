@@ -36,28 +36,24 @@
   },
   "prettier": "@serendipity/eslint-config/prettier.json",
   "dependencies": {
-    "@serendipity/compiler-desugar": "0.1.0",
-    "@serendipity/interpreter": "0.1.0",
-    "@serendipity/syntax": "0.1.0",
-    "@serendipity/syntax-abstract": "0.1.0",
-    "@serendipity/syntax-surface": "0.1.0",
-    "@serendipity/reader": "0.1.0",
+    "@serendipity/compiler-desugar": "workspace:*",
+    "@serendipity/interpreter": "workspace:*",
+    "@serendipity/syntax": "workspace:*",
+    "@serendipity/syntax-abstract": "workspace:*",
+    "@serendipity/syntax-surface": "workspace:*",
+    "@serendipity/reader": "workspace:*",
     "readline-sync": "~1.4.10",
     "omnimatch": "1.0.0-development.2"
   },
   "devDependencies": {
-    "@serendipity/eslint-config": "0.1.0",
+    "@serendipity/eslint-config": "workspace:*",
     "@types/node": "^14.0.0",
     "@types/readline-sync": "~1.4.3",
-    "@typescript-eslint/eslint-plugin": "^4.0.0",
-    "eslint": "^7.0.0",
-    "eslint-plugin-header": "^3.0.0",
-    "eslint-plugin-promise": "^4.2.1",
+    "eslint": "^8.17.0",
     "prettier": "^2.3.0",
-    "typescript": "~4.1.0",
+    "typescript": "~4.7.3",
     "rollup": "^2.0.0",
     "@rollup/plugin-node-resolve": "latest",
-    "@rollup/plugin-commonjs": "latest",
-    "@typescript-eslint/parser": "^4.0.0"
+    "@rollup/plugin-commonjs": "latest"
   }
 }
