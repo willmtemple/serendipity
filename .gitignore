@@ -73,4 +73,4 @@ common/temp/**
 
 # Build directories
 dist/
-dist-esm/
+dist-*/

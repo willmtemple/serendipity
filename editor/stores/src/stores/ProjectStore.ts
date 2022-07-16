@@ -2,7 +2,7 @@ import { action, autorun, makeAutoObservable, observable, set, toJS } from "mobx
 
 import { surfaceExample } from "../defaultProject";
 
-import guid from "uuid/v4";
+import { v4 as guid } from "uuid";
 
 import { SyntaxObject } from "@serendipity/syntax";
 import { Module } from "@serendipity/syntax-surface";
@@ -12,7 +12,7 @@ import {
   Expression,
   Global,
   Main,
-  Statement
+  Statement,
 } from "@serendipity/syntax-surface";
 
 interface Position {
@@ -79,7 +79,7 @@ export interface EditorModule {
 
 export class ProjectStore {
   public program: EditorModule = {
-    globals: []
+    globals: [],
   };
 
   private byGUID: { [k: string]: SyntaxObject } = {};
@@ -113,7 +113,7 @@ export class ProjectStore {
     return {
       globals: toJS(this.program).globals.filter(
         (g) => g.kind !== "_editor_detachedsyntax"
-      ) as Global[]
+      ) as Global[],
     };
   }
 
@@ -232,18 +232,18 @@ export class ProjectStore {
       metadata: {
         editor: {
           guid: guid(),
-          pos: { ...pos }
-        }
-      }
+          pos: { ...pos },
+        },
+      },
     });
 
     const newHole = {
       kind: "@hole",
       metadata: {
         editor: {
-          guid: guid()
-        }
-      }
+          guid: guid(),
+        },
+      },
     } as const;
     setNode(newHole);
     this.byGUID[newHole.metadata!.editor.guid] = newHole;
@@ -284,10 +284,10 @@ export class ProjectStore {
                 kind: "@hole",
                 metadata: {
                   editor: {
-                    guid: g
-                  }
-                }
-              }
+                    guid: g,
+                  },
+                },
+              },
             ];
             return v;
           }
@@ -298,9 +298,9 @@ export class ProjectStore {
             kind: "@hole",
             metadata: {
               editor: {
-                guid: g
-              }
-            }
+                guid: g,
+              },
+            },
           };
           return [old];
         }
@@ -316,9 +316,9 @@ export class ProjectStore {
       metadata: {
         editor: {
           guid: guid(),
-          pos: { ...pos }
-        }
-      }
+          pos: { ...pos },
+        },
+      },
     } as const);
 
     // Put the clone onto the globals stack
@@ -363,9 +363,9 @@ export class ProjectStore {
           guid: guid(),
           pos: {
             x: 0,
-            y: 0
-          }
-        }
+            y: 0,
+          },
+        },
       };
     }
   }
@@ -387,12 +387,12 @@ export class ProjectStore {
     if (!node.metadata) {
       node.metadata = {
         editor: {
-          guid: guid()
-        }
+          guid: guid(),
+        },
       };
     } else if (!node.metadata.editor) {
       node.metadata.editor = {
-        guid: guid()
+        guid: guid(),
       };
     } else if (!node.metadata.editor.guid) {
       node.metadata.editor.guid = guid();

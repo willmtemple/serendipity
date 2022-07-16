@@ -43,7 +43,7 @@ Prefs.eventBus.addEventListener("runProgram", (evt) => {
     Prefs.eventBus.dispatchEvent(
       new CustomEvent("data", {
         detail: {
-          message: chalk.red(e.message),
+          message: chalk.red((e as Error).message),
         },
       }) as CheckedEvent<CustomEvent<{ message: string }>, "data">
     );

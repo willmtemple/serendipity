@@ -2,7 +2,7 @@
 // All rights reserved.
 // Licensed under the terms of the GNU General Public License v3 or later.
 
-import { debug } from "./utils";
+import { debug } from "./utils.js";
 
 export type UnicodeScalarValue = number;
 
@@ -66,6 +66,8 @@ export const enum CharacterCode {
 
   SingleQuote = 0x27, // APOSTROPHE
   DoubleQuote = 0x22, // QUOTATION MARK
+
+  Backtick = 0x60, // GRAVE ACCENT
 
   ExclamationMark = 0x21, // EXCLAMATION MARK
   QuestionMark = 0x3f, // QUESTION MARK

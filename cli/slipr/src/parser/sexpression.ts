@@ -9,7 +9,11 @@ export type SExpression = Atom | SExpressionArray;
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface SExpressionArray extends Array<SExpression> {}
 
-const LIST_MARKERS = [["(", ")"], ["[", "]"], ["{", "}"]];
+const LIST_MARKERS = [
+  ["(", ")"],
+  ["[", "]"],
+  ["{", "}"],
+];
 
 const FLAT_LIST_MARKERS = LIST_MARKERS.reduce((v, acc) => [...acc, ...v], []);
 const LIST_MARKER_LOOKUP = (() => {
@@ -20,7 +24,7 @@ const LIST_MARKER_LOOKUP = (() => {
 
 export async function* chars(
   input: AsyncIterable<Buffer>,
-  encoding = "utf-8"
+  encoding: BufferEncoding = "utf-8"
 ): AsyncGenerator<string> {
   for await (const chunk of input) {
     for (const c of chunk.toString(encoding)) {
