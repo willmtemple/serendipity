@@ -9,9 +9,9 @@ import { useResizeParentEffect } from "../../hooks/measure";
 interface SyntaxHoleProps {
   bind: SyntaxObject;
   bindKey: string | number;
-  bindIdx?: number;
+  bindIdx?: number | undefined;
 
-  transform?: string;
+  transform?: string | undefined;
 
   kind: "expression" | "statement";
 }
@@ -29,8 +29,8 @@ const cx = [
   { cy1: 63, cx1: 5, cy2: 65, cx2: 15, ey: 100, ex: 0 }, // right shoulder
 ];
 
-const CAP_INDENT = (cx[0].cx2 / 100) * CAP_HEIGHT;
-const CAP_EXTENT = -(cx[2].ex / 100) * CAP_HEIGHT;
+const CAP_INDENT = (cx[0]!.cx2 / 100) * CAP_HEIGHT;
+const CAP_EXTENT = -(cx[2]!.ex / 100) * CAP_HEIGHT;
 
 const puzzlePiece = cx
   .map((section) => {

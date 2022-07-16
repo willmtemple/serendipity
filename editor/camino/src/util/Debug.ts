@@ -223,6 +223,11 @@ export namespace spawn {
             right: hole(),
             op: rq(args[0], "string"),
           };
+        case "Record":
+          return {
+            kind: "Record",
+            data: {},
+          };
         case "@hole":
           throw new Error("Cannot instantiate a floating hole.");
         default:

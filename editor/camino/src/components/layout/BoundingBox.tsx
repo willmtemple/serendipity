@@ -18,8 +18,8 @@ export const BoundingBox = measureChildren(
         <rect
           className="boundary"
           rx={3}
-          width={props.sizes[0].width + 20}
-          height={props.sizes[0].height + 20}
+          width={(props.sizes[0]?.width ?? 0) + 20}
+          height={(props.sizes[0]?.height ?? 0) + 20}
         />
         <g transform="translate(10,10)">{props.children}</g>
       </g>

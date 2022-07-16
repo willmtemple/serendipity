@@ -101,7 +101,7 @@ export function makeCodePointIterator(data: IntoStream): CodePointIterator {
     },
     peek: async () => {
       if (buffer.length > 0) {
-        return buffer[0];
+        return buffer[0]!;
       }
       const v = await iter.next();
       if (!v.done) {

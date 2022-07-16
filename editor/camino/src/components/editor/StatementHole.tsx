@@ -9,9 +9,9 @@ import { useResizeParentEffect } from "../../hooks/measure";
 interface SyntaxHoleProps {
   bind: SyntaxObject;
   bindKey: string | number;
-  bindIdx?: number;
+  bindIdx?: number | undefined;
 
-  transform?: string;
+  transform?: string | undefined;
 
   kind: "expression" | "statement";
 }

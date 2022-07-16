@@ -27,7 +27,7 @@ export interface If {
   kind: "If";
   condition: Expression;
   body: Statement;
-  _else?: Statement;
+  _else?: Statement | undefined;
 }
 
 export interface ForIn {
@@ -54,4 +54,3 @@ export interface Break {
 export interface Hole {
   kind: "@hole";
 }
-

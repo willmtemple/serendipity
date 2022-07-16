@@ -12,7 +12,7 @@ import {
   intoSExpression,
   SExpression,
   SExpressionArray,
-  chars
+  chars,
 } from "./sexpression";
 
 type ExpressionReducer = (e: SExpressionArray) => Expression;
@@ -26,7 +26,10 @@ const requireAtLeast = (len: number, fn: ExpressionReducer): ExpressionReducer =
 /* const _requireAtMost = (len: number, fn: ExpressionReducer): ExpressionReducer =>
   requireBetween([undefined, len], fn);*/
 
-function requireBetween(lens: [number?, number?], fn: ExpressionReducer): ExpressionReducer {
+function requireBetween(
+  lens: [l?: number | undefined, r?: number | undefined],
+  fn: ExpressionReducer
+): ExpressionReducer {
   return (e: SExpressionArray) => {
     if ((lens[0] && e.length < lens[0]) || (lens[1] !== undefined && e.length > lens[1])) {
       let message = `Wrong length for builtin '${e[0]}' SExpression. Got ${e.length} items but required `;
@@ -64,19 +67,19 @@ function assertAllSymbols(sexpr: SExpressionArray): string[] {
  */
 const builtinValues: { [k: string]: Expression } = {
   empty: {
-    kind: "Void"
+    kind: "Void",
   },
   true: {
     kind: "Boolean",
-    value: true
+    value: true,
   },
   false: {
     kind: "Boolean",
-    value: false
+    value: false,
   },
   "...": {
-    kind: "@hole"
-  }
+    kind: "@hole",
+  },
 };
 
 /**
@@ -97,38 +100,38 @@ const builtinConstructors: { [k: string]: ExpressionReducer } = {
       kind: "Compare",
       op: ">",
       left: intoExpression(sexpr[1]),
-      right: intoExpression(sexpr[2])
+      right: intoExpression(sexpr[2]),
     })
   ),
   "<": requireExact(3, (sexpr: SExpressionArray) => ({
     kind: "Compare",
     op: "<",
     left: intoExpression(sexpr[1]),
-    right: intoExpression(sexpr[2])
+    right: intoExpression(sexpr[2]),
   })),
   ">=": requireExact(3, (sexpr: SExpressionArray) => ({
     kind: "Compare",
     op: ">=",
     left: intoExpression(sexpr[1]),
-    right: intoExpression(sexpr[2])
+    right: intoExpression(sexpr[2]),
   })),
   "<=": requireExact(3, (sexpr: SExpressionArray) => ({
     kind: "Compare",
     op: "<=",
     left: intoExpression(sexpr[1]),
-    right: intoExpression(sexpr[2])
+    right: intoExpression(sexpr[2]),
   })),
   "=": requireExact(3, (sexpr: SExpressionArray) => ({
     kind: "Compare",
     op: "==",
     left: intoExpression(sexpr[1]),
-    right: intoExpression(sexpr[2])
+    right: intoExpression(sexpr[2]),
   })),
   "!=": requireExact(3, (sexpr: SExpressionArray) => ({
     kind: "Compare",
     op: "!=",
     left: intoExpression(sexpr[1]),
-    right: intoExpression(sexpr[2])
+    right: intoExpression(sexpr[2]),
   })),
   "+": requireAtLeast(3, (sexpr: SExpressionArray) => {
     const folder = (inExpr: SExpressionArray): Expression =>
@@ -137,7 +140,7 @@ const builtinConstructors: { [k: string]: ExpressionReducer } = {
             kind: "Arithmetic",
             op: "+",
             left: intoExpression(inExpr[0]),
-            right: folder(inExpr.slice(1))
+            right: folder(inExpr.slice(1)),
           }
         : intoExpression(inExpr[0]);
     return folder(sexpr.slice(1));
@@ -149,7 +152,7 @@ const builtinConstructors: { [k: string]: ExpressionReducer } = {
             kind: "Arithmetic",
             op: "*",
             left: intoExpression(inExpr[0]),
-            right: folder(inExpr.slice(1))
+            right: folder(inExpr.slice(1)),
           }
         : intoExpression(inExpr[0]);
     return folder(sexpr.slice(1));
@@ -158,51 +161,51 @@ const builtinConstructors: { [k: string]: ExpressionReducer } = {
     kind: "Arithmetic",
     op: "-",
     left: intoExpression(sexpr[1]),
-    right: intoExpression(sexpr[2])
+    right: intoExpression(sexpr[2]),
   })),
   "/": requireExact(3, (sexpr: SExpressionArray) => ({
     kind: "Arithmetic",
     op: "/",
     left: intoExpression(sexpr[1]),
-    right: intoExpression(sexpr[2])
+    right: intoExpression(sexpr[2]),
   })),
   cons: requireAtLeast(2, (sexpr: SExpressionArray) => ({
     kind: "Tuple",
-    values: sexpr.slice(1).map(intoExpression)
+    values: sexpr.slice(1).map(intoExpression),
   })),
   "get-property": requireExact(3, (sexpr: SExpressionArray) => ({
     kind: "Accessor",
     accessee: intoExpression(sexpr[1]),
-    index: intoExpression(sexpr[2])
+    index: intoExpression(sexpr[2]),
   })),
   // TODO: this should be a lib function rather than a syntax-level intrinsic
   readline: requireBetween([1, 2], (sexpr: SExpressionArray) => ({
     kind: "Call",
     callee: {
       kind: "Name",
-      name: "__core.read_line"
+      name: "__core.read_line",
     },
-    parameters: [intoExpression(sexpr[1])]
+    parameters: [intoExpression(sexpr[1])],
   })),
   "str-split": requireExact(3, (sexpr: SExpressionArray) => ({
     kind: "Call",
     callee: {
       kind: "Name",
-      name: "__core.str_split"
+      name: "__core.str_split",
     },
-    parameters: [intoExpression(sexpr[1]), intoExpression(sexpr[2])]
+    parameters: [intoExpression(sexpr[1]), intoExpression(sexpr[2])],
   })),
   "str-cat": requireExact(3, (sexpr: SExpressionArray) => ({
     kind: "Call",
     callee: {
       kind: "Name",
-      name: "__core.str_cat"
+      name: "__core.str_cat",
     },
-    parameters: [intoExpression(sexpr[1]), intoExpression(sexpr[2])]
+    parameters: [intoExpression(sexpr[1]), intoExpression(sexpr[2])],
   })),
   proc: requireAtLeast(1, (sexpr: SExpressionArray) => ({
     kind: "Procedure",
-    body: sexpr.slice(1).map(intoStatement)
+    body: sexpr.slice(1).map(intoStatement),
   })),
   fn: requireExact(3, (sexpr: SExpressionArray) => {
     // Will need to tweak this check when I support types
@@ -217,18 +220,18 @@ const builtinConstructors: { [k: string]: ExpressionReducer } = {
     return {
       kind: "Closure",
       parameters,
-      body: intoExpression(sexpr[2])
+      body: intoExpression(sexpr[2]),
     };
   }),
   if: requireExact(4, (sexpr: SExpressionArray) => ({
     kind: "If",
     cond: intoExpression(sexpr[1]),
     then: intoExpression(sexpr[2]),
-    _else: intoExpression(sexpr[3])
+    _else: intoExpression(sexpr[3]),
   })),
   list: (sexpr: SExpressionArray) => ({
     kind: "List",
-    contents: sexpr.slice(1).map(intoExpression)
+    contents: sexpr.slice(1).map(intoExpression),
   }),
   with: requireExact(3, (sexpr: SExpressionArray) => {
     if (!(sexpr[1] instanceof Array) || sexpr[1].length !== 2 || typeof sexpr[1][0] !== "string") {
@@ -240,9 +243,9 @@ const builtinConstructors: { [k: string]: ExpressionReducer } = {
     return {
       kind: "With",
       binding: [sexpr[1][0], intoExpression(sexpr[1][1])],
-      expr: intoExpression(sexpr[2])
+      expr: intoExpression(sexpr[2]),
     };
-  })
+  }),
 };
 
 const allBuiltins = [
@@ -260,7 +263,7 @@ const allBuiltins = [
   "if",
   "for-in",
   "loop",
-  "break"
+  "break",
 ];
 
 export interface Parser {
@@ -272,7 +275,7 @@ export function intoExpression(sexpr: SExpression): Expression {
     // Expr is a number, so it just becomes a number
     return {
       kind: "Number",
-      value: sexpr
+      value: sexpr,
     };
   } else if (typeof sexpr === "string") {
     // The expr being parsed is a string atom, so if it's a string literal, use that,
@@ -282,7 +285,7 @@ export function intoExpression(sexpr: SExpression): Expression {
     if (sexpr.startsWith('"')) {
       return {
         kind: "String",
-        value: sexpr.slice(1, sexpr.length - 1)
+        value: sexpr.slice(1, sexpr.length - 1),
       };
     }
 
@@ -291,7 +294,7 @@ export function intoExpression(sexpr: SExpression): Expression {
       ? maybeValue
       : {
           kind: "Name",
-          name: sexpr
+          name: sexpr,
         };
   } else {
     // Expr is a list, so it is some kind of call/constructor. Check builtins
@@ -310,7 +313,7 @@ export function intoExpression(sexpr: SExpression): Expression {
     return {
       kind: "Call",
       callee: intoExpression(sexpr[0]),
-      parameters: sexpr.slice(1).map(intoExpression)
+      parameters: sexpr.slice(1).map(intoExpression),
     };
   }
 }
@@ -338,7 +341,7 @@ export function intoStatement(sexpr: SExpression): Statement {
       assertLength(2);
       return {
         kind: "Print",
-        value: intoExpression(sexpr[1])
+        value: intoExpression(sexpr[1]),
       };
     case "let":
       assertLength(3);
@@ -350,7 +353,7 @@ export function intoStatement(sexpr: SExpression): Statement {
       return {
         kind: "Let",
         name: sexpr[1],
-        value: intoExpression(sexpr[2])
+        value: intoExpression(sexpr[2]),
       };
     case "set!":
       assertLength(3);
@@ -362,7 +365,7 @@ export function intoStatement(sexpr: SExpression): Statement {
       return {
         kind: "Set",
         name: sexpr[1],
-        value: intoExpression(sexpr[2])
+        value: intoExpression(sexpr[2]),
       };
     case "if":
       if (sexpr.length !== 3 && sexpr.length !== 4) {
@@ -374,13 +377,13 @@ export function intoStatement(sexpr: SExpression): Statement {
         ? {
             kind: "If",
             condition: intoExpression(sexpr[1]),
-            body: intoStatement(sexpr[2])
+            body: intoStatement(sexpr[2]),
           }
         : {
             kind: "If",
             condition: intoExpression(sexpr[1]),
             body: intoStatement(sexpr[2]),
-            _else: intoStatement(sexpr[3])
+            _else: intoStatement(sexpr[3]),
           };
     case "for-in":
       assertLength(3);
@@ -400,24 +403,24 @@ export function intoStatement(sexpr: SExpression): Statement {
         kind: "ForIn",
         binding: sexpr[1][0],
         value: intoExpression(sexpr[1][1]),
-        body: intoStatement(sexpr[2])
+        body: intoStatement(sexpr[2]),
       };
     case "loop":
       assertLength(2);
       return {
         kind: "Forever",
-        body: intoStatement(sexpr[1])
+        body: intoStatement(sexpr[1]),
       };
     case "do":
       assertLength(2);
       return {
         kind: "Do",
-        body: intoExpression(sexpr[1])
+        body: intoExpression(sexpr[1]),
       };
     case "break":
       assertLength(1);
       return {
-        kind: "Break"
+        kind: "Break",
       };
     default:
       throw new Error(
@@ -442,7 +445,7 @@ function intoGlobal(sexpr: SExpression): Global {
       }
       return {
         kind: "Main",
-        body: intoExpression(sexpr[1])
+        body: intoExpression(sexpr[1]),
       };
     case "define":
       if (sexpr.length !== 3) {
@@ -468,7 +471,7 @@ function intoGlobal(sexpr: SExpression): Global {
           kind: "DefineFunction",
           name: fnDef[0],
           parameters: fnDef.slice(1),
-          body: intoExpression(sexpr[2])
+          body: intoExpression(sexpr[2]),
         };
       } else if (typeof sexpr[1] === "string") {
         // Defining a name (need to make sure it's not a reserved word)
@@ -480,7 +483,7 @@ function intoGlobal(sexpr: SExpression): Global {
         return {
           kind: "Define",
           name: sexpr[1],
-          value: intoExpression(sexpr[2])
+          value: intoExpression(sexpr[2]),
         };
       } else {
         throw new Error("Attempted to define a number.");
@@ -505,7 +508,7 @@ async function parse(input: fs.ReadStream): Promise<Module> {
   const sExpr = intoSExpression(atoms);
 
   return {
-    globals: sExpr.map(intoGlobal)
+    globals: sExpr.map(intoGlobal),
   };
 }
 

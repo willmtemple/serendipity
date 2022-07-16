@@ -68,6 +68,10 @@ function printExpression(expression: Expression): string {
     List: ({ contents }) => `[${formatList(contents.map(x), ",")}]`,
     Name: ({ name }) => name,
     Number: ({ value }) => value.toString(),
+    Record: ({ data }) =>
+      `{${Object.entries(data)
+        .map(([k, v]) => `${k}: ${printExpression(v)}`)
+        .join(", ")}}`,
     Procedure: ({ body }) =>
       `do [${formatList(body.map(printStatement), ";")}]`,
     String: ({ value }) => `"${value}"`,

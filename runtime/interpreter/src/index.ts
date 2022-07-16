@@ -128,7 +128,7 @@ function compareOp(lv: Value, rv: Value, op: BinaryOperator): Value {
         default:
           throw new Error("Unimplemented comparison operator " + op);
       }
-    })()
+    })(),
   };
 }
 
@@ -150,7 +150,7 @@ const defaultOptions: InterpreterOptions = {
   },
   beforeEval: () => {
     /* empty */
-  }
+  },
 };
 
 export class Interpreter {
@@ -175,7 +175,7 @@ export class Interpreter {
       this.evalExpr(
         {
           kind: "Name",
-          name: "__start"
+          name: "__start",
         },
         scope
       );
@@ -201,12 +201,12 @@ export class Interpreter {
               value: {
                 body: scope.bind({
                   kind: "Name",
-                  name: "__ident"
+                  name: "__ident",
                 }),
-                parameter: "__ident"
-              }
+                parameter: "__ident",
+              },
             };
-          }
+          },
         };
       case "read_line":
         return {
@@ -225,9 +225,9 @@ export class Interpreter {
 
             return {
               kind: "string",
-              value: result
+              value: result,
             };
-          }
+          },
         };
       case "str_split":
         return {
@@ -251,14 +251,14 @@ export class Interpreter {
                   if (split.length !== 2) {
                     throw new Error("str_split: split delimiter not found");
                   }
-                  [leftStr, rightStr] = split;
+                  [leftStr, rightStr] = split as [string, string];
                 } else {
                   if (splitOn.value > str.value.length) {
                     throw new Error("str_split: index out of bounds");
                   }
                   [leftStr, rightStr] = [
                     str.value.substring(0, splitOn.value),
-                    str.value.substring(splitOn.value, str.value.length)
+                    str.value.substring(splitOn.value, str.value.length),
                   ];
                 }
 
@@ -270,22 +270,22 @@ export class Interpreter {
                     {
                       expr: {
                         kind: "String",
-                        value: leftStr
+                        value: leftStr,
                       },
-                      scope: emptyScope
+                      scope: emptyScope,
                     },
                     {
                       expr: {
                         kind: "String",
-                        value: rightStr
+                        value: rightStr,
                       },
-                      scope: emptyScope
-                    }
-                  ]
+                      scope: emptyScope,
+                    },
+                  ],
                 };
-              }
+              },
             };
-          }
+          },
         };
       case "str_cat":
         return {
@@ -304,11 +304,11 @@ export class Interpreter {
 
                 return {
                   kind: "string",
-                  value: leftStr.value + rightStr.value
+                  value: leftStr.value + rightStr.value,
                 };
-              }
+              },
             };
-          }
+          },
         };
       default:
         throw new Error("Unimplemented intrinsic " + _name);
@@ -396,7 +396,7 @@ export class Interpreter {
           throw new Error("Index out of bounds");
         }
 
-        const resExpr = aVal.value[iVal.value];
+        const resExpr = aVal.value[iVal.value]!;
         return this.evalExpr(resExpr.expr, resExpr.scope);
       },
       Call: ({ callee, parameter }): Value => {
@@ -428,14 +428,14 @@ export class Interpreter {
         kind: "closure",
         value: {
           body: scope.bind(body),
-          parameter
-        }
+          parameter,
+        },
       }),
       Tuple: ({ values }): Value => {
         const vals = values.map((exprBind) => scope.bind(exprBind));
         return {
           kind: "tuple",
-          value: vals
+          value: vals,
         };
       },
       If: ({ cond, then, _else }): Value => {
@@ -446,7 +446,7 @@ export class Interpreter {
         }
       },
       BinaryOp: (v) => this.binaryOperator(v, scope),
-      Void: (): Value => ({ kind: "void" })
+      Void: (): Value => ({ kind: "void" }),
     });
   }
 }

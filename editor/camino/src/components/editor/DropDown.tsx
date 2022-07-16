@@ -7,11 +7,11 @@ interface DropDownProps<Opts extends string[]> {
   onChange?: (v: Opts[number]) => void;
 
   options: Opts;
-  selected?: number;
-  width?: number;
-  height?: number;
+  selected?: number | undefined;
+  width?: number | undefined;
+  height?: number | undefined;
 
-  transform?: string;
+  transform?: string | undefined;
 }
 
 function DropDown<Opts extends string[]>(
@@ -27,7 +27,7 @@ function DropDown<Opts extends string[]>(
   function change(evt: React.ChangeEvent<HTMLSelectElement>) {
     const v = parseInt(evt.target.value, 10);
 
-    props.onChange?.(props.options[v]);
+    props.onChange?.(props.options[v]!);
   }
 
   return (

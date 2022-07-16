@@ -352,7 +352,7 @@ export class ProjectStore {
   public bump(idx: number) {
     if (idx + 1 < this.program.globals.length) {
       const g = this.program.globals.splice(idx, 1);
-      this.program.globals.push(g[0]);
+      this.program.globals.push(g[0]!);
     }
   }
 

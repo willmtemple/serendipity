@@ -16,6 +16,7 @@ export type Expression =
   | Closure
   | List
   | Tuple
+  | Record
   | Procedure
   | If
   | Compare
@@ -83,6 +84,11 @@ export interface Tuple {
   values: Expression[];
 }
 
+export interface Record {
+  kind: "Record";
+  data: { [K in string]: Expression };
+}
+
 export interface Procedure {
   kind: "Procedure";
   body: Statement[];
@@ -109,4 +115,3 @@ export interface Void {
 export interface Hole {
   kind: "@hole";
 }
-

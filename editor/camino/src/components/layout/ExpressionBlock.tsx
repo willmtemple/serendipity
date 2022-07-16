@@ -17,8 +17,8 @@ const cx = [
   { cy1: 63, cx1: 5, cy2: 65, cx2: 15, ey: 100, ex: 0 }, // right shoulder
 ];
 
-const CAP_INDENT = (cx[0].cx2 / 100) * CAP_HEIGHT;
-const CAP_EXTENT = -(cx[2].ex / 100) * CAP_HEIGHT;
+const CAP_INDENT = (cx[0]!.cx2 / 100) * CAP_HEIGHT;
+const CAP_EXTENT = -(cx[2]!.ex / 100) * CAP_HEIGHT;
 
 const puzzlePiece = cx
   .map((section) => {
@@ -37,7 +37,7 @@ const puzzlePiece = cx
   .map((r) => `C ${r.cx1} ${r.cy1}, ${r.cx2} ${r.cy2}, ${r.ex} ${r.ey}`)
   .join(" ");
 
-function generatePath(r: Rect): string {
+function generatePath(r: Rect = DEFAULT_RECT): string {
   const hrun = r.width + PADX * 2 - RADIUS * 2 + CAP_INDENT;
   const vspan = r.height + PADY * 2 - RADIUS * 2;
   const vrun = vspan < CAP_HEIGHT ? CAP_HEIGHT : vspan;
@@ -56,11 +56,18 @@ function generatePath(r: Rect): string {
     `;
 }
 
-export interface ExpressionBlockProps {
-  color?: string;
-  stroke?: string;
+const DEFAULT_RECT: Rect = {
+  width: 0,
+  height: 0,
+  x: 0,
+  y: 0,
+};
 
-  transform?: string;
+export interface ExpressionBlockProps {
+  color?: string | undefined;
+  stroke?: string | undefined;
+
+  transform?: string | undefined;
 
   // Set extra props on the top-level g element
   containerProps?: any;

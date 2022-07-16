@@ -55,10 +55,8 @@ export function makeDraggable(_svg: SVGSVGElement) {
 
   _svg.addEventListener("wheel", action(zoom));
 
-  const svg = (document.getElementById("blockSpace") as unknown) as SVGSVGElement;
-  const bgSvg = (document.getElementById(
-    "workspaceBackgroundContainer"
-  ) as unknown) as SVGSVGElement;
+  const svg = document.getElementById("blockSpace") as unknown as SVGSVGElement;
+  const bgSvg = document.getElementById("workspaceBackgroundContainer") as unknown as SVGSVGElement;
 
   if (!svg || !bgSvg) {
     throw new Error("Failed to get a reference to the true block workspace.");
@@ -68,7 +66,7 @@ export function makeDraggable(_svg: SVGSVGElement) {
   // SVG viewBox to keep it at the correct size
   window.addEventListener("resize", resizeViewBox);
 
-  const initialRect = _svg.getClientRects()[0];
+  const initialRect = _svg.getClientRects()[0]!;
   const svgDims = {
     height: initialRect.height,
     left: Prefs.prefs.editorPosition.x,
@@ -96,7 +94,7 @@ export function makeDraggable(_svg: SVGSVGElement) {
   let resume: string | undefined;
   let heldItemKind: "expression" | "statement" | undefined;
   const background: HTMLElement | null = document.getElementById("workspaceBackground");
-  const svgBackground = (background as unknown) as SVGGraphicsElement;
+  const svgBackground = background as unknown as SVGGraphicsElement;
   const bgTranslate = svg.createSVGTransform();
   svgBackground.transform.baseVal.insertItemBefore(bgTranslate, 0);
 
@@ -207,7 +205,7 @@ export function makeDraggable(_svg: SVGSVGElement) {
     if (resume !== undefined) {
       const e = document.getElementById(resume);
       if (e != null) {
-        selectedElement = (e as unknown) as SVGGraphicsElement;
+        selectedElement = e as unknown as SVGGraphicsElement;
         selectedElement.classList.add("nomouse");
 
         const transforms = selectedElement.transform.baseVal;

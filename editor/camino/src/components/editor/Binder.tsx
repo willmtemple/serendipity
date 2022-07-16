@@ -7,7 +7,7 @@ export interface BinderProps {
   bind: any;
   bindKey: number | string;
 
-  transform?: string;
+  transform?: string | undefined;
 }
 
 const WIDTH_FACTOR = 12.9;

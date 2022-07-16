@@ -20,7 +20,7 @@ export interface ClosV {
   kind: "closure";
   value: {
     body: Binder;
-    parameter?: string;
+    parameter: string | undefined;
   };
 }
 

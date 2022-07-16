@@ -222,7 +222,7 @@ assert.same = function (left: unknown, right: unknown): void {
 function zip<T1, T2>(arr1: T1[], arr2: T2[]): Array<[T1, T2]> {
   const accum: Array<[T1, T2]> = [];
   for (let idx = 0; idx < arr1.length; idx++) {
-    accum.push([arr1[idx], arr2[idx]]);
+    accum.push([arr1[idx]!, arr2[idx]!]);
   }
 
   return accum;

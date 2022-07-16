@@ -34,7 +34,7 @@ type Evaluator = (e: Expression, s: Scope) => Value;
 
 export class Scope {
   private evaluator: Evaluator;
-  private parent?: Scope;
+  private parent: Scope | undefined;
   private bindings: { [k: string]: ScopedObject };
 
   public constructor(evaluator: Evaluator, parent?: Scope) {
@@ -55,7 +55,7 @@ export class Scope {
     const scope = new Scope(this.evaluator, this);
     return {
       expr,
-      scope
+      scope,
     };
   }
 

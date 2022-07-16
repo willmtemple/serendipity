@@ -28,8 +28,9 @@ export {
   Accessor,
   Procedure,
   Arithmetic,
+  Record,
   Expression,
-  Hole as ExpressionHole
+  Hole as ExpressionHole,
 } from "./expression";
 export {
   Do,
@@ -41,7 +42,7 @@ export {
   Print,
   Forever,
   Statement,
-  Hole as StatementHole
+  Hole as StatementHole,
 } from "./statement";
 
 const expr = factory<_expression.Expression>();
@@ -63,7 +64,7 @@ export const makeExpr = {
   Accessor: (accessee: Expression, index: Expression) => expr.Accessor({ accessee, index }),
   Procedure: (...body: Statement[]) => expr.Procedure({ body }),
   Arithmetic: (op: _expression.Arithmetic["op"], left: Expression, right: Expression) =>
-    expr.Arithmetic({ op, left, right })
+    expr.Arithmetic({ op, left, right }),
 };
 
 /**

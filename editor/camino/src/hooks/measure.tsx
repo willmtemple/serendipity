@@ -31,8 +31,10 @@ export interface Rect {
   height: number;
 }
 
-function same(l: Rect, r: Rect): boolean {
-  return l && r && l.x === r.x && l.y === r.y && l.width === r.width && l.height === r.height;
+function same(l: Rect | undefined, r: Rect | undefined): boolean {
+  return (
+    (l && r && l.x === r.x && l.y === r.y && l.width === r.width && l.height === r.height) ?? false
+  );
 }
 
 const blankExtent: Rect = {

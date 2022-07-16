@@ -12,6 +12,7 @@ import { ok, error } from "@serendipity/syntax/dist-esm/util/Result";
 
 import { Y } from "./util";
 import { foldProcedureCPS } from "./foldProcedure";
+import { BinaryOperator, Closure, Expression, Name } from "@serendipity/syntax-abstract";
 
 /**
  * Create a curried function for a given set of parameters and a function body
@@ -90,11 +91,11 @@ export function lowerExpr(e: surface.Expression): abstract.Expression {
         } as const;
       } else {
         let call: abstract.Expression | undefined = undefined;
-        for (let i = parameters.length - 1; i >= 0; i--) {
+        for (const parameter of parameters.reverse()) {
           call = {
             kind: "Call",
             callee: call ?? calleeLowered,
-            parameter: lowerExpr(parameters[i]),
+            parameter: lowerExpr(parameter),
           };
         }
         return call as abstract.Expression;
@@ -106,16 +107,42 @@ export function lowerExpr(e: surface.Expression): abstract.Expression {
         kind: "Void",
       };
 
-      for (let i = contents.length - 1; i >= 0; i--) {
+      for (const item of contents.reverse()) {
         list = {
           kind: "Tuple",
-          values: [lowerExpr(contents[i]), list],
+          values: [lowerExpr(item), list],
         };
       }
 
       return list;
     },
     Tuple: ({ values }) => ({ kind: "Tuple", values: values.map(lowerExpr) } as const),
+    Record: ({ data }) =>
+      ({
+        kind: "Closure",
+        parameter: "key",
+        body: ((): Expression => {
+          let body: Expression = { kind: "Void" };
+
+          const key: Name = { kind: "Name", name: "key" };
+
+          for (const [name, expr] of Object.entries(data).reverse()) {
+            body = {
+              kind: "If",
+              cond: {
+                kind: "BinaryOp",
+                op: BinaryOperator.EQ,
+                left: key,
+                right: { kind: "String", value: name },
+              },
+              then: lowerExpr(expr),
+              _else: body,
+            };
+          }
+
+          return body;
+        })(),
+      } as Closure),
     Procedure: ({ body }) => lowerExpr(foldProcedureCPS(body)),
     If: ({ cond, then, _else }) =>
       ({

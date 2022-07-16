@@ -1,8 +1,8 @@
-import * as React from 'react';
+import * as React from "react";
 
-import Color from 'color';
+import Color from "color";
 
-import { MeasurementProps, Rect, measureChildren } from '../../hooks/measure';
+import { MeasurementProps, Rect, measureChildren } from "../../hooks/measure";
 
 const PADX = 10;
 const PADY_TOP = 2;
@@ -11,43 +11,43 @@ const PADY_TOTAL = PADY_BOT + PADY_TOP;
 const RADIUS = 3;
 const FORK_ARC_W = 5;
 const FORK_ARC_CAP = 8;
-const FORK_WIDTH = 14
+const FORK_WIDTH = 14;
 const FORK_HALF_WIDTH = FORK_WIDTH / 2;
 const FORK_HEIGHT = 12;
 const FORK_OFFSET = 14;
-const FORK_SIZE = (FORK_HALF_WIDTH * 2) + (FORK_OFFSET * 2)
+const FORK_SIZE = FORK_HALF_WIDTH * 2 + FORK_OFFSET * 2;
 const MIN_WIDTH = FORK_SIZE + (PADX - RADIUS) * 2;
 
 function fork(x: number) {
-    return FORK_HEIGHT / FORK_HALF_WIDTH * x;
+  return (FORK_HEIGHT / FORK_HALF_WIDTH) * x;
 }
 
-function generatePath(r: Rect): string {
-    const span = r.width + ((PADX - RADIUS) * 2);
-    const run = (span < MIN_WIDTH ? MIN_WIDTH : span - FORK_SIZE);
+function generatePath(r: Rect = DEFAULT_RECT): string {
+  const span = r.width + (PADX - RADIUS) * 2;
+  const run = span < MIN_WIDTH ? MIN_WIDTH : span - FORK_SIZE;
 
-    const vrun = r.height - (RADIUS * 2) + FORK_HEIGHT + (PADY_TOTAL);
+  const vrun = r.height - RADIUS * 2 + FORK_HEIGHT + PADY_TOTAL;
 
-    const forkUpTurn1ControlPointX = FORK_ARC_W / 2;
-    const forkUpTurn1ControlPointY = 0
-    const forkUpTurn1EndPointX = FORK_ARC_W;
-    const forkUpTurn1EndPointY = fork(FORK_ARC_W / 2);
+  const forkUpTurn1ControlPointX = FORK_ARC_W / 2;
+  const forkUpTurn1ControlPointY = 0;
+  const forkUpTurn1EndPointX = FORK_ARC_W;
+  const forkUpTurn1EndPointY = fork(FORK_ARC_W / 2);
 
-    const forkUpTurn2StartPointX = (FORK_HALF_WIDTH - FORK_ARC_CAP / 2 - FORK_ARC_W / 2);
-    const forkUpTurn2StartPointY = fork(FORK_HALF_WIDTH - FORK_ARC_CAP / 2) - forkUpTurn1EndPointY;
-    const forkUpTurn2ControlPointX = FORK_ARC_CAP / 2;
-    const forkUpTurn2ControlPointY = FORK_HEIGHT - forkUpTurn2StartPointY;
-    const forkUpTurn2EndPointX = FORK_ARC_CAP;
-    const forkUpTurn2EndPointY = 0;
+  const forkUpTurn2StartPointX = FORK_HALF_WIDTH - FORK_ARC_CAP / 2 - FORK_ARC_W / 2;
+  const forkUpTurn2StartPointY = fork(FORK_HALF_WIDTH - FORK_ARC_CAP / 2) - forkUpTurn1EndPointY;
+  const forkUpTurn2ControlPointX = FORK_ARC_CAP / 2;
+  const forkUpTurn2ControlPointY = FORK_HEIGHT - forkUpTurn2StartPointY;
+  const forkUpTurn2EndPointX = FORK_ARC_CAP;
+  const forkUpTurn2EndPointY = 0;
 
-    const forkUpTurn3StartPointX = forkUpTurn2StartPointX;
-    const forkUpTurn3StartPointY = -forkUpTurn2StartPointY;
-    const forkUpTurn3ControlPointX = FORK_ARC_W / 2;
-    const forkUpTurn3ControlPointY = -forkUpTurn1EndPointY;
-    const forkUpTurn3EndPointX = FORK_ARC_W;
-    const forkUpTurn3EndPointY = -forkUpTurn1EndPointY;
+  const forkUpTurn3StartPointX = forkUpTurn2StartPointX;
+  const forkUpTurn3StartPointY = -forkUpTurn2StartPointY;
+  const forkUpTurn3ControlPointX = FORK_ARC_W / 2;
+  const forkUpTurn3ControlPointY = -forkUpTurn1EndPointY;
+  const forkUpTurn3EndPointX = FORK_ARC_W;
+  const forkUpTurn3EndPointY = -forkUpTurn1EndPointY;
 
-    return `
+  return `
     M 0 ${RADIUS}
     a ${RADIUS} ${RADIUS} 0 0 1 ${RADIUS} -${RADIUS}
     h ${FORK_OFFSET - FORK_ARC_W / 2}
@@ -74,30 +74,41 @@ function generatePath(r: Rect): string {
     `;
 }
 
-export interface StatementBlockProps {
-    color?: string,
-    stroke?: string,
+const DEFAULT_RECT: Rect = {
+  width: 0,
+  height: 0,
+  x: 0,
+  y: 0,
+};
 
-    // Set extra props on the top-level g element
-    containerProps?: any,
+export interface StatementBlockProps {
+  color?: string;
+  stroke?: string;
+
+  // Set extra props on the top-level g element
+  containerProps?: any;
 }
 
 type CompleteProps = MeasurementProps & React.PropsWithChildren<StatementBlockProps>;
 
-export const StatementBlock = measureChildren(React.forwardRef<SVGGElement, CompleteProps>((props, ref) => {
-
+export const StatementBlock = measureChildren(
+  React.forwardRef<SVGGElement, CompleteProps>((props, ref) => {
     const pathDetails = React.useMemo(() => generatePath(props.sizes[0]), props.sizes);
 
     const color = Color(props.color);
 
     return (
-        <g {...props.containerProps} ref={ref}>
-            <path stroke={color.darken(0.35).string()} strokeWidth={1.5} fill={color.string()} d={pathDetails} />
-            <g transform={`translate(${PADX},${FORK_HEIGHT + PADY_TOP})`}>
-                {props.children}
-            </g>
-        </g>
+      <g {...props.containerProps} ref={ref}>
+        <path
+          stroke={color.darken(0.35).string()}
+          strokeWidth={1.5}
+          fill={color.string()}
+          d={pathDetails}
+        />
+        <g transform={`translate(${PADX},${FORK_HEIGHT + PADY_TOP})`}>{props.children}</g>
+      </g>
     );
-}));
+  })
+);
 
 export default StatementBlock;

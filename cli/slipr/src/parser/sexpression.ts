@@ -13,9 +13,9 @@ const LIST_MARKERS = [
   ["(", ")"],
   ["[", "]"],
   ["{", "}"],
-];
+] as const;
 
-const FLAT_LIST_MARKERS = LIST_MARKERS.reduce((v, acc) => [...acc, ...v], []);
+const FLAT_LIST_MARKERS = LIST_MARKERS.reduce((v, acc) => [...acc, ...v], [] as string[]);
 const LIST_MARKER_LOOKUP = (() => {
   const result: { [k: string]: string } = {};
   LIST_MARKERS.forEach((markers) => (result[markers[0]] = markers[1]));
@@ -120,18 +120,18 @@ export function intoSExpression(atoms: Atom[]): SExpressionArray {
       case "(":
       case "[":
       case "{":
-        markerStack.push([LIST_MARKER_LOOKUP[atom], acc]);
+        markerStack.push([LIST_MARKER_LOOKUP[atom]!, acc]);
         acc = [];
         break;
       case ")":
       case "]":
       case "}":
-        if (markerStack[markerStack.length - 1][0] !== atom) {
+        if (markerStack[markerStack.length - 1]![0] !== atom) {
           throw new Error(
             "Mismatched brackets. We should make this error return some information."
           );
         } else {
-          markerStack[markerStack.length - 1][1].push(acc);
+          markerStack[markerStack.length - 1]![1].push(acc);
           acc = markerStack.pop()![1];
         }
         break;
