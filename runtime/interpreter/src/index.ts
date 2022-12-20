@@ -55,6 +55,21 @@ function arithOp(l: NumberV, r: NumberV, op: BinaryOperator): Value {
   }
 }
 
+function isEq(lv: Value, rv: Value): boolean {
+  if (_isTotalType(lv)) {
+    if (lv.kind === "void" || rv.kind === "void") {
+      // Voids are always equal
+      return true;
+    } else if (lv.kind === "intrinsic" || rv.kind === "intrinsic") {
+      return lv === rv;
+    } else {
+      return lv.value === rv.value;
+    }
+  } else {
+    return lv === rv;
+  }
+}
+
 function compareOp(lv: Value, rv: Value, op: BinaryOperator): Value {
   return {
     kind: "boolean",
@@ -70,19 +85,7 @@ function compareOp(lv: Value, rv: Value, op: BinaryOperator): Value {
           negate = true;
         // eslint-disable-next-line no-fallthrough
         case "==":
-          if (_isTotalType(lv)) {
-            if (lv.kind === "void" || rv.kind === "void") {
-              // Voids are always equal
-              result = true;
-            } else if (lv.kind === "intrinsic" || rv.kind === "intrinsic") {
-              result = lv === rv;
-            } else {
-              result = lv.value === rv.value;
-            }
-          } else {
-            result = lv === rv;
-          }
-          return negate ? !result : result;
+          return negate ? !isEq(lv, rv) : isEq(lv, rv);
         case ">":
           negate = true;
         // eslint-disable-next-line no-fallthrough
@@ -310,6 +313,18 @@ export class Interpreter {
             };
           },
         };
+      case "to_str":
+        return {
+          kind: "intrinsic",
+          fn: (v: Value) => {
+            if (!v) throw new Error("no argument provided to_str");
+
+            return {
+              kind: "string",
+              value: this._strconv(v)
+            }
+          }
+        };
       default:
         throw new Error("Unimplemented intrinsic " + _name);
     }
@@ -444,6 +459,16 @@ export class Interpreter {
         } else {
           return this.evalExpr(_else, scope);
         }
+      },
+      Case: ({ _in, cases }) => {
+        const value = this.evalExpr(_in, scope);
+        for (const [k, v] of cases) {
+          if (isEq(value, this.evalExpr(k, scope))) {
+            return this.evalExpr(v, scope);
+          }
+        }
+
+        return { kind: "void" } as Value;
       },
       BinaryOp: (v) => this.binaryOperator(v, scope),
       Void: (): Value => ({ kind: "void" }),

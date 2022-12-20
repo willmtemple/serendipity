@@ -26,6 +26,7 @@ svg.camino {
   height: 100%;
   margin: 0;
   padding: 0;
+  cursor: crosshair;
 
   * {
     margin: 0;
@@ -51,6 +52,14 @@ svg.camino {
   .nomouse {
     pointer-events: none;
     touch-action: none;
+  }
+
+  .dumpster {
+    cursor: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABJ0lEQVQ4T2NkAIL///8nACl5EBsIBO7fv5+waNEiASgfTMXFxX1QVFRcAGR+gIo/YGRkXMgI0nzz5s2pK1as4IJp2LBhA8OFCxeQ9TMYGBgwBAQEwMUiIiK+qaurZ4MNuHHjBooBKDpxcEAGaGhoZDNCvQByWjwxGpHULAR6IQFswPfv31tOnjxZfeDAAaLMcHBwYLC3t28EGtAAN6Czs7O6oaEB7M8PHz4wgAxDZoM0gQBIHKSuvr4euwHAMAG56BcXFxcbMvvbt2+/QAaAxAkaAFIIdB4oesG2orNHDWAkHAsUByLJ0QiMroJly5a1R0dHcxCTkJYvX/4VmBdygNG7AJYXBP78+fNk1apVjLdu3YLnSmzpGpgDv3p5eb3k5+c3BhrwAQDsuTHajbq+sAAAAABJRU5ErkJggg=="), no-drop;
+  }
+
+  .button {
+    cursor: pointer;
   }
 
   .inline.button {

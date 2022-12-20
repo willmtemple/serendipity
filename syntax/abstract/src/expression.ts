@@ -16,8 +16,11 @@ export type Expression =
   | Closure
   | Tuple
   | If
+  | Case
   | BinaryOp
   | Void;
+
+export type LiteralExpression = Number | String | Boolean;
 
 export interface Number extends SyntaxObject {
   kind: "Number";
@@ -69,6 +72,12 @@ export interface If extends SyntaxObject {
   _else: Expression;
 }
 
+export interface Case extends SyntaxObject {
+  kind: "Case";
+  _in: Expression;
+  cases: Map<LiteralExpression, Expression>;
+}
+
 export enum BinaryOperator {
   // Comparators
   LT = "<",
@@ -82,7 +91,7 @@ export enum BinaryOperator {
   SUB = "-",
   DIV = "/",
   MUL = "*",
-  MOD = "%"
+  MOD = "%",
 }
 
 export interface BinaryOp extends SyntaxObject {
@@ -95,4 +104,3 @@ export interface BinaryOp extends SyntaxObject {
 export interface Void extends SyntaxObject {
   kind: "Void";
 }
-

@@ -20,7 +20,11 @@ export function writeAbstract(s: Expression): string {
     Void: (_) => "∅",
     If: ({ cond, then, _else }) =>
       `(${writeAbstract(cond)} ? ${writeAbstract(then)} : ${writeAbstract(_else)})`,
+    Case: ({ _in, cases }) =>
+      `case ${_in} {${[...cases.entries()]
+        .map(([k, v]) => `[${writeAbstract(k)} ${writeAbstract(v)}]`)
+        .join(" ")}}`,
     Closure: ({ body, parameter }) =>
-      `λ${parameter ? parameter.trimLeft() : ""}.${writeAbstract(body)}`
+      `λ${parameter ? parameter.trimLeft() : ""}.${writeAbstract(body)}`,
   });
 }

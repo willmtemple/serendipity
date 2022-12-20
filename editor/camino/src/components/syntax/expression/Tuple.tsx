@@ -9,6 +9,7 @@ import { Project } from "@serendipity/editor-stores";
 import { observable } from "mobx";
 import AddButton from "../../editor/AddButton";
 import MinusButton from "../../editor/MinusButton";
+import { SyntaxObject } from "@serendipity/syntax";
 
 export default syntax<{ tuple: Tuple }>("Tuple", (props, ref) => {
   const resize = useResizeParent();
@@ -23,7 +24,14 @@ export default syntax<{ tuple: Tuple }>("Tuple", (props, ref) => {
   }
 
   function removeValue(idx: number) {
+    // This should be abstracted into the project.
+
+    const tupleMetadata = Project.metadataFor(props.tuple as SyntaxObject);
+
+    Project.detachExpression(tupleMetadata.guid, "values", { x: 0, y: 0 }, idx);
+
     props.tuple.values.splice(idx, 1);
+
     resize();
   }
   return (
@@ -32,9 +40,9 @@ export default syntax<{ tuple: Tuple }>("Tuple", (props, ref) => {
       <Indent x={32}>
         <SvgFlex direction="vertical" padding={20}>
           {props.tuple.values.map((_, idx) => (
-            <SvgFlex direction="horizontal" padding={10} align="middle">
+            <SvgFlex key={idx} direction="horizontal" padding={10} align="middle">
               <MinusButton onClick={() => removeValue(idx)} />
-              <Expression key={idx} bind={props.tuple} bindKey="values" bindIdx={idx} />
+              <Expression bind={props.tuple} bindKey="values" bindIdx={idx} />
             </SvgFlex>
           ))}
         </SvgFlex>

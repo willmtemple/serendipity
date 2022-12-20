@@ -26,7 +26,13 @@ const Detached = observer(
           return (
             <SvgFlex direction="vertical" padding={-10}>
               {(props.global as EditorDetachedStatements).element.map((_, idx) => (
-                <Statement fixed={idx === 0} bind={props.global} bindKey="element" bindIdx={idx} />
+                <Statement
+                  key={idx}
+                  fixed={idx === 0}
+                  bind={props.global}
+                  bindKey="element"
+                  bindIdx={idx}
+                />
               ))}
             </SvgFlex>
           );

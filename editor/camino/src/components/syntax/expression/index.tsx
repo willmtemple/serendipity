@@ -25,6 +25,7 @@ import With from "./With";
 import { SyntaxObject } from "@serendipity/syntax";
 import String from "./String";
 import Boolean from "./Boolean";
+import Record from "./Record";
 
 export {
   Accessor,
@@ -58,9 +59,11 @@ const Expression = observer(
   React.forwardRef<unknown, CompleteProps>((props, ref) => {
     const { Project } = useStores();
 
-    const expr = (props.bindIdx === undefined
-      ? props.bind[props.bindKey]
-      : props.bind[props.bindKey][props.bindIdx]) as expression.Expression;
+    const expr = (
+      props.bindIdx === undefined
+        ? props.bind[props.bindKey]
+        : props.bind[props.bindKey][props.bindIdx]
+    ) as expression.Expression;
 
     const kind = expr.kind;
 
@@ -93,6 +96,7 @@ const Expression = observer(
       With: (expr) => <With with={expr} />,
       String: (expr) => <String string={expr} />,
       Boolean: (expr) => <Boolean bool={expr} />,
+      Record: (expr) => <Record record={expr} />,
     }) ?? (
       <text ref={ref as any} fill="white" fontFamily="Source Code Pro" fontWeight="600">
         {expr.kind} (unimplemented)

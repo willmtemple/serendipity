@@ -9,6 +9,7 @@ import AddButton from "../../editor/AddButton";
 import { Project } from "@serendipity/editor-stores";
 import MinusButton from "../../editor/MinusButton";
 import { useResizeParent } from "../../../hooks/measure";
+import { Reflow } from "../../layout";
 
 export default syntax<{ call: Call }>("Call", (props, ref) => {
   const resize = useResizeParent();
@@ -27,6 +28,32 @@ export default syntax<{ call: Call }>("Call", (props, ref) => {
     resize();
   }
 
+  const reflowChildren = [
+    <g>
+      <SvgFlex direction={"horizontal"} align="middle" padding={20}>
+        <Expression bind={props.call} bindKey={"callee"} />
+        <text>(</text>
+      </SvgFlex>
+    </g>,
+    ...props.call.parameters.map((_, idx) => (
+      <g>
+        <SvgFlex key={idx} direction="horizontal" padding={10} align="middle">
+          <MinusButton onClick={() => removeParam(idx)} />
+          <Expression bind={props.call} bindKey={"parameters"} bindIdx={idx} />
+          {idx + 1 === props.call.parameters.length ? <text></text> : <text>,</text>}
+        </SvgFlex>
+      </g>
+    )),
+    <g>
+      <SvgFlex direction="horizontal" align="middle" padding={10}>
+        <text>)</text>
+        <AddButton key="call_add_button" onClick={addParam} />
+      </SvgFlex>
+    </g>,
+  ];
+
+  return <Reflow ref={ref} break={700} children={reflowChildren}></Reflow>;
+
   return (
     <SvgFlex ref={ref} direction="vertical" padding={10}>
       <SvgFlex direction="horizontal" align="end" padding={20}>
@@ -36,9 +63,9 @@ export default syntax<{ call: Call }>("Call", (props, ref) => {
       <Indent x={36}>
         <SvgFlex direction="vertical" padding={20}>
           {props.call.parameters.map((_, idx) => (
-            <SvgFlex direction="horizontal" padding={10} align="middle">
+            <SvgFlex key={idx} direction="horizontal" padding={10} align="middle">
               <MinusButton onClick={() => removeParam(idx)} />
-              <Expression key={idx} bind={props.call} bindKey={"parameters"} bindIdx={idx} />
+              <Expression bind={props.call} bindKey={"parameters"} bindIdx={idx} />
             </SvgFlex>
           ))}
         </SvgFlex>
@@ -50,3 +77,5 @@ export default syntax<{ call: Call }>("Call", (props, ref) => {
     </SvgFlex>
   );
 });
+
+/**/

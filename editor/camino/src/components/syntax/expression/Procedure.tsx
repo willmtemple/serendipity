@@ -13,8 +13,7 @@ export default syntax<{ procedure: Procedure }>("Procedure", (props, ref) => {
 
   return (
     <g ref={ref}>
-      <text transform={"translate(0,16)"}>do</text>
-      <Indent x={38} y={3}>
+      <Indent x={3} y={3}>
         <SvgFlex direction="vertical" padding={-10}>
           {props.procedure.body.map((s, idx) => (
             <Statement

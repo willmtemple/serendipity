@@ -4,7 +4,7 @@ import { factory } from "omnimatch";
 import React, { useEffect } from "react";
 import { registerSource, unregister } from "../../util/Draggable";
 import { Position } from "../../util/Position";
-import { BoundingBox, ExpressionBlock, StatementBlock, SvgFlex } from "../layout";
+import { BoundingBox, ExpressionBlock, Indent, StatementBlock, SvgFlex } from "../layout";
 
 const expr = factory<Expression>();
 const stmt = factory<Statement>();
@@ -24,6 +24,7 @@ const paletteExprs: Expression[] = [
   expr.Name({ name: "" }),
   expr.Number({ value: 0 }),
   expr.Procedure({ body: [{ kind: "@hole" }] }),
+  expr.Record({ data: {} }),
   expr.String({ value: "" }),
   expr.Tuple({ values: [] }),
   expr.Void({}),
@@ -77,7 +78,7 @@ const ExprSource = React.forwardRef(
 
     return (
       <ExpressionBlock ref={ref} containerProps={containerProps} transform={props.transform}>
-        <text>{props.item.kind}</text>
+        <text transform="translate(0, 4)">{props.item.kind}</text>
       </ExpressionBlock>
     );
   }
@@ -115,7 +116,7 @@ const StmtSource = React.forwardRef(
 
     return (
       <StatementBlock ref={ref} containerProps={containerProps}>
-        <text>{props.item.kind}</text>
+        <text transform="translate(0, 4)">{props.item.kind}</text>
       </StatementBlock>
     );
   }
@@ -144,7 +145,7 @@ const GlblSource = React.forwardRef(
 
     return (
       <BoundingBox ref={ref} containerProps={containerProps}>
-        <text>{props.item.kind}</text>
+        <text transform="translate(0, 4)">{props.item.kind}</text>
       </BoundingBox>
     );
   }
@@ -187,9 +188,11 @@ function Palette() {
   ];
 
   return (
-    <SvgFlex direction="vertical" align="beginning" padding={20}>
-      {...contents}
-    </SvgFlex>
+    <Indent x={12}>
+      <SvgFlex direction="vertical" align="beginning" padding={20}>
+        {...contents}
+      </SvgFlex>
+    </Indent>
   );
 }
 

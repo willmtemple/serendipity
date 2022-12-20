@@ -6,8 +6,7 @@ export interface SvgFlexProps {
   align?: "beginning" | "middle" | "end";
   direction: "horizontal" | "vertical";
   padding?: number;
-  transform?: string;
-  children: React.ReactElement<{ transform: string }> | React.ReactElement<{ transform: string }>[];
+  transform?: string | undefined;
 }
 
 type CompleteProps = MeasurementProps & SvgFlexProps;
@@ -67,7 +66,9 @@ const SvgFlex = measureChildren(
         })()}
       </g>
     );
-  })
+  }),
+  false,
+  "SvgFlex"
 );
 
 export default SvgFlex;

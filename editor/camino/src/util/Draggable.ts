@@ -4,6 +4,7 @@ import { distance, Position } from "./Position";
 
 import normalizeWheel from "normalize-wheel";
 import { action } from "mobx";
+import { roundQuantum } from "./quantum";
 
 // This module handles all of the dynamic drag operations using direct DOM
 // manipulation. We have to be careful here not to piss off React,
@@ -40,10 +41,10 @@ export function resize() {
   _resize?.();
 }
 
-// This code is spaghett bad typescript
 export function makeDraggable(_svg: SVGSVGElement) {
   if (_svg.isDraggable) {
     console.warn("Attempted to register SVG element as draggable twice.");
+    return;
   }
 
   _svg.isDraggable = true;
@@ -98,18 +99,34 @@ export function makeDraggable(_svg: SVGSVGElement) {
   const bgTranslate = svg.createSVGTransform();
   svgBackground.transform.baseVal.insertItemBefore(bgTranslate, 0);
 
+  let canUpdate: boolean = true;
+
+  const animate: FrameRequestCallback = (_t) => {
+    requestAnimationFrame(animate);
+    if (!canUpdate) {
+      setViewBox();
+    }
+  };
+
+  requestAnimationFrame(animate);
+
   function setViewBox() {
     const { left, top, width, height, scale } = svgDims;
 
-    svg.setAttribute("viewBox", `${left} ${top} ${width * scale} ${height * scale}`);
-    bgSvg.setAttribute("viewBox", `${left} ${top} ${width * scale} ${height * scale}`);
+    const scaledWidth = Math.ceil(width * scale);
+    const scaledHeight = Math.ceil(height * scale);
+
+    svg.setAttribute("viewBox", `${left} ${top} ${scaledWidth} ${scaledHeight}`);
+    bgSvg.setAttribute("viewBox", `${left} ${top} ${scaledWidth} ${scaledHeight}`);
 
     // Adjust for background scroll and 20% width margins
     // (should be width margin on both top and left, as DOM
     // calculates margins by element width)
-    const bgLeft = left - width * 0.2;
-    const bgTop = top - height * 0.2;
+    const bgLeft = Math.ceil(left - width * 0.2);
+    const bgTop = Math.ceil(top - height * 0.2);
     bgTranslate.setTranslate(bgLeft - (bgLeft % 50), bgTop - (bgTop % 50));
+
+    canUpdate = true;
   }
   resizeViewBox();
 
@@ -232,10 +249,18 @@ export function makeDraggable(_svg: SVGSVGElement) {
 
     const mouse = getMousePosition(evt);
     if (selectedElement === svg) {
-      evt.preventDefault();
-      svgDims.left -= mouse.x - offset.x;
-      svgDims.top -= mouse.y - offset.y;
-      setViewBox();
+      if (canUpdate) {
+        evt.preventDefault();
+        svgDims.left -= mouse.x - offset.x;
+        svgDims.top -= mouse.y - offset.y;
+
+        svgDims.left = Math.ceil(svgDims.left);
+        svgDims.top = Math.ceil(svgDims.top);
+
+        canUpdate = false;
+
+        // setViewBox();
+      }
     } else if (selectedElement && dragMode === "detach") {
       if (distance(dragStart!, getMousePosition(evt)) > 7) {
         const eltPos = selectedElement.getBoundingClientRect();
@@ -309,7 +334,7 @@ export function makeDraggable(_svg: SVGSVGElement) {
 
   function endDrag(evt: MouseEvent) {
     if (selectedElement === svg) {
-      Prefs.setPosition(svgDims.left, svgDims.top);
+      Prefs.setPosition(roundQuantum(svgDims.left), roundQuantum(svgDims.top));
     } else if (selectedElement) {
       const mouseOver = evt.target as SVGElement;
       const draggedGuid = selectedElement.getAttribute("data-guid");
@@ -323,8 +348,8 @@ export function makeDraggable(_svg: SVGSVGElement) {
             Project.rmNodeByGUID(draggedGuid);
           } else if (heldItemKind && !mouseOver.classList.contains(heldItemKind)) {
             Project.updatePos(draggedGuid, {
-              x: transform.matrix.e,
-              y: transform.matrix.f,
+              x: roundQuantum(transform.matrix.e),
+              y: roundQuantum(transform.matrix.f),
             });
           } else {
             const overGuid = mouseOver.getAttribute("data-parent-guid");
@@ -339,13 +364,14 @@ export function makeDraggable(_svg: SVGSVGElement) {
             ) {
               const overIdx = overIdxS != null ? parseInt(overIdxS, 10) : undefined;
 
+              console.log("Project.insertInto(", draggedGuid, overGuid, overKey, overIdx, ")");
               Project.insertInto(draggedGuid, overGuid, overKey, overIdx);
             }
           }
         } else if (transform) {
           Project.updatePos(draggedGuid, {
-            x: transform.matrix.e,
-            y: transform.matrix.f,
+            x: roundQuantum(transform.matrix.e),
+            y: roundQuantum(transform.matrix.f),
           });
         }
       }
@@ -360,23 +386,30 @@ export function makeDraggable(_svg: SVGSVGElement) {
     const evt = normalizeWheel(bEvt);
     // Don't zoom while dragging anything.
     if (!selectedElement) {
-      const oldScale = svgDims.scale;
-      let nextScale = oldScale + evt.spinY / 10;
-      nextScale = nextScale < 0.6 ? 0.6 : nextScale;
-      nextScale = nextScale > 3.4 ? 3.4 : nextScale;
+      if (canUpdate) {
+        const oldScale = svgDims.scale;
+        let nextScale = oldScale + evt.spinY / 10;
+        nextScale = nextScale < 0.6 ? 0.6 : nextScale;
+        nextScale = nextScale > 3.4 ? 3.4 : nextScale;
 
-      const ratio = nextScale / oldScale;
-      svgDims.scale = nextScale;
-      Prefs.prefs.editorScale = nextScale;
-      // Keep the mouse position fixed in SVG space
-      const mouse = getMousePosition(bEvt);
-      const { left, top } = svgDims;
-      svgDims.left = mouse.x - (mouse.x - left) * ratio;
-      svgDims.top = mouse.y - (mouse.y - top) * ratio;
+        const ratio = nextScale / oldScale;
+        svgDims.scale = nextScale;
+        Prefs.prefs.editorScale = nextScale;
+        // Keep the mouse position fixed in SVG space
+        const mouse = getMousePosition(bEvt);
+        const { left, top } = svgDims;
+        svgDims.left = mouse.x - (mouse.x - left) * ratio;
+        svgDims.top = mouse.y - (mouse.y - top) * ratio;
 
-      Prefs.setPosition(svgDims.left, svgDims.top);
+        svgDims.left = Math.ceil(svgDims.left);
+        svgDims.top = Math.ceil(svgDims.top);
 
-      setViewBox();
+        Prefs.setPosition(roundQuantum(svgDims.left), roundQuantum(svgDims.top));
+
+        canUpdate = false;
+
+        // setViewBox();
+      }
     }
   }
 }

@@ -12,7 +12,7 @@ import { ok, error } from "@serendipity/syntax/dist-esm/util/Result";
 
 import { Y } from "./util";
 import { foldProcedureCPS } from "./foldProcedure";
-import { BinaryOperator, Closure, Expression, Name } from "@serendipity/syntax-abstract";
+import { Closure, LiteralExpression } from "@serendipity/syntax-abstract";
 
 /**
  * Create a curried function for a given set of parameters and a function body
@@ -120,28 +120,17 @@ export function lowerExpr(e: surface.Expression): abstract.Expression {
     Record: ({ data }) =>
       ({
         kind: "Closure",
-        parameter: "key",
-        body: ((): Expression => {
-          let body: Expression = { kind: "Void" };
-
-          const key: Name = { kind: "Name", name: "key" };
-
-          for (const [name, expr] of Object.entries(data).reverse()) {
-            body = {
-              kind: "If",
-              cond: {
-                kind: "BinaryOp",
-                op: BinaryOperator.EQ,
-                left: key,
-                right: { kind: "String", value: name },
-              },
-              then: lowerExpr(expr),
-              _else: body,
-            };
-          }
-
-          return body;
-        })(),
+        parameter: "__key",
+        body: {
+          kind: "Case",
+          _in: { kind: "Name", name: "__key" },
+          cases: new Map(
+            Object.entries(data).map(([k, v]) => [
+              { kind: "String", value: k } as LiteralExpression,
+              lowerExpr(v),
+            ])
+          ),
+        },
       } as Closure),
     Procedure: ({ body }) => lowerExpr(foldProcedureCPS(body)),
     If: ({ cond, then, _else }) =>

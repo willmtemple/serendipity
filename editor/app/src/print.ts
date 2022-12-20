@@ -35,17 +35,17 @@ function printStatement(statement: Statement): string {
     Break: () => "break",
     Do: ({ body }) => `do ${x(body)}`,
     ForIn: ({ binding, value, body }) =>
-      `for ${binding} in ${x(value)} [${printStatement(body)}]`,
+      `for ${binding} in ${x(value)} (${printStatement(body)})`,
     Forever: ({ body }) => "",
     If: ({ condition, body, _else }) => {
-      let out = `if ${x(condition)} [${printStatement(body)}]`;
+      let out = `if ${x(condition)} (${printStatement(body)})`;
       if (_else !== undefined) {
-        out += ` else [${printStatement(_else)}]`;
+        out += ` else (${printStatement(_else)})`;
       }
 
       return out;
     },
-    Let: ({ name, value }) => "",
+    Let: ({ name, value }) => `let ${name} = ${x(value)}`,
     Print: ({ value }) => `print ${x(value)}`,
     Set: ({ name, value }) => `set! ${name} = ${x(value)}`,
     "@hole": () => "...",
@@ -61,7 +61,7 @@ function printExpression(expression: Expression): string {
     Call: ({ callee, parameters }) =>
       `${x(callee)}(${formatList(parameters.map(x), ",")})`,
     Closure: ({ parameters, body }) =>
-      `fn (${formatList(parameters, ",")}) => ${x(body)}`,
+      `fn (${formatList(parameters, ",")}) -> ${x(body)}`,
     Compare: ({ left, op, right }) => `${x(left)} ${op} ${x(right)}`,
     If: ({ cond, then, _else }) =>
       `if ${x(cond)} then ${x(then)} else ${x(_else)}`,
@@ -72,8 +72,7 @@ function printExpression(expression: Expression): string {
       `{${Object.entries(data)
         .map(([k, v]) => `${k}: ${printExpression(v)}`)
         .join(", ")}}`,
-    Procedure: ({ body }) =>
-      `do [${formatList(body.map(printStatement), ";")}]`,
+    Procedure: ({ body }) => `#[${formatList(body.map(printStatement), ";")}]`,
     String: ({ value }) => `"${value}"`,
     Tuple: ({ values }) => `(${formatList(values.map(x), ",")})`,
     Void: () => "empty",

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { alignRect } from "../util/quantum";
 
 // populate the invalidation context with a default implementation that does nothing
 const ParentLayoutContext = React.createContext<() => void>(() => {
@@ -47,7 +48,8 @@ const blankExtent: Rect = {
 type HTMLElementWithBBox = HTMLElement & { getBBox(): Rect };
 type SizeableChildRef = React.RefObject<HTMLElementWithBBox> | null;
 
-function refChildren(children: React.ReactNode) {
+function refChildren(children: React.ReactNode, debug: boolean = false) {
+  debug && console.log("Reffing all:", children);
   const refs: SizeableChildRef[] = [];
   function ref() {
     const r = React.createRef<HTMLElementWithBBox>();
@@ -57,14 +59,22 @@ function refChildren(children: React.ReactNode) {
 
   const newChildren = React.Children.map(React.Children.toArray(children), (c) => {
     if (React.isValidElement(c)) {
+      debug && console.log("Valid element:", c);
+      const existingRef = (c as unknown as { ref: React.RefObject<HTMLElementWithBBox> }).ref;
+
+      if (existingRef) {
+        refs.push(existingRef);
+      }
       return React.cloneElement(c, {
-        ref: ref(),
+        ref: existingRef ?? ref(),
       });
     } else {
       refs.push(null);
       return c;
     }
   });
+
+  debug && console.log("Finalized refs:", newChildren, refs);
 
   return [newChildren, refs] as const;
 }
@@ -74,11 +84,13 @@ export interface MeasurementProps {
 }
 
 export function measureChildren<P extends {}>(
-  WrappedComponent: React.ComponentType<P & MeasurementProps>
+  WrappedComponent: React.ComponentType<P & MeasurementProps>,
+  debug: boolean = false,
+  componentName?: string
 ) {
   return React.forwardRef<any, React.PropsWithChildren<P>>((props, ref) => {
     const [children, childRefs] = React.useMemo(
-      () => refChildren(props.children),
+      () => refChildren(props.children, debug),
       [props.children]
     );
 
@@ -95,9 +107,28 @@ export function measureChildren<P extends {}>(
       ref,
     };
 
+    debug && console.log("Children (Render):", props.children, childRefs, componentName);
+
     function resize() {
+      debug &&
+        console.log(
+          "Attempting to resize!",
+          childRefs.map((r) => r?.current),
+          componentName
+        );
       if (ready.current && childRefs.every((r) => r === null || r.current !== null)) {
-        const newRects = childRefs.map((r) => r?.current?.getBBox() ?? { ...blankExtent });
+        const _newRects = childRefs.map((r) => r?.current?.getBBox() ?? { ...blankExtent });
+        const newRects = _newRects.map(alignRect);
+
+        debug &&
+          console.log(
+            "Children (Resize):",
+            props.children,
+            childRefs.map((r) => r!.current),
+            newRects,
+            _newRects,
+            componentName
+          );
 
         if (rects.length !== newRects.length || newRects.some((r, idx) => !same(r, rects[idx]))) {
           setRects(newRects);
@@ -109,6 +140,7 @@ export function measureChildren<P extends {}>(
     // Update logic
     const ready = React.useRef(false);
     React.useLayoutEffect(() => {
+      debug && console.log("Layout effect firing.", componentName);
       if (!ready.current) {
         ready.current = true;
       }

@@ -155,6 +155,7 @@ export class ProjectStore {
 
   public insertInto(vid: string, into: string, key: string, idx?: number) {
     const parent = this.byGUID[into];
+    console.log(parent);
     const setNode = action((n: any, mode?: string) => {
       const l = parent && (parent as any)[key];
       if (l) {
@@ -195,9 +196,14 @@ export class ProjectStore {
     setNode(v.element, v.syntaxKind);
   }
 
-  public detachExpression(id: string, key: string, pos: Position, idx?: number): string {
+  public detachExpression(
+    id: string,
+    key: string,
+    pos: Position,
+    idx?: number
+  ): string | undefined {
     const parent = this.byGUID[id];
-    const node = (() => {
+    const node: Expression = (() => {
       const v = parent && (parent as any)[key];
       if (idx !== undefined) {
         return v[idx];
@@ -209,6 +215,9 @@ export class ProjectStore {
     if (!node) {
       throw new Error("No such key(s) on that object during 'get'");
     }
+
+    // Detaching a hole
+    if (node.kind === "@hole") return;
 
     const setNode = action((n: Expression) => {
       const v = parent && (parent as any)[key];
