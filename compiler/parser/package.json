@@ -1,0 +1,27 @@
+{
+  "name": "@serendipity/parser",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./parser.cjs",
+  "module": "./parser.mjs",
+  "types": "./parser.d.ts",
+  "scripts": {
+    "build:wasm:debug": "cargo +nightly build --target wasm32-unknown-unknown",
+    "build:wasm:release": "cargo +nightly build --release --target wasm32-unknown-unknown",
+    "build:bg:bundler": "wasm-bindgen --out-dir=dist-bundler --no-typescript --target bundler ../../target/wasm32-unknown-unknown/release/serendipity_parser.wasm",
+    "build:bg:node": "wasm-bindgen --out-dir=dist-cjs --no-typescript --target nodejs ../../target/wasm32-unknown-unknown/release/serendipity_parser.wasm",
+    "build:declarations": "cargo run --bin gen_ts > serendipity_parser.gen.d.ts",
+    "build": "npm run build:wasm:debug && npm run build:bg:bundler && npm run build:bg:node && npm run build:declarations && npm run format",
+    "build:release": "npm run build:wasm:release && npm run build:bg:bundler && npm run build:bg:node && npm run build:declarations && npm run format",
+    "prebuild": "npm run clean",
+    "clean": "rimraf dist-* serendipity_parser.gen.d.ts",
+    "format": "prettier -w ./*.js ./*.ts ./*.json"
+  },
+  "keywords": [],
+  "author": "Will Temple",
+  "license": "PROPRIETARY",
+  "private": true,
+  "devDependencies": {
+    "prettier": "^2.3.0"
+  }
+}

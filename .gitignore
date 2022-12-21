@@ -74,3 +74,6 @@ common/temp/**
 # Build directories
 dist/
 dist-*/
+
+# Rust
+/target

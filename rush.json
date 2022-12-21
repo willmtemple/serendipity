@@ -57,6 +57,12 @@
       "shouldPublish": false
     },
     {
+      "packageName": "@serendipity/parser",
+      "projectFolder": "compiler/parser",
+      "reviewCategory": "production",
+      "shouldPublish": false
+    },
+    {
       "packageName": "@serendipity/reader",
       "projectFolder": "compiler/reader",
       "reviewCategory": "production",
