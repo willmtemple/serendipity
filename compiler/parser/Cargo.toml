@@ -3,12 +3,23 @@ name = "serendipity_parser"
 version = "0.1.0"
 edition = "2021"
 
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
 [lib]
 crate-type = ["cdylib", "rlib"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+default = ["wee_alloc"]
 
 [dependencies]
-seglisp = { path = "../../../seglisp/seglisp", features = ["js_interop"]}
-itertools = "0.10"
-wasm-bindgen = "0.2"
+seglisp.workspace = true
+wasm-bindgen.workspace = true
+itertools = "0"
+
+wee_alloc = { version = "0.4.5", optional = true }
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.13"
+
+[build-dependencies]
+seglisp.workspace = true

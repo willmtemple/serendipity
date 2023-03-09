@@ -4,7 +4,7 @@
 
 import { Binder } from "./scope";
 
-export type Value = NumberV | StringV | ClosV | IntrinsicV | TupleV | BoolV | VoidV;
+export type Value = NumberV | StringV | ClosV | IntrinsicV | TupleV | BoolV | NoneV;
 
 export interface NumberV {
   kind: "number";
@@ -26,7 +26,7 @@ export interface ClosV {
 
 export interface IntrinsicV {
   kind: "intrinsic";
-  fn(parameter?: Value): Value;
+  fn(parameter?: Value): Promise<Value>;
 }
 
 export interface TupleV {
@@ -39,6 +39,6 @@ export interface BoolV {
   value: boolean;
 }
 
-export interface VoidV {
-  kind: "void";
+export interface NoneV {
+  kind: "none";
 }

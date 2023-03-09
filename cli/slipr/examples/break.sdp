@@ -1,0 +1,13 @@
+type Seq[T] = (T, NativeSeq[T]) | none;
+
+const naturals: Seq[natural] = with (
+  nat = fn (n) -> (n, nat(n + 1))
+) nat(0);
+
+main #[
+  for i in naturals do #[
+    print(i);
+
+    if i >= 200 break;
+  ];
+];

@@ -1,0 +1,9 @@
+import { apply, seq_by, take } = use("./utils/iteration.sdp");
+
+type Seq[T] = (T, Seq[T]) | none;
+
+const fib: Seq[natural] = with (f = fn (x, y) -> (x, f(y, x + y))) f(0, 1);
+
+main #[
+  for i in take(apply(fib, fn(n) -> n * 2), 32) print(i);
+];

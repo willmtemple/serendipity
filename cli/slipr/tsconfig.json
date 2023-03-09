@@ -1,8 +1,9 @@
 {
   "extends": "../../tsconfig.esm",
   "compilerOptions": {
-    "outDir": "dist-esm/",
-    "noUncheckedIndexedAccess": false
+    "outDir": "./dist-esm",
+    "noUncheckedIndexedAccess": false,
+    "declarationMap": true
   },
   "include": ["src/**/*.ts"]
 }

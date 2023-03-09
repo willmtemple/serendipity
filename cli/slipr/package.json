@@ -37,13 +37,16 @@
   "prettier": "@serendipity/eslint-config/prettier.json",
   "dependencies": {
     "@serendipity/compiler-desugar": "workspace:*",
+    "@serendipity/core": "workspace:*",
     "@serendipity/interpreter": "workspace:*",
     "@serendipity/syntax": "workspace:*",
     "@serendipity/syntax-abstract": "workspace:*",
     "@serendipity/syntax-surface": "workspace:*",
     "@serendipity/reader": "workspace:*",
     "readline-sync": "~1.4.10",
-    "omnimatch": "1.0.0-development.2"
+    "omnimatch": "1.0.0-development.2",
+    "@serendipity/parser": "workspace:*",
+    "source-map-support": "~0.5.21"
   },
   "devDependencies": {
     "@serendipity/eslint-config": "workspace:*",
@@ -51,9 +54,11 @@
     "@types/readline-sync": "~1.4.3",
     "eslint": "^8.17.0",
     "prettier": "^2.3.0",
-    "typescript": "~4.7.3",
-    "rollup": "^2.0.0",
+    "typescript": "~4.9.4",
+    "rollup": "^2.78.0",
     "@rollup/plugin-node-resolve": "latest",
-    "@rollup/plugin-commonjs": "latest"
+    "@rollup/plugin-commonjs": "latest",
+    "@rollup/plugin-wasm": "~6.1.1",
+    "rollup-plugin-sourcemaps": "~0.6.3"
   }
 }

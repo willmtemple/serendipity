@@ -4,14 +4,14 @@
 _/ˌserənˈdipədē/_ (n.)
 a fortunate discovery or development by happenstance
 
-__Author's Note__: This project is in its infancy. This document reflects my
+**Author's Note**: This project is in its infancy. This document reflects my
 _aspirations_ for the project and not its current functionality. If you have
 stumbled upon this text somewhere out in the internet, you can always find the
 current status on the project's [repository][repo] in
 [the CONTRIBUTING.md file][contributing].
 
 Serendipity is a highly extensible programming system that combines the best
-elements of many different programming paradigms and philosophies. Our visual
+elements of many different programming paradigms and philosophies. The visual
 editor, [Camino][camino] provides an intuitive and novice-friendly environment
 to build and test programs in the browser, then deploy them to the cloud or
 other kinds of "agents."
@@ -19,9 +19,9 @@ other kinds of "agents."
 ## Why Build Another Editor?
 
 There are numerous novice-friendly programming platforms, but none that offer
-all of the features that serendipity aims to deliver. In particular, we draw
-inspiration from projects such as [Microsoft MakeCode][makecode],
-[MIT Scratch][scratch], [MIT AppInventor][ai2], and [Snap!][snap].
+all of the features that serendipity aims to deliver. In particular, it is
+inspired by projects such as [Microsoft MakeCode][makecode], [MIT
+Scratch][scratch], [MIT AppInventor][ai2], and [Snap!][snap].
 
 Compared to these platforms, Serendipity is designed for:
 
@@ -40,7 +40,7 @@ Compared to these platforms, Serendipity is designed for:
   services and devices with known APIs.
 
 - modern workflows. A user can develop, build, test, and deploy
-  applications&mdash;all in the cloud&mdash;from a browser.
+  applications from a single interface.
 
 - functional programming. Existing visual programming languages (particularly
   blocks-based frameworks) made design decisions that leave them broadly
@@ -91,12 +91,11 @@ Some of Serendipity's language and editor features are inspired in part by
 [Racket][racket] (graduated language levels/multiple front-ends, debugger) and [Hazel][hazel]
 (direct structure editing).
 
-[//]: # (Internal Links)
+[//]: # "Internal Links"
 [contributing]: https://github.com/willmtemple/serendipity/tree/master/CONTRIBUTING.md
 [design]: https://github.com/willmtemple/serendipity/tree/master/DESIGN.md
 [repo]: https://github.com/willmtemple/serendipity
-
-[//]: # (External Projects)
+[//]: # "External Projects"
 [bt3]: https://playfulcomputation.group/blockytalky
 [makecode]: https://www.microsoft.com/makecode
 [ai2]: https://appinventor.mit.edu/
@@ -104,4 +103,3 @@ Some of Serendipity's language and editor features are inspired in part by
 [snap]: https://snap.berkeley.edu/
 [racket]: https://racket-lang.org
 [hazel]: https://hazel.org
-

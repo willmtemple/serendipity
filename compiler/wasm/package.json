@@ -1,0 +1,26 @@
+{
+  "name": "@serendipity/compiler-wasm",
+  "version": "0.1.0",
+  "description": "compile syntax-abstract to web assembly",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist/",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "format:fix": "prettier --write \"src/**/*.ts\"",
+    "lint": "eslint src --ext ts",
+    "lint:fix": "eslint src --ext ts",
+    "prebuild": "npm run clean"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@serendipity/syntax": "workspace:*",
+    "@serendipity/syntax-abstract": "workspace:*",
+    "@serendipity/parser": "workspace:*",
+    "@serendipity/compiler-desugar": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "~4.9.4"
+  }
+}

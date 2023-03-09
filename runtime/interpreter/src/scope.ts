@@ -30,7 +30,7 @@ export interface ScopedValue {
 
 export type ScopedObject = CachedExpression | CachedBinder | ScopedValue;
 
-type Evaluator = (e: Expression, s: Scope) => Value;
+type Evaluator = (e: Expression, s: Scope) => Promise<Value>;
 
 export class Scope {
   private evaluator: Evaluator;
@@ -59,11 +59,11 @@ export class Scope {
     };
   }
 
-  public demandInScope(name: string, expr: Expression): void {
-    this.set(name, { kind: "value", value: this.evaluator(expr, this) });
+  public async demandInScope(name: string, expr: Expression): Promise<void> {
+    this.set(name, { kind: "value", value: await this.evaluator(expr, this) });
   }
 
-  public resolve(name: string): Value {
+  public async resolve(name: string): Promise<Value> {
     const bound = this.bindings[name];
 
     if (bound) {
@@ -85,7 +85,7 @@ export class Scope {
     }
   }
 
-  private eval(cexpr: ScopedObject): Value {
+  private async eval(cexpr: ScopedObject): Promise<Value> {
     if (cexpr.kind === "value") {
       return cexpr.value;
     }
@@ -96,11 +96,11 @@ export class Scope {
       let res;
       switch (cexpr.kind) {
         case "expression":
-          res = this.evaluator(cexpr.expr, this);
+          res = await this.evaluator(cexpr.expr, this);
           delete (cexpr as any).expr;
           break;
         case "binder":
-          res = this.evaluator(cexpr.bind.expr, cexpr.bind.scope);
+          res = await this.evaluator(cexpr.bind.expr, cexpr.bind.scope);
           delete (cexpr as any).bind;
           break;
         default: {

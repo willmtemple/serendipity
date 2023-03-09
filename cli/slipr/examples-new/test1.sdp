@@ -1,8 +1,0 @@
-define f(x) do #[
-    print "Hello world!";
-    return 
-]
-
-on start #[
-    print "Hello world!";
-]

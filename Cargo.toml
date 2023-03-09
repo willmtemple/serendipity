@@ -1,3 +1,7 @@
 [workspace]
 
 members = ["compiler/parser"]
+
+[workspace.dependencies]
+seglisp = { path = "../seglisp/seglisp", features = ["js_interop", "parser"] }
+wasm-bindgen = "0.2.84"

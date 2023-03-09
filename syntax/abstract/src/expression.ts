@@ -18,6 +18,7 @@ export type Expression =
   | If
   | Case
   | BinaryOp
+  | UnaryOp
   | Void;
 
 export type LiteralExpression = Number | String | Boolean;
@@ -99,6 +100,17 @@ export interface BinaryOp extends SyntaxObject {
   op: BinaryOperator;
   left: Expression;
   right: Expression;
+}
+
+export enum UnaryOperator {
+  NEGATE = "!",
+  MINUS = "-",
+}
+
+export interface UnaryOp extends SyntaxObject {
+  kind: "UnaryOp";
+  op: UnaryOperator;
+  expr: Expression;
 }
 
 export interface Void extends SyntaxObject {

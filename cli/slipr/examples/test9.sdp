@@ -1,6 +1,0 @@
-(define (seq n) (cons n (seq (+ n 1))))
-
-(main (proc
-  (for-in [i (seq 0)] (do (proc
-    (if (>= i 10) (break))
-    (print i))))))

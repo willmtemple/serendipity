@@ -8,6 +8,8 @@ import * as abstract from "@serendipity/syntax-abstract";
  * Constructor for the classic fixed-point combinator.
  * Recursively binds `c` to itself.
  *
+ * (fn(f) -> fn(x) -> x(x))(.)
+ *
  * @param c The lambda to bind into the Y combinator for external renaming
  */
 export function Y(c: abstract.Closure): abstract.Call {
@@ -26,13 +28,13 @@ export function Y(c: abstract.Closure): abstract.Call {
             kind: "Call",
             callee: {
               kind: "Name",
-              name: "x"
+              name: "x",
             },
             parameter: {
               kind: "Name",
-              name: "x"
-            }
-          }
+              name: "x",
+            },
+          },
         },
         parameter: {
           kind: "Closure",
@@ -41,22 +43,22 @@ export function Y(c: abstract.Closure): abstract.Call {
             kind: "Call",
             callee: {
               kind: "Name",
-              name: "f"
+              name: "f",
             },
             parameter: {
               kind: "Call",
               callee: {
                 kind: "Name",
-                name: "x"
+                name: "x",
               },
               parameter: {
                 kind: "Name",
-                name: "x"
-              }
-            }
-          }
-        }
-      }
-    }
+                name: "x",
+              },
+            },
+          },
+        },
+      },
+    },
   };
 }

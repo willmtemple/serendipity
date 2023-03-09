@@ -1,0 +1,30 @@
+// Copyright (c) Will Temple.
+// Licensed under the MIT license.
+
+/**
+ * Prints `value` to standard output.
+ *
+ * @param value the value to print
+ */
+fn print(value: unknown): none -> __core.print_stmt(value);
+
+/**
+ * Reads a line of text from standard input.
+ *
+ * @param prefix a string to print before reading the line
+ * @returns a string, read from standard input, terminating in a line-ending sequence
+ */
+fn prompt(prefix: string | none): string -> __core["read_line"](prefix);
+
+/**
+ * Prints `message` to standard error and terminates the program with an error status.
+ *
+ * @param message a message to print, giving the reason for the panic
+ */
+fn panic(message: string): ! -> __core.err(value);
+
+export {
+  print,
+  prompt,
+  panic
+}

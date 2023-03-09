@@ -1,0 +1,28 @@
+fn apply[Out](s: Seq[In], f: fn (In) -> Out): Seq[Out] -> (
+  if s then (
+    (f(s[0]), apply(s[1], f))
+  )
+  else none
+);
+
+fn seq_by[T](n: T, f: fn(T) -> T): Seq[T] -> (n, seq_by(f(n), f));
+
+fn take[T](s: Seq[T], n: natural): Seq[T] -> (
+  if n < 1 then (
+    none
+  )
+  else (
+    if s then (
+      (s[0], take(s[1], n - 1))
+    )
+    else (
+      panic("empty list")
+    )
+  )
+);
+
+export {
+  apply,
+  seq_by,
+  take
+}

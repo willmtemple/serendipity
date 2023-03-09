@@ -4,16 +4,26 @@
 
 /// <reference lib="es6" />
 
-import { Module, BinaryOperator, BinaryOp, Expression } from "@serendipity/syntax-abstract";
+// TODO: rewrite this whole module
+
+import {
+  Module,
+  BinaryOperator,
+  BinaryOp,
+  Expression,
+  UnaryOp,
+  UnaryOperator,
+} from "@serendipity/syntax-abstract";
 
 import { match } from "omnimatch";
 
 import { Value, NumberV, IntrinsicV } from "./value";
-import { Scope } from "./scope";
+import { Binder, Scope } from "./scope";
+import path from "node:path";
 
 function _isTotalType(v: Value): boolean {
   switch (v.kind) {
-    case "void":
+    case "none":
     case "number":
     case "string":
     case "boolean":
@@ -23,16 +33,11 @@ function _isTotalType(v: Value): boolean {
   }
 }
 
-function isTrue(v: Value): boolean {
-  switch (v.kind) {
-    case "number":
-      return v.value !== 0;
-    case "string":
-      return v.value !== "";
-    case "boolean":
-      return v.value;
-    default:
-      throw new Error("Value is not convertible to Boolean: " + v.kind);
+function getTruthValue(v: Value): boolean {
+  if (v.kind === "none" || (v.kind === "boolean" && v.value === false)) {
+    return false;
+  } else {
+    return true;
   }
 }
 
@@ -57,7 +62,7 @@ function arithOp(l: NumberV, r: NumberV, op: BinaryOperator): Value {
 
 function isEq(lv: Value, rv: Value): boolean {
   if (_isTotalType(lv)) {
-    if (lv.kind === "void" || rv.kind === "void") {
+    if (lv.kind === "none" || rv.kind === "none") {
       // Voids are always equal
       return true;
     } else if (lv.kind === "intrinsic" || rv.kind === "intrinsic") {
@@ -91,7 +96,7 @@ function compareOp(lv: Value, rv: Value, op: BinaryOperator): Value {
         // eslint-disable-next-line no-fallthrough
         case "<=":
           if (_isTotalType(lv)) {
-            if (lv.kind === "void") {
+            if (lv.kind === "none") {
               // Voids are always equal
               result = true;
             } else if (
@@ -111,7 +116,7 @@ function compareOp(lv: Value, rv: Value, op: BinaryOperator): Value {
         // eslint-disable-next-line no-fallthrough
         case ">=":
           if (_isTotalType(lv)) {
-            if (lv.kind === "void") {
+            if (lv.kind === "none") {
               // Voids are always equal
               result = true;
             } else if (lv.kind === "intrinsic") {
@@ -139,12 +144,21 @@ type Printer = (s: string) => void;
 type Prompter = (s?: string) => string;
 
 export interface InterpreterOptions {
+  corePath?: string;
+  getAssociatedExports: (m: Module) => string[];
+  loadModule: (path: string) => Promise<Module>,
   printer: Printer;
   prompt: Prompter;
   beforeEval: (expr: Expression, scope: Scope) => void;
 }
 
 const defaultOptions: InterpreterOptions = {
+  getAssociatedExports() {
+    throw new Error("Core module requested, but no export loader is available.")
+  },
+  loadModule() {
+    throw new Error("No loadModule function provided to interpreter");
+  },
   printer() {
     throw new Error("No print function provided to interpreter");
   },
@@ -159,12 +173,52 @@ const defaultOptions: InterpreterOptions = {
 export class Interpreter {
   private options: InterpreterOptions;
 
+  private moduleExportMap: Map<string, { module: Module, binder: Binder }> = new Map();
+
   public constructor(options: Partial<InterpreterOptions> = {}) {
     this.options = { ...defaultOptions, ...options };
   }
 
-  public execModule(m: Module): void {
-    const scope: Scope = new Scope(this.evalExpr.bind(this));
+  public async execModule(m: Module, modulePath: string): Promise<void> {
+    const scope: Scope = new Scope((e, s) => this.evalExpr(e, s, modulePath));
+
+    if (this.options.corePath) {
+      // We do this for its side effect of loading the module into core.
+      const { canonicalizedPath } = await this.loadModule(modulePath, this.options.corePath);
+
+      scope.scope("__module_core", {
+        kind: "Call",
+        callee: {
+          kind: "Name",
+          name: "__core.import",
+        },
+        parameter: {
+          kind: "String",
+          value: canonicalizedPath,
+        }
+      })
+
+      const coreModule = this.moduleExportMap.get(canonicalizedPath);
+      if (!coreModule) throw new Error("Core module not found");
+
+      const { module } = coreModule;
+
+      const associatedCoreExports = this.options.getAssociatedExports(module);
+
+      for (const name of associatedCoreExports) {
+        scope.scope(name, {
+          kind: "Call",
+          callee: {
+            kind: "Name",
+            name: "__module_core",
+          },
+          parameter: {
+            kind: "String",
+            value: name,
+          }
+        })
+      }
+    }
 
     let main = false;
     for (const { name: _name, value } of m.definitions) {
@@ -180,24 +234,70 @@ export class Interpreter {
           kind: "Name",
           name: "__start",
         },
-        scope
+        scope,
+        modulePath
       );
     }
   }
 
+  public async evalModuleExports(m: Module, modulePath: string): Promise<Binder> {
+    const scope: Scope = new Scope((e, s) => this.evalExpr(e, s, modulePath));
+
+    for (const { name: _name, value } of m.definitions) {
+      scope.scope(_name, value);
+    }
+
+    return scope.bind({
+      kind: "Name",
+      name: "__exports",
+    });
+  }
+
   // TODO: remove this in favor of a core module and think hard about what
   // should be in core
-  private getIntrinsic(scope: Scope, _name: string): IntrinsicV {
-    switch (_name.split(".")[1]) {
+  private getIntrinsic(scope: Scope, name: string, executionPath: string): IntrinsicV {
+    if (name === "__core") {
+      const that = this;
+      return {
+        kind: "intrinsic",
+        async fn(key) {
+          if (!key) throw new Error("accessed/called __core with no key");
+
+          if (key.kind !== "string") throw new Error("__core only has string properties");
+
+          return that.getIntrinsic(scope, "__core." + key.value, executionPath);
+        },
+      };
+    }
+
+    switch (name.split(".")[1]) {
+      case "import": {
+        return {
+          kind: "intrinsic",
+          fn: async (parameter) => {
+            if (!parameter || parameter.kind !== "string") {
+              throw new Error(`Expected a string argument to 'import', got '${parameter?.kind}'`);
+            }
+
+            const {
+              moduleExports,
+              canonicalizedPath
+            } = await this.loadModule(executionPath, parameter.value);
+
+            // Evaluate the exports in their own scope.
+            return this.evalExpr(moduleExports.expr, moduleExports.scope, canonicalizedPath);
+          },
+        }
+      }
       case "print_stmt":
         return {
           kind: "intrinsic",
-          fn: (param?: Value): Value => {
+          fn: async (param?: Value): Promise<Value> => {
             if (!param) {
               throw new Error("Called print_stmt intrinsic with no parameter.");
             }
 
-            this.options.printer(this._strconv(param));
+            this.options.printer(await this._strconv(param, executionPath));
 
             return {
               kind: "closure",
@@ -214,7 +314,7 @@ export class Interpreter {
       case "read_line":
         return {
           kind: "intrinsic",
-          fn: (param?: Value): Value => {
+          fn: async (param?: Value) => {
             if (param && param.kind !== "string") {
               throw new Error("readline: prompt must be a string!");
             }
@@ -235,14 +335,14 @@ export class Interpreter {
       case "str_split":
         return {
           kind: "intrinsic",
-          fn: (str?: Value): Value => {
+          fn: async (str?: Value) => {
             if (!str || str.kind !== "string") {
               throw new Error("str_split: no string provided");
             }
 
             return {
               kind: "intrinsic",
-              fn: (splitOn?: Value): Value => {
+              fn: async (splitOn?: Value) => {
                 if (!splitOn || (splitOn.kind !== "string" && splitOn.kind !== "number")) {
                   throw new Error("str_split: no splitOn provided (must be string or number)");
                 }
@@ -265,7 +365,7 @@ export class Interpreter {
                   ];
                 }
 
-                const emptyScope = new Scope(this.evalExpr.bind(this));
+                const emptyScope = new Scope((e, s) => this.evalExpr(e, s, executionPath));
 
                 return {
                   kind: "tuple",
@@ -293,14 +393,14 @@ export class Interpreter {
       case "str_cat":
         return {
           kind: "intrinsic",
-          fn: (rightStr?: Value): Value => {
+          fn: async (rightStr?: Value) => {
             if (!rightStr || rightStr.kind !== "string") {
               throw new Error("str_join: no leftStr provided");
             }
 
             return {
               kind: "intrinsic",
-              fn: (leftStr?: Value): Value => {
+              fn: async (leftStr?: Value) => {
                 if (!leftStr || leftStr.kind !== "string") {
                   throw new Error("str_join: no rightStr provided");
                 }
@@ -316,21 +416,48 @@ export class Interpreter {
       case "to_str":
         return {
           kind: "intrinsic",
-          fn: (v: Value) => {
+          fn: async (v: Value) => {
             if (!v) throw new Error("no argument provided to_str");
 
             return {
               kind: "string",
-              value: this._strconv(v)
-            }
-          }
+              value: await this._strconv(v, executionPath),
+            };
+          },
         };
+      case "err":
+        return {
+          kind: "intrinsic",
+          fn: async (v: Value) => {
+            console.error("panic:", await this._strconv(v, executionPath));
+            process.exit(1);
+          }
+        }
       default:
-        throw new Error("Unimplemented intrinsic " + _name);
+        throw new Error("Unimplemented intrinsic " + name);
     }
   }
 
-  private _strconv(v: Value): string {
+  private async loadModule(executionPath: string, modulePath: string) {
+    const canonicalizedPath = path.resolve(path.dirname(executionPath), modulePath);
+
+    let moduleExports: Binder;
+    if (this.moduleExportMap.has(canonicalizedPath)) {
+      ({ binder: moduleExports } = this.moduleExportMap.get(canonicalizedPath)!);
+    } else {
+      const module = await this.options.loadModule(canonicalizedPath);
+
+      moduleExports = await this.evalModuleExports(module, canonicalizedPath);
+
+      this.moduleExportMap.set(canonicalizedPath, {
+        module,
+        binder: moduleExports,
+      });
+    }
+    return { moduleExports, canonicalizedPath };
+  }
+
+  private async _strconv(v: Value, executionPath: string): Promise<string> {
     switch (v.kind) {
       case "number":
         return v.value.toString();
@@ -338,11 +465,11 @@ export class Interpreter {
         return v.value;
       case "boolean":
         return v.value ? "true" : "false";
-      case "void":
+      case "none":
         return v.kind;
       case "tuple": {
-        const vals = v.value.map((bind) => this.evalExpr(bind.expr, bind.scope));
-        return "(" + vals.map(this._strconv.bind(this)).join(", ") + ")";
+        const vals = await Promise.all(v.value.map((bind) => this.evalExpr(bind.expr, bind.scope, executionPath)));
+        return "(" + vals.map((v: Value) => this._strconv(v, executionPath)).join(", ") + ")";
       }
       default: {
         const attrs: string[] = [];
@@ -357,9 +484,9 @@ export class Interpreter {
     }
   }
 
-  private binaryOperator({ op, left, right }: BinaryOp, scope: Scope): Value {
-    const lv = this.evalExpr(left, scope);
-    const rv = this.evalExpr(right, scope);
+  private async binaryOperator({ op, left, right }: BinaryOp, scope: Scope, modulePath: string): Promise<Value> {
+    const lv = await this.evalExpr(left, scope, modulePath);
+    const rv = await this.evalExpr(right, scope, modulePath);
     switch (op) {
       case BinaryOperator.ADD:
       case BinaryOperator.SUB:
@@ -377,15 +504,36 @@ export class Interpreter {
     }
   }
 
-  private evalExpr(e: Expression, scope: Scope): Value {
+  private async unaryOperator({ op, expr }: UnaryOp, scope: Scope, modulePath: string): Promise<Value> {
+    const val = await this.evalExpr(expr, scope, modulePath);
+    switch (op) {
+      case UnaryOperator.MINUS:
+        if (val.kind !== "number") {
+          throw new Error("Attempted unary minus on a non-number");
+        }
+
+        return {
+          kind: "number",
+          value: -val.value,
+        };
+
+      case UnaryOperator.NEGATE:
+        return {
+          kind: "boolean",
+          value: !getTruthValue(val),
+        };
+    }
+  }
+
+  private async evalExpr(e: Expression, scope: Scope, modulePath: string): Promise<Value> {
     this.options.beforeEval(e, scope);
     return match(e, {
-      Number: ({ value }): Value => ({ kind: "number", value }),
-      String: ({ value }): Value => ({ kind: "string", value }),
-      Boolean: ({ value }): Value => ({ kind: "boolean", value }),
-      Name: ({ name: _name }): Value => {
+      Number: async ({ value }): Promise<Value> => ({ kind: "number", value }),
+      String: async ({ value }): Promise<Value> => ({ kind: "string", value }),
+      Boolean: async ({ value }): Promise<Value> => ({ kind: "boolean", value }),
+      Name: async ({ name: _name }): Promise<Value> => {
         if (_name.startsWith("__core")) {
-          return this.getIntrinsic(scope, _name);
+          return this.getIntrinsic(scope, _name, modulePath);
         }
         const res = scope.resolve(_name);
         if (!res) {
@@ -394,14 +542,18 @@ export class Interpreter {
 
         return res;
       },
-      Accessor: ({ accessee, index }): Value => {
-        const aVal = this.evalExpr(accessee, scope);
+      Accessor: async ({ accessee, index }): Promise<Value> => {
+        const aVal = await this.evalExpr(accessee, scope, modulePath);
+
+        if (aVal.kind === "intrinsic") {
+          return aVal.fn(await this.evalExpr(index, scope, modulePath));
+        }
 
         if (aVal.kind !== "tuple") {
           throw new Error("Tried to access index on a non-tuple");
         }
 
-        const iVal = this.evalExpr(index, scope);
+        const iVal = await this.evalExpr(index, scope, modulePath);
 
         if (iVal.kind !== "number") {
           throw new Error("Tried to index an object with something that isn't a number");
@@ -412,66 +564,72 @@ export class Interpreter {
         }
 
         const resExpr = aVal.value[iVal.value]!;
-        return this.evalExpr(resExpr.expr, resExpr.scope);
+        return this.evalExpr(resExpr.expr, resExpr.scope, modulePath);
       },
-      Call: ({ callee, parameter }): Value => {
-        const calleeValue = this.evalExpr(callee, scope);
+      Call: async ({ callee, parameter }): Promise<Value> => {
+        const calleeValue = await this.evalExpr(callee, scope, modulePath);
 
         if (calleeValue.kind === "intrinsic") {
           // Handle intrinsics specially for now
-          return calleeValue.fn(parameter ? this.evalExpr(parameter, scope) : undefined);
+          return calleeValue.fn(parameter ? await this.evalExpr(parameter, scope, modulePath) : undefined);
         }
 
         if (calleeValue.kind !== "closure") {
           throw new Error("Attempted to call a non-function");
         }
 
-        const evalScope = new Scope(this.evalExpr.bind(this), calleeValue.value.body.scope);
+        // if (callee.kind === "Name" && callee.name === "__loop") debugger;
+
+        const evalScope = new Scope((e, s) => this.evalExpr(e, s, modulePath), calleeValue.value.body.scope);
+
+        // if (calleeValue.value.parameter === "__iter") debugger;
 
         if (parameter !== undefined) {
           if (calleeValue.value.parameter === undefined) {
             throw new Error("Callee does not accept a parameter, but one was given.");
           }
           if (calleeValue.value.parameter !== "" && calleeValue.value.parameter !== "_") {
+            // if (calleeValue.value.parameter === "__iter") debugger;
             evalScope.rebind(calleeValue.value.parameter, scope.bind(parameter));
           }
         }
 
-        return this.evalExpr(calleeValue.value.body.expr, evalScope);
+        return this.evalExpr(calleeValue.value.body.expr, evalScope, modulePath);
       },
-      Closure: ({ body, parameter }): Value => ({
+      Closure: async ({ body, parameter }): Promise<Value> => ({
         kind: "closure",
         value: {
           body: scope.bind(body),
           parameter,
         },
       }),
-      Tuple: ({ values }): Value => {
+      Tuple: async ({ values }): Promise<Value> => {
         const vals = values.map((exprBind) => scope.bind(exprBind));
         return {
           kind: "tuple",
           value: vals,
         };
       },
-      If: ({ cond, then, _else }): Value => {
-        if (isTrue(this.evalExpr(cond, scope))) {
-          return this.evalExpr(then, scope);
+      If: async ({ cond, then, _else }): Promise<Value> => {
+        if (getTruthValue(await this.evalExpr(cond, scope, modulePath))) {
+          return this.evalExpr(then, scope, modulePath);
         } else {
-          return this.evalExpr(_else, scope);
+          return this.evalExpr(_else, scope, modulePath);
         }
       },
-      Case: ({ _in, cases }) => {
-        const value = this.evalExpr(_in, scope);
+      Case: async ({ _in, cases }) => {
+        const value = await this.evalExpr(_in, scope, modulePath);
         for (const [k, v] of cases) {
-          if (isEq(value, this.evalExpr(k, scope))) {
-            return this.evalExpr(v, scope);
+          if (isEq(value, await this.evalExpr(k, scope, modulePath))) {
+            return this.evalExpr(v, scope, modulePath);
           }
         }
 
-        return { kind: "void" } as Value;
+        return { kind: "none" } as Value;
       },
-      BinaryOp: (v) => this.binaryOperator(v, scope),
-      Void: (): Value => ({ kind: "void" }),
+      BinaryOp: (v) => this.binaryOperator(v, scope, modulePath),
+      UnaryOp: (v) => this.unaryOperator(v, scope, modulePath),
+      Void: async (): Promise<Value> => ({ kind: "none" }),
     });
   }
 }

@@ -1,9 +1,0 @@
-(main (proc
-  (loop (do (proc
-    (print 0)
-    (print 1)
-    (break)
-    (print 2)
-    (print 3)
-    (print 4))))
-  (print "Loop ended early!")))

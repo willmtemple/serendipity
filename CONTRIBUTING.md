@@ -6,16 +6,10 @@ programming language for everyday use in scripting, software development, etc.
 
 ## Maintainership
 
-I ([Will Temple](https://wtemple.info)) am the project's sole maintainer in my
-free time. Contributions of implementation code, design suggestions, artwork,
-documentation, experience reports, test cases, example programs, and of course
-error reports are all welcome. Please create a new issue or pull request.
-
-I am unlikely to accept structural contributions without first having a
-comprehensive discussion about its impact on the project's design goals. If you
-are considering implementing a new feature, please use the issue form to start
-a design discussion first to ensure that your contributions will be aligned
-with Serendipity's design goals. Otherwise, your contribution may be rejected.
+Welcome to my ([Will Temple](https://wtemple.info)) hobby project. For a few
+years this project has been a space for me to experiment with ideas. If you've
+made it here and would like to contribute something, please start a discussion
+first.
 
 The first step to contributing is to read the [design guide][design].
 
@@ -67,7 +61,7 @@ For example:
   - `/abstract` (abstract, or low-level syntax)
   - `/surface` (surface, or high-level syntax)
   - `/common` (types and utilities common to the syntax packages)
-- (and more)
+- (etc.)
 
 Each package _should_ have its own `README.md` file with a more comprehensive
 description and a clear set of instructions on how to use it.
@@ -94,27 +88,12 @@ workspace using `rush generate-workspace`.
 
 ## Platforms
 
-Serendipity is developed on Linux with the latest LTS version of Node. I have
-no reason to believe that it would not work on other platforms. However, I
-don't currently test on any platforms other than what's locally installed on my
-computers.
-
-### Windows
-
-Users of msysgit on Windows 10 build 1607 and later are advised to set the
-`longpaths` option (`git config --system core.longtpaths true`) and to set a
-registry key:
-
-**Warning**: I don't use Windows, and so I don't test this registry setting.
-Proceed at your own risk.
-
-```reg
-Windows Registry Editor Version 5.00
-
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem]
-"LongPathsEnabled"="dword:1"
-
-```
+I work on Linux with the latest LTS version of Node. I have no reason to believe
+it wouldn't build on macOS. It won't build on Windows and I have no plans to
+make it build on Windows. I use POSIX shell commands in the build scripts, so if
+you have msysgit, cygwin, or some other POSIX layer installed it may work, I
+guess, but you should probably use WSL instead as the Windows file system
+performs poorly with large Node projects.
 
 [design]: https://github.com/willmtemple/serendipity/tree/master/DESIGN.md
 [rush]: https://rushjs.io/

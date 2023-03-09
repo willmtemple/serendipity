@@ -10,6 +10,7 @@ export function writeAbstract(s: Expression): string {
   return match(s, {
     Accessor: ({ accessee, index }) => `${writeAbstract(accessee)}[${writeAbstract(index)}]`,
     BinaryOp: ({ left, op, right }) => `(${op} ${writeAbstract(left)} ${writeAbstract(right)})`,
+    UnaryOp: ({ op, expr }) => `${op}${expr}`,
     Boolean: ({ value }) => value.toString(),
     Number: ({ value }) => value.toString(),
     String: ({ value }) => '"' + value.toString() + '"',

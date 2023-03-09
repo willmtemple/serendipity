@@ -1,2 +1,3 @@
-/dist-*
-*.gen.d.ts
+/dist/
+/dist-*/
+lib/index.gen.ts

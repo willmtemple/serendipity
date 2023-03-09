@@ -2,18 +2,36 @@ import { action, autorun, makeAutoObservable, observable, set, toJS } from "mobx
 
 import { surfaceExample } from "../defaultProject";
 
-import { v4 as guid } from "uuid";
+import type { Module, Expression, Statement } from "@serendipity/parser";
 
-import { SyntaxObject } from "@serendipity/syntax";
-import { Module } from "@serendipity/syntax-surface";
-import {
-  Define,
-  DefineFunction,
-  Expression,
-  Global,
-  Main,
-  Statement,
-} from "@serendipity/syntax-surface";
+const id = function createIdSystem() {
+  let id = 0;
+
+  return () => {
+    return (id += 1);
+  };
+};
+
+const NODE_METADATA = new WeakMap<object, NodeMetadata>();
+const ACTIVE_NODES = new Map<number, object>();
+
+function getMetadataFor(item: number | object): NodeMetadata | null {
+  let node: object | undefined;
+  if (typeof item === "number") {
+    node = ACTIVE_NODES.get(item);
+  } else {
+    node = item;
+  }
+
+  if (node) return NODE_METADATA.get(node) ?? null;
+
+  return null;
+}
+
+interface NodeMetadata {
+  id: number;
+  position: Position;
+}
 
 interface Position {
   x: number;

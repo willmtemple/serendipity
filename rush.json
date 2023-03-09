@@ -51,6 +51,12 @@
       "shouldPublish": false
     },
     {
+      "packageName": "@serendipity/compiler-wasm",
+      "projectFolder": "compiler/wasm",
+      "reviewCategory": "production",
+      "shouldPublish": false
+    },
+    {
       "packageName": "@serendipity/compiler-typecheck",
       "projectFolder": "compiler/typecheck",
       "reviewCategory": "production",
@@ -120,6 +126,12 @@
       "packageName": "@serendipity/scripts",
       "projectFolder": "tools/scripts",
       "reviewCategory": "tools",
+      "shouldPublish": false
+    },
+    {
+      "packageName": "@serendipity/core",
+      "projectFolder": "lib/core",
+      "reviewCategory": "production",
       "shouldPublish": false
     }
   ]

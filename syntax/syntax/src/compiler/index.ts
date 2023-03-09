@@ -34,9 +34,11 @@ export class Compiler<Input, Output> {
     for (const pass of this.passes) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const res = pass.run(state) as CompilerOutput<any>;
+      
       if (res.kind === "error") {
         return res;
       }
+
       state = res.value;
     }
 

@@ -2,9 +2,10 @@
 // All rights reserved.
 // Licensed under the terms of the GNU General Public License v3 or later.
 
-import * as surface from "@serendipity/syntax-surface";
+import * as newSurface from "@serendipity/parser";
 
 import { match } from "omnimatch";
+import { ParseNode } from "@serendipity/parser";
 
 const internalNames = {
   k: "__k",
@@ -12,265 +13,425 @@ const internalNames = {
   break: "__break",
   loop: "__loop",
   it: "__iter",
-  next: "__next"
+  next: "__next",
+  continue: "__continue",
 };
 
-type Expression = surface.Expression;
-type Closure = surface.Closure;
+type FunctionExpr = newSurface.FunctionExpression;
+
+// #region A horrible hack that has invaded my code
+
+export function synthesizeParseNode<V>(value: V, inherits?: ParseNode<unknown>): ParseNode<V> {
+  return {
+    hasError: false,
+    range: inherits?.range ?? [
+      { absolute: 0, column: 0, line: 0 },
+      { absolute: 0, line: 0, column: 0 },
+    ],
+    value,
+  };
+}
+
+export function synthesizeParseNodes<Args extends unknown[]>(
+  args: Args
+): ParseNode<{ [K in keyof Args]: ParseNode<Args[K]> }> {
+  return synthesizeParseNode(args.map((v) => synthesizeParseNode(v))) as never;
+}
+
+// #endregion
 
 /**
  * Constructor for reserved names.
  *
  * @param name The name to transform
  */
-export function res(name: keyof typeof internalNames): surface.Name {
+export function res(name: keyof typeof internalNames): newSurface.NameExpression {
+  return Object.assign(
+    [internalNames[name]] as [string],
+    {
+      kind: "Name",
+    } as const
+  );
+}
+
+const cpsClosParams = [internalNames.world, internalNames.k].map((v) =>
+  synthesizeParseNode({
+    name: synthesizeParseNode(v)
+  })
+);
+
+function cpsClosed(body: newSurface.Expression): FunctionExpr {
   return {
-    kind: "Name",
-    name: internalNames[name]
+    kind: "Function",
+    arrowToken: synthesizeParseNode("->"),
+    fnKeyword: synthesizeParseNode("fn"),
+    parameters: synthesizeParseNode(cpsClosParams),
+    body: synthesizeParseNode(body),
   };
 }
 
-const cpsClosParams = [internalNames.world, internalNames.k];
-
-function cpsClosed(body: Expression): Closure {
+function cpsContinue(continuation: newSurface.Expression): FunctionExpr {
   return {
-    kind: "Closure",
-    parameters: cpsClosParams,
-    body
-  };
-}
-
-function cpsContinue(continuation: Expression): Closure {
-  return {
-    kind: "Closure",
-    parameters: [internalNames.world],
-    body: {
+    kind: "Function",
+    arrowToken: synthesizeParseNode("->"),
+    fnKeyword: synthesizeParseNode("fn"),
+    parameters: synthesizeParseNode([synthesizeParseNode({
+      name: synthesizeParseNode(internalNames.world)
+    })]),
+    body: synthesizeParseNode({
       kind: "Call",
-      callee: continuation,
-      parameters: [res("world"), res("k")]
-    }
+      callee: synthesizeParseNode(continuation),
+      parameters: synthesizeParseNodes([res("world"), res("k")]),
+    }),
   };
 }
 
-function getStatementCPS(s: surface.Statement, continuation: Expression): Closure {
-  return match(s, {
-    // (\ (w k) (body w (\ w (continuation w k))))
-    Do: ({ body }): Closure =>
-      cpsClosed({
-        kind: "Call",
-        callee: body,
-        parameters: [res("world"), cpsContinue(continuation)]
-      }),
-    // (\ (w k) (_prn value (continuation w k)))
-    Print: ({ value }): Closure =>
-      cpsClosed({
-        kind: "Call",
-        callee: {
-          kind: "Name",
-          name: "__core.print_stmt"
-        },
-        parameters: [
-          {
-            kind: "Call",
-            callee: continuation,
-            parameters: [res("world"), res("k")]
-          },
-          value
-        ]
-      }),
-    If: ({ condition, body, _else: elseStmt }): Closure => {
-      const doContinue: Expression = {
-        kind: "Call",
-        callee: res("next"),
-        parameters: [res("world")]
-      };
-      const nextContinuation: Expression = {
-        kind: "Closure",
-        parameters: cpsClosParams,
-        body: doContinue
-      };
+function getStatementCPS(
+  s: newSurface.Statement,
+  continuation: newSurface.Expression
+): FunctionExpr {
+  return (
+    match(s, {
+      // (\ (w k) (body w (\ w (continuation w k))))
+      Do: ([body]): FunctionExpr =>
+        cpsClosed({
+          kind: "Call",
+          callee: body,
+          parameters: synthesizeParseNodes([res("world"), cpsContinue(continuation)]),
+        }),
+      // (\ (w k) (_prn value (continuation w k)))
+      // I removed this a while ago but I'm keeping it around as an example.
+      // The print statement has been implemented as a core function __core.print_stmt, and that function "participates"
+      // in the CPS scheme. It binds its first argument and calls it as a continuation after printing its argument.
+      // Print: ({ }): FunctionExpr =>
+      //   cpsClosed({
+      //     kind: "Call",
+      //     callee: {
+      //       kind: "Name",
+      //       name: "__core.print_stmt",
+      //     },
+      //     parameters: [
+      //       {
+      //         kind: "Call",
+      //         callee: continuation,
+      //         parameters: [res("world"), res("k")],
+      //       },
+      //       value,
+      //     ],
+      //   }),
+      If: ({ condition, then, Else: elseStmt }): FunctionExpr => {
+        const doContinue: newSurface.Expression = {
+          kind: "Call",
+          callee: synthesizeParseNode(res("next")),
+          parameters: synthesizeParseNode([synthesizeParseNode(res("world"))]),
+        };
+        const nextContinuation = cpsClosed(doContinue);
 
-      const _else: Expression = elseStmt
-        ? {
-            kind: "Call",
-            callee: getStatementCPS(elseStmt, nextContinuation),
-            parameters: [res("world"), res("k")]
-          }
-        : doContinue;
+        const _else: newSurface.Expression = elseStmt
+          ? {
+              kind: "Call",
+              callee: synthesizeParseNode(getStatementCPS(elseStmt.value, nextContinuation)),
+              parameters: synthesizeParseNodes([res("world"), res("k")]),
+            }
+          : doContinue;
 
-      return cpsClosed({
-        kind: "Call",
-        callee: {
-          kind: "Closure",
-          parameters: [internalNames.next],
-          body: {
-            kind: "If",
-            cond: condition,
-            then: {
-              kind: "Call",
-              callee: getStatementCPS(body, nextContinuation),
-              parameters: [res("world"), res("k")]
-            },
-            _else
-          }
-        },
-        parameters: [
-          {
-            kind: "Closure",
-            parameters: [internalNames.world],
-            body: {
-              kind: "Call",
-              callee: continuation,
-              parameters: [res("world"), res("k")]
-            }
-          }
-        ]
-      });
-    },
-    Break: (_): Closure =>
-      cpsClosed({
-        kind: "Call",
-        callee: res("break"),
-        parameters: [res("world")]
-      }),
-    Forever: ({ body }): Closure => {
-      const invoker: surface.Call = {
-        kind: "Call",
-        callee: getStatementCPS(
-          body,
-          cpsClosed({
+        const _if: newSurface.IfExpression = {
+          kind: "If",
+          ifKeyword: synthesizeParseNode("if"),
+          elseKeyword: synthesizeParseNode("else"),
+          thenKeyword: synthesizeParseNode("then"),
+          condition,
+          then: synthesizeParseNode({
             kind: "Call",
-            callee: res("loop"),
-            parameters: [res("world")]
-          })
-        ),
-        parameters: [res("world"), res("k")]
-      };
-      return cpsClosed({
-        kind: "Call",
-        callee: {
-          kind: "Closure",
-          parameters: [internalNames.break],
-          body: {
-            kind: "With",
-            binding: [
-              internalNames.loop,
-              {
-                kind: "Closure",
-                parameters: [internalNames.world],
-                body: invoker
-              }
-            ],
-            expr: {
-              kind: "Call",
-              callee: res("loop"),
-              parameters: [res("world")]
-            }
-          }
-        },
-        parameters: [
-          {
-            kind: "Closure",
-            parameters: [internalNames.world],
-            body: {
-              kind: "Call",
-              callee: continuation,
-              parameters: [res("world"), res("k")]
-            }
-          }
-        ]
-      });
-    },
-    ForIn: ({ binding, value, body }): Closure => {
-      const invoker: surface.Call = {
-        kind: "Call",
-        callee: {
-          kind: "Closure",
-          parameters: [binding],
-          body: {
-            kind: "Call",
-            callee: getStatementCPS(
-              body,
+            callee: synthesizeParseNode(getStatementCPS(then.value, nextContinuation)),
+            parameters: synthesizeParseNodes([res("world"), res("k")]),
+          }),
+          Else: synthesizeParseNode(_else),
+        };
+
+        return cpsClosed({
+          kind: "Call",
+          callee: synthesizeParseNode({
+            kind: "Function",
+            arrowToken: synthesizeParseNode("->"),
+            fnKeyword: synthesizeParseNode("fn"),
+            parameters: synthesizeParseNode([synthesizeParseNode({
+              name: synthesizeParseNode(internalNames.next)
+            })]),
+            body: synthesizeParseNode(_if),
+          }),
+          parameters: synthesizeParseNode([
+            synthesizeParseNode({
+              kind: "Function",
+              arrowToken: synthesizeParseNode("->"),
+              fnKeyword: synthesizeParseNode("fn"),
+              parameters: synthesizeParseNode([synthesizeParseNode({
+                name: synthesizeParseNode(internalNames.world)
+              })]),
+              body: synthesizeParseNode({
+                kind: "Call",
+                callee: synthesizeParseNode(continuation),
+                parameters: synthesizeParseNodes([res("world"), res("k")]),
+              }),
+            }),
+          ]),
+        });
+      },
+      Break: (_): FunctionExpr =>
+        cpsClosed({
+          kind: "Call",
+          callee: synthesizeParseNode(res("break")),
+          parameters: synthesizeParseNodes([res("world")]),
+        }),
+      Continue: (_): FunctionExpr =>
+        cpsClosed({
+          kind: "Call",
+          callee: synthesizeParseNode(res("continue")),
+          parameters: synthesizeParseNodes([res("world")]),
+        }),
+      Forever: ([body]): FunctionExpr => {
+        const invoker: newSurface.CallExpression = {
+          kind: "Call",
+          callee: synthesizeParseNode(
+            getStatementCPS(
+              body.value,
               cpsClosed({
                 kind: "Call",
-                callee: res("loop"),
-                parameters: [
-                  {
-                    kind: "Accessor",
-                    accessee: res("it"),
-                    index: {
-                      kind: "Number",
-                      value: 1
-                    }
-                  },
-                  res("world")
-                ]
+                callee: synthesizeParseNode(res("loop")),
+                parameters: synthesizeParseNodes([res("world")]),
               })
-            ),
-            parameters: [res("world"), res("k")]
-          }
-        },
-        parameters: [
-          {
-            kind: "Accessor",
-            accessee: res("it"),
-            index: {
-              kind: "Number",
-              value: 0
-            }
-          }
-        ]
-      };
-      return cpsClosed({
-        kind: "Call",
-        callee: {
-          kind: "Closure",
-          parameters: [internalNames.break],
-          body: {
-            kind: "With",
-            binding: [
-              internalNames.loop,
-              {
-                kind: "Closure",
-                parameters: [internalNames.it, internalNames.world],
-                body: {
-                  kind: "If",
-                  cond: {
-                    kind: "Compare",
-                    op: "==",
-                    left: res("it"),
-                    right: { kind: "Void" }
-                  },
-                  then: {
+            )
+          ),
+          parameters: synthesizeParseNodes([res("world"), res("k")]),
+        };
+
+        let asg: newSurface.Assignment = {
+          symbol: synthesizeParseNode(internalNames.loop),
+          equalToken: synthesizeParseNode("="),
+          value: synthesizeParseNode({
+            kind: "Function",
+            arrowToken: synthesizeParseNode("->"),
+            fnKeyword: synthesizeParseNode("fn"),
+            body: synthesizeParseNode(invoker),
+            parameters: synthesizeParseNodes([{
+              name: synthesizeParseNode(internalNames.world)
+            }]),
+          }),
+        };
+
+        return cpsClosed({
+          kind: "Call",
+          callee: synthesizeParseNode({
+            kind: "Function",
+            parameters: synthesizeParseNodes([{
+              name: synthesizeParseNode(internalNames.break)
+            }]),
+            arrowToken: synthesizeParseNode("->"),
+            fnKeyword: synthesizeParseNode("fn"),
+            body: synthesizeParseNode({
+              kind: "With",
+              withKeyword: synthesizeParseNode("with"),
+              bindings: synthesizeParseNodes([asg]),
+              body: synthesizeParseNode({
+                kind: "Call",
+                callee: synthesizeParseNode(res("loop")),
+                parameters: synthesizeParseNodes([res("world")]),
+              }),
+            }),
+          }),
+          parameters: synthesizeParseNodes([
+            {
+              kind: "Function",
+              fnKeyword: synthesizeParseNode("fn"),
+              arrowToken: synthesizeParseNode("->"),
+              parameters: synthesizeParseNodes([{
+                name: synthesizeParseNode(internalNames.world)
+              }]),
+              body: synthesizeParseNode({
+                kind: "Call",
+                callee: synthesizeParseNode(continuation),
+                parameters: synthesizeParseNodes([res("world"), res("k")]),
+              }),
+            },
+          ]),
+        });
+      },
+      ForIn: ({ binding, iterator, body }): FunctionExpr => {
+        // LOOP INVOKER
+        const invoker: newSurface.CallExpression = {
+          kind: "Call",
+          callee: synthesizeParseNode({
+            kind: "Function",
+            arrowToken: synthesizeParseNode("->"),
+            fnKeyword: synthesizeParseNode("fn"),
+            parameters: synthesizeParseNodes([{
+              name: synthesizeParseNode(binding.value)
+            }]),
+            body: synthesizeParseNode({
+              kind: "Call",
+              callee: synthesizeParseNode(
+                getStatementCPS(
+                  body.value,
+                  // CONTINUATION of statement: call LOOP again with ITER[1], __world
+                  cpsClosed({
                     kind: "Call",
-                    callee: res("break"),
-                    parameters: [res("world")]
-                  },
-                  _else: invoker
-                }
+                    callee: synthesizeParseNode(res("loop")),
+                    parameters: synthesizeParseNodes([
+                      {
+                        kind: "Accessor",
+                        accessee: synthesizeParseNode(res("it")),
+                        index: synthesizeParseNode(
+                          Object.assign(
+                            ["1"] as [string],
+                            {
+                              kind: "Number",
+                            } as const
+                          )
+                        ),
+                      },
+                      res("world"),
+                    ]),
+                  })
+                )
+              ),
+              parameters: synthesizeParseNodes([res("world"), res("k")]),
+            }),
+          }),
+          // BIND ITER[0] TO binding in loop body invocation
+          parameters: synthesizeParseNodes([
+            {
+              kind: "Accessor",
+              accessee: synthesizeParseNode(res("it")),
+              index: synthesizeParseNode(
+                Object.assign(
+                  ["0"] as [string],
+                  {
+                    kind: "Number",
+                  } as const
+                )
+              ),
+            },
+          ]),
+        };
+
+        // LOOP BODY DEFINITION
+        const asg: newSurface.Assignment = {
+          symbol: synthesizeParseNode(internalNames.loop),
+          equalToken: synthesizeParseNode("="),
+          value: synthesizeParseNode({
+            kind: "Function",
+            arrowToken: synthesizeParseNode("->"),
+            fnKeyword: synthesizeParseNode("fn"),
+            parameters: synthesizeParseNodes([
+              {
+                name: synthesizeParseNode(internalNames.it)
+              },
+              {
+                name: synthesizeParseNode(internalNames.world)
               }
-            ],
-            expr: {
-              kind: "Call",
-              callee: res("loop"),
-              parameters: [value, res("world")]
-            }
-          }
-        },
-        parameters: [
-          {
-            kind: "Closure",
-            parameters: [internalNames.world],
-            body: {
-              kind: "Call",
-              callee: continuation,
-              parameters: [res("world"), res("k")]
-            }
-          }
-        ]
-      });
-    }
-  }) ?? (() => { throw new Error("Not implemented: " + s.kind); })();
+            ]),
+            body: synthesizeParseNode({
+              kind: "If",
+              ifKeyword: synthesizeParseNode("if"),
+              thenKeyword: synthesizeParseNode("then"),
+              elseKeyword: synthesizeParseNode("else"),
+              condition: synthesizeParseNode({
+                kind: "Compare",
+                operator: synthesizeParseNode({
+                  kind: "Equal",
+                }),
+                left: synthesizeParseNode(res("it")),
+                right: synthesizeParseNode({ kind: "None" }),
+              }),
+              then: synthesizeParseNode({
+                kind: "Call",
+                callee: synthesizeParseNode(res("break")),
+                parameters: synthesizeParseNodes([res("world")]),
+              }),
+              Else: synthesizeParseNode(invoker),
+            }),
+          }),
+        };
+
+        return cpsClosed({
+          kind: "Call",
+          callee: synthesizeParseNode({
+            kind: "Function",
+            arrowToken: synthesizeParseNode("->"),
+            fnKeyword: synthesizeParseNode("fn"),
+            parameters: synthesizeParseNodes([{
+              name: synthesizeParseNode(internalNames.break)
+            }]),
+
+            // RECURSIVELY BIND LOOP BODY AS "LOOP"
+            body: synthesizeParseNode({
+              kind: "With",
+              withKeyword: synthesizeParseNode("with"),
+              bindings: synthesizeParseNodes([asg]),
+              body: synthesizeParseNode({
+                kind: "Call",
+                callee: synthesizeParseNode(res("loop")),
+                // Bootstrap loop with
+                parameters: synthesizeParseNode([iterator, synthesizeParseNode(res("world"))]),
+              }),
+            }),
+          }),
+
+          // "BREAK" defined: call continuation with __world __k
+          parameters: synthesizeParseNodes([
+            {
+              kind: "Function",
+              parameters: synthesizeParseNodes([{
+                name: synthesizeParseNode(internalNames.world)
+              }]),
+              arrowToken: synthesizeParseNode("->"),
+              fnKeyword: synthesizeParseNode("fn"),
+              body: synthesizeParseNode({
+                kind: "Call",
+                callee: synthesizeParseNode(continuation),
+                parameters: synthesizeParseNodes([res("world"), res("k")]),
+              }),
+            },
+          ]),
+        });
+      },
+      Expression: ([expr]) => {
+        // \(w k) (expr ? (cont w k) : (cont w k))
+
+        // for lack of expr.force
+        return cpsClosed({
+          kind: "If",
+          ifKeyword: synthesizeParseNode("if"),
+          thenKeyword: synthesizeParseNode("then"),
+          elseKeyword: synthesizeParseNode("else"),
+          condition: expr,
+          // Do the same thing in the if and else case to force evaluation
+          // TODO: need a `force` node
+          then: synthesizeParseNode({
+            kind: "Call",
+            callee: synthesizeParseNode(continuation),
+            parameters: synthesizeParseNodes([res("world"), res("k")]),
+          }),
+          Else: synthesizeParseNode({
+            kind: "Call",
+            callee: synthesizeParseNode(continuation),
+            parameters: synthesizeParseNodes([res("world"), res("k")]),
+          }),
+        });
+      },
+      Pass: () => {
+        // Probably the easiest one to do.
+        return cpsClosed({
+          kind: "Call",
+          callee: synthesizeParseNode(continuation),
+          parameters: synthesizeParseNodes([res("world"), res("k")]),
+        });
+      },
+    }) ??
+    (() => {
+      throw new Error("Not implemented: " + s.kind);
+    })()
+  );
 }
 
 /**
@@ -279,11 +440,11 @@ function getStatementCPS(s: surface.Statement, continuation: Expression): Closur
  *
  * @param body The list of statements to fold into an expression
  */
-export function foldProcedureCPS(procBody: surface.Statement[]): Closure {
-  let tail: Expression = cpsClosed({
+export function foldProcedureCPS(procBody: newSurface.Statement[]): newSurface.Expression {
+  let tail: newSurface.Expression = cpsClosed({
     kind: "Call",
-    callee: res("k"),
-    parameters: [res("world")]
+    callee: synthesizeParseNode(res("k")),
+    parameters: synthesizeParseNode([synthesizeParseNode(res("world"))]),
   });
 
   for (const stmt of procBody.reverse()) {
