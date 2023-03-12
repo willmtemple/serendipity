@@ -256,6 +256,12 @@ pub enum Expression<'ast> {
         right: InnerExpression<'ast>,
     },
 
+    Logical {
+        operator: ParseNode<LogicalOp>,
+        left: InnerExpression<'ast>,
+        right: InnerExpression<'ast>,
+    },
+
     Accessor {
         accessee: InnerExpression<'ast>,
         index: InnerExpression<'ast>,
@@ -355,7 +361,23 @@ impl<'ast> Parse<'ast, Segment<'ast>> for Expression<'ast> {
                     else_keyword: ctx.parse_from(SymbolPattern::Exact("else"))?,
                     _else: Box::new(ctx.parse()?),
                 }),
-                _ => ctx.parse_node(parse_compare).map(|v| v.value),
+                _ => ctx.parse_node(parse_logical).map(|v| v.value),
+            }
+        }
+        fn parse_logical<'ast>(
+            ctx: &NodeContext<'ast, Segment<'ast>>,
+        ) -> ParseResult<Expression<'ast>> {
+            let left = ctx.parse_node(parse_compare)?;
+
+            let next = ctx.peek().map(|v| &v.value);
+
+            match next {
+                Some(SegLisp::Sigil("&&" | "||")) => Ok(Expression::Logical {
+                    operator: ctx.parse()?,
+                    left: Box::new(left),
+                    right: Box::new(ctx.parse_node(parse_logical)?),
+                }),
+                Some(_) | None => Ok(left.value),
             }
         }
         fn parse_compare<'ast>(
@@ -741,6 +763,28 @@ impl<'ast> Parse<'ast, Segment<'ast>> for RecordElement<'ast> {
 }
 
 #[derive(Debug, Clone, JsInterop)]
+pub enum LogicalOp {
+    And,
+    Or,
+}
+
+impl_parse! {
+    fn <'ast> parse::<LogicalOp>(ctx: Segment) {
+        let sigil: &str = ctx
+            .parse_from(SigilPattern::OneOf(set! {
+                        "&&", "||"
+            }))?
+            .value;
+
+        Ok(match sigil {
+            "&&" => LogicalOp::And,
+            "||" => LogicalOp::Or,
+            _ => unreachable!(),
+        })
+    }
+}
+
+#[derive(Debug, Clone, JsInterop)]
 pub enum CompareOp {
     Equal,
     NotEqual,
@@ -832,8 +876,9 @@ pub enum Statement<'ast> {
     If {
         if_keyword: Verbatim<'ast>,
         condition: InnerExpression<'ast>,
+        then_keyword: Verbatim<'ast>,
         then: InnerStatement<'ast>,
-        _else: Option<InnerStatement<'ast>>,
+        _else: Option<ParseNode<ElseClause<'ast>>>,
     },
     ForIn {
         for_keyword: Verbatim<'ast>,
@@ -863,8 +908,9 @@ impl<'ast> Parse<'ast, Segment<'ast>> for Statement<'ast> {
             SegLisp::Symbol("if") => Self::If {
                 if_keyword: ctx.parse_from(SymbolPattern::Any)?,
                 condition: Box::new(ctx.parse()?),
+                then_keyword: ctx.parse_from(Symbol!["then"])?,
                 then: Box::new(ctx.parse()?),
-                _else: None, // TODO
+                _else: ctx.parse().map(Some).unwrap_or(None), // TODO
             },
             SegLisp::Symbol("for") => Self::ForIn {
                 for_keyword: ctx.parse_from(SymbolPattern::Any)?,
@@ -899,6 +945,21 @@ impl<'ast> Parse<'ast, Segment<'ast>> for Statement<'ast> {
                 Self::Set(ctx.parse()?)
             }
             _ => Statement::Expression(Box::new(ctx.parse()?)),
+        })
+    }
+}
+
+#[derive(Debug, Clone, JsInterop)]
+pub struct ElseClause<'ast> {
+    else_keyword: Verbatim<'ast>,
+    body: InnerStatement<'ast>,
+}
+
+impl_parse! {
+    fn <'ast> parse::<ElseClause<'ast>>(ctx: Segment) {
+        Ok(ElseClause {
+            else_keyword: ctx.parse_from(Symbol!["else"])?,
+            body: Box::new(ctx.parse()?),
         })
     }
 }
@@ -1076,7 +1137,7 @@ impl core::fmt::Display for Expression<'_> {
                 expr,
                 as_token: _,
                 type_: _,
-            } => write!(f, "{} as {}", expr.value, "<nimpl>"),
+            } => write!(f, "{} as <not implemented>", expr.value),
             Expression::Unary {
                 operator,
                 expression,
@@ -1091,6 +1152,13 @@ impl core::fmt::Display for Expression<'_> {
                 left,
                 right,
             } => write!(f, "({}) {} ({})", left.value, operator.value, right.value),
+            Expression::Logical {
+                operator,
+                left,
+                right,
+            } => {
+                write!(f, "({}) {} ({})", left.value, operator.value, right.value)
+            }
             Expression::Accessor { accessee, index } => {
                 write!(f, "({})[{}]", accessee.value, index.value)
             }
@@ -1185,6 +1253,19 @@ impl core::fmt::Display for Assignment<'_> {
     }
 }
 
+impl core::fmt::Display for LogicalOp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                LogicalOp::And => "&&",
+                LogicalOp::Or => "||",
+            }
+        )
+    }
+}
+
 impl core::fmt::Display for UnaryOp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
@@ -1266,7 +1347,7 @@ impl core::fmt::Display for Statement<'_> {
                 write!(f, "if ({}) {}", condition.value, then.value)?;
 
                 if let Some(e) = _else {
-                    write!(f, "else {}", e.value)?;
+                    write!(f, "else {}", e.value.body.value)?;
                 }
 
                 Ok(())

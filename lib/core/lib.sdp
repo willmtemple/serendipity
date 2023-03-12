@@ -23,8 +23,16 @@ fn prompt(prefix: string | none): string -> __core["read_line"](prefix);
  */
 fn panic(message: string): ! -> __core.err(value);
 
+/**
+ * Converts a value to a string.
+ * 
+ * @param value the value to convert
+ */
+fn str(value: unknown): string -> __core.to_str(value);
+
 export {
   print,
   prompt,
-  panic
+  panic,
+  str,
 }

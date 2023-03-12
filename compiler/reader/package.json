@@ -37,7 +37,7 @@
     "@serendipity/eslint-config": "workspace:*",
     "@types/chai": "~4.2.18",
     "@types/mocha": "~8.2.2",
-    "@types/node": "^14.0.0",
+    "@types/node": "^16.0.0",
     "chai": "~4.3.4",
     "eslint": "^8.17.0",
     "esm": "~3.2.25",

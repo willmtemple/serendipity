@@ -133,6 +133,18 @@
       "projectFolder": "lib/core",
       "reviewCategory": "production",
       "shouldPublish": false
+    },
+    {
+      "packageName": "@serendipity/formatter",
+      "projectFolder": "exp/formatter",
+      "reviewCategory": "production",
+      "shouldPublish": false
+    },
+    {
+      "packageName": "@serendipity/code",
+      "projectFolder": "exp/sdp",
+      "reviewCategory": "production",
+      "shouldPublish": false
     }
   ]
 }

@@ -87,12 +87,15 @@ export enum BinaryOperator {
   GEQ = ">=",
   EQ = "==",
   NEQ = "!=",
-  // Arith
+  // Arithmetic
   ADD = "+",
   SUB = "-",
   DIV = "/",
   MUL = "*",
   MOD = "%",
+  // Logical
+  AND = "&&",
+  OR = "||",
 }
 
 export interface BinaryOp extends SyntaxObject {

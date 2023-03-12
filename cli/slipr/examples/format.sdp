@@ -1,0 +1,15 @@
+const x:  fn (T, 
+    number) -> ! =             none;
+
+const data = "Hello world!";
+
+main #[
+    print(data);
+]
+
+fn foo[T: T2]
+(v: T): bar -> baz;
+
+interface Test[   bar]: baz[bar] {
+    guh: qux;
+}

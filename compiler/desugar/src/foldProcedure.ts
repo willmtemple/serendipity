@@ -56,7 +56,7 @@ export function res(name: keyof typeof internalNames): newSurface.NameExpression
 
 const cpsClosParams = [internalNames.world, internalNames.k].map((v) =>
   synthesizeParseNode({
-    name: synthesizeParseNode(v)
+    name: synthesizeParseNode(v),
   })
 );
 
@@ -75,9 +75,11 @@ function cpsContinue(continuation: newSurface.Expression): FunctionExpr {
     kind: "Function",
     arrowToken: synthesizeParseNode("->"),
     fnKeyword: synthesizeParseNode("fn"),
-    parameters: synthesizeParseNode([synthesizeParseNode({
-      name: synthesizeParseNode(internalNames.world)
-    })]),
+    parameters: synthesizeParseNode([
+      synthesizeParseNode({
+        name: synthesizeParseNode(internalNames.world),
+      }),
+    ]),
     body: synthesizeParseNode({
       kind: "Call",
       callee: synthesizeParseNode(continuation),
@@ -99,26 +101,6 @@ function getStatementCPS(
           callee: body,
           parameters: synthesizeParseNodes([res("world"), cpsContinue(continuation)]),
         }),
-      // (\ (w k) (_prn value (continuation w k)))
-      // I removed this a while ago but I'm keeping it around as an example.
-      // The print statement has been implemented as a core function __core.print_stmt, and that function "participates"
-      // in the CPS scheme. It binds its first argument and calls it as a continuation after printing its argument.
-      // Print: ({ }): FunctionExpr =>
-      //   cpsClosed({
-      //     kind: "Call",
-      //     callee: {
-      //       kind: "Name",
-      //       name: "__core.print_stmt",
-      //     },
-      //     parameters: [
-      //       {
-      //         kind: "Call",
-      //         callee: continuation,
-      //         parameters: [res("world"), res("k")],
-      //       },
-      //       value,
-      //     ],
-      //   }),
       If: ({ condition, then, Else: elseStmt }): FunctionExpr => {
         const doContinue: newSurface.Expression = {
           kind: "Call",
@@ -130,7 +112,9 @@ function getStatementCPS(
         const _else: newSurface.Expression = elseStmt
           ? {
               kind: "Call",
-              callee: synthesizeParseNode(getStatementCPS(elseStmt.value, nextContinuation)),
+              callee: synthesizeParseNode(
+                getStatementCPS(elseStmt.value.body.value, nextContinuation)
+              ),
               parameters: synthesizeParseNodes([res("world"), res("k")]),
             }
           : doContinue;
@@ -155,9 +139,11 @@ function getStatementCPS(
             kind: "Function",
             arrowToken: synthesizeParseNode("->"),
             fnKeyword: synthesizeParseNode("fn"),
-            parameters: synthesizeParseNode([synthesizeParseNode({
-              name: synthesizeParseNode(internalNames.next)
-            })]),
+            parameters: synthesizeParseNode([
+              synthesizeParseNode({
+                name: synthesizeParseNode(internalNames.next),
+              }),
+            ]),
             body: synthesizeParseNode(_if),
           }),
           parameters: synthesizeParseNode([
@@ -165,9 +151,11 @@ function getStatementCPS(
               kind: "Function",
               arrowToken: synthesizeParseNode("->"),
               fnKeyword: synthesizeParseNode("fn"),
-              parameters: synthesizeParseNode([synthesizeParseNode({
-                name: synthesizeParseNode(internalNames.world)
-              })]),
+              parameters: synthesizeParseNode([
+                synthesizeParseNode({
+                  name: synthesizeParseNode(internalNames.world),
+                }),
+              ]),
               body: synthesizeParseNode({
                 kind: "Call",
                 callee: synthesizeParseNode(continuation),
@@ -213,9 +201,11 @@ function getStatementCPS(
             arrowToken: synthesizeParseNode("->"),
             fnKeyword: synthesizeParseNode("fn"),
             body: synthesizeParseNode(invoker),
-            parameters: synthesizeParseNodes([{
-              name: synthesizeParseNode(internalNames.world)
-            }]),
+            parameters: synthesizeParseNodes([
+              {
+                name: synthesizeParseNode(internalNames.world),
+              },
+            ]),
           }),
         };
 
@@ -223,9 +213,11 @@ function getStatementCPS(
           kind: "Call",
           callee: synthesizeParseNode({
             kind: "Function",
-            parameters: synthesizeParseNodes([{
-              name: synthesizeParseNode(internalNames.break)
-            }]),
+            parameters: synthesizeParseNodes([
+              {
+                name: synthesizeParseNode(internalNames.break),
+              },
+            ]),
             arrowToken: synthesizeParseNode("->"),
             fnKeyword: synthesizeParseNode("fn"),
             body: synthesizeParseNode({
@@ -244,9 +236,11 @@ function getStatementCPS(
               kind: "Function",
               fnKeyword: synthesizeParseNode("fn"),
               arrowToken: synthesizeParseNode("->"),
-              parameters: synthesizeParseNodes([{
-                name: synthesizeParseNode(internalNames.world)
-              }]),
+              parameters: synthesizeParseNodes([
+                {
+                  name: synthesizeParseNode(internalNames.world),
+                },
+              ]),
               body: synthesizeParseNode({
                 kind: "Call",
                 callee: synthesizeParseNode(continuation),
@@ -264,9 +258,11 @@ function getStatementCPS(
             kind: "Function",
             arrowToken: synthesizeParseNode("->"),
             fnKeyword: synthesizeParseNode("fn"),
-            parameters: synthesizeParseNodes([{
-              name: synthesizeParseNode(binding.value)
-            }]),
+            parameters: synthesizeParseNodes([
+              {
+                name: synthesizeParseNode(binding.value),
+              },
+            ]),
             body: synthesizeParseNode({
               kind: "Call",
               callee: synthesizeParseNode(
@@ -324,11 +320,11 @@ function getStatementCPS(
             fnKeyword: synthesizeParseNode("fn"),
             parameters: synthesizeParseNodes([
               {
-                name: synthesizeParseNode(internalNames.it)
+                name: synthesizeParseNode(internalNames.it),
               },
               {
-                name: synthesizeParseNode(internalNames.world)
-              }
+                name: synthesizeParseNode(internalNames.world),
+              },
             ]),
             body: synthesizeParseNode({
               kind: "If",
@@ -359,9 +355,11 @@ function getStatementCPS(
             kind: "Function",
             arrowToken: synthesizeParseNode("->"),
             fnKeyword: synthesizeParseNode("fn"),
-            parameters: synthesizeParseNodes([{
-              name: synthesizeParseNode(internalNames.break)
-            }]),
+            parameters: synthesizeParseNodes([
+              {
+                name: synthesizeParseNode(internalNames.break),
+              },
+            ]),
 
             // RECURSIVELY BIND LOOP BODY AS "LOOP"
             body: synthesizeParseNode({
@@ -381,9 +379,11 @@ function getStatementCPS(
           parameters: synthesizeParseNodes([
             {
               kind: "Function",
-              parameters: synthesizeParseNodes([{
-                name: synthesizeParseNode(internalNames.world)
-              }]),
+              parameters: synthesizeParseNodes([
+                {
+                  name: synthesizeParseNode(internalNames.world),
+                },
+              ]),
               arrowToken: synthesizeParseNode("->"),
               fnKeyword: synthesizeParseNode("fn"),
               body: synthesizeParseNode({

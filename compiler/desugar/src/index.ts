@@ -44,7 +44,9 @@ export function curry(parameters: string[], body: surface.Expression): abstract.
   return val as abstract.Closure;
 }
 
-function getBinaryOp(v: surface.ArithmeticOp | surface.CompareOp): abstract.BinaryOperator {
+function getBinaryOp(
+  v: surface.ArithmeticOp | surface.CompareOp | surface.LogicalOp
+): abstract.BinaryOperator {
   return (
     {
       Add: abstract.BinaryOperator.ADD,
@@ -58,6 +60,8 @@ function getBinaryOp(v: surface.ArithmeticOp | surface.CompareOp): abstract.Bina
       Multiply: abstract.BinaryOperator.MUL,
       NotEqual: abstract.BinaryOperator.NEQ,
       Subtract: abstract.BinaryOperator.SUB,
+      And: abstract.BinaryOperator.AND,
+      Or: abstract.BinaryOperator.OR,
     } as Record<typeof v["kind"], abstract.BinaryOperator>
   )[v.kind];
 }
@@ -82,6 +86,13 @@ export function lowerExpr(e: surface.Expression): abstract.Expression {
         index: lowerExpr(index.value),
       } as const),
     Arithmetic: ({ operator, left, right }) =>
+      ({
+        kind: "BinaryOp",
+        op: getBinaryOp(operator.value),
+        left: lowerExpr(left.value),
+        right: lowerExpr(right.value),
+      } as const),
+    Logical: ({ operator, left, right }) =>
       ({
         kind: "BinaryOp",
         op: getBinaryOp(operator.value),
@@ -181,20 +192,23 @@ export function lowerExpr(e: surface.Expression): abstract.Expression {
     Hole: (): never => {
       throw new Error("encountered a hole in the program");
     },
-    FieldAccess: ({ accessee, field }) => ({
-      kind: "Call",
-      callee: lowerExpr(accessee.value),
-      parameter: {
-        kind: "String",
-        value: field.value
-      }
-    } as abstract.Call)
+    FieldAccess: ({ accessee, field }) =>
+      ({
+        kind: "Call",
+        callee: lowerExpr(accessee.value),
+        parameter: {
+          kind: "String",
+          value: field.value,
+        },
+      } as abstract.Call),
   });
 
   return m;
 }
 
-function createRecord(elements: surface.ParseNode<surface.ParseNode<surface.RecordElement>[]>): abstract.Closure {
+function createRecord(
+  elements: surface.ParseNode<surface.ParseNode<surface.RecordElement>[]>
+): abstract.Closure {
   return {
     kind: "Closure",
     parameter: "__key",
@@ -202,13 +216,23 @@ function createRecord(elements: surface.ParseNode<surface.ParseNode<surface.Reco
       kind: "Case",
       _in: { kind: "Name", name: "__key" },
       cases: new Map(
-        elements.value.map(({ value: recordElement }) => match(recordElement, {
-          KeyValuePair: ({ key, value }) => [{ kind: "String", value: key.value }, lowerExpr(value.value)],
-          Identifier: ({ name }) => [{ kind: "String", value: name.value }, { kind: "Name", name: name.value }],
-          Spread: () => {
-            throw new Error("not implemented");
-          }
-        })).filter(x => !!x) as [abstract.Expression, abstract.Expression][]
+        elements.value
+          .map(({ value: recordElement }) =>
+            match(recordElement, {
+              KeyValuePair: ({ key, value }) => [
+                { kind: "String", value: key.value },
+                lowerExpr(value.value),
+              ],
+              Identifier: ({ name }) => [
+                { kind: "String", value: name.value },
+                { kind: "Name", name: name.value },
+              ],
+              Spread: () => {
+                throw new Error("not implemented");
+              },
+            })
+          )
+          .filter((x) => !!x) as [abstract.Expression, abstract.Expression][]
       ),
     },
   } as Closure;
@@ -245,9 +269,11 @@ export function lowerModule(i: surface.Module): CompilerOutput<abstract.Module> 
                   kind: "Function",
                   arrowToken: synthesizeParseNode("->"),
                   fnKeyword: synthesizeParseNode("fn"),
-                  parameters: synthesizeParseNodes([{
-                    name: synthesizeParseNode("__world")
-                  }]),
+                  parameters: synthesizeParseNodes([
+                    {
+                      name: synthesizeParseNode("__world"),
+                    },
+                  ]),
                   body: synthesizeParseNode(
                     Object.assign(["__world"] as [string], {
                       kind: "Name",
@@ -274,20 +300,23 @@ export function lowerModule(i: surface.Module): CompilerOutput<abstract.Module> 
           });
         },
         Export({ elements }) {
-          if (exports !== undefined) throw new Error("unimplemented: 'export' may only be set once");
+          if (exports !== undefined)
+            throw new Error("unimplemented: 'export' may only be set once");
 
-          exports = elements.value.map((v) => match(v.value, {
-            Identifier: ({ name }) => name.value,
-            KeyValuePair: ({ key }) => key.value,
-            Spread(_) {
-              throw new Error("unimplemented: cannot statically analyze spread in exports")
-            }
-          }));
+          exports = elements.value.map((v) =>
+            match(v.value, {
+              Identifier: ({ name }) => name.value,
+              KeyValuePair: ({ key }) => key.value,
+              Spread(_) {
+                throw new Error("unimplemented: cannot statically analyze spread in exports");
+              },
+            })
+          );
 
           definitions.push({
             name: "__exports",
             value: createRecord(elements),
-          })
+          });
         },
         Import({ pattern, moduleSpecifier }) {
           const importValue: abstract.Expression = {
@@ -296,12 +325,12 @@ export function lowerModule(i: surface.Module): CompilerOutput<abstract.Module> 
               kind: "Accessor",
               accessee: {
                 kind: "Name",
-                name: "__core"
+                name: "__core",
               },
               index: {
                 kind: "String",
-                value: "import"
-              }
+                value: "import",
+              },
             },
             parameter: {
               kind: "String",
@@ -341,15 +370,15 @@ export function lowerModule(i: surface.Module): CompilerOutput<abstract.Module> 
                   },
                 });
               }
-            }
+            },
           });
-        }
+        },
       });
     } catch (e) {
       return error(e as any);
     }
   }
-  
+
   const result: abstract.Module = {
     definitions,
   };

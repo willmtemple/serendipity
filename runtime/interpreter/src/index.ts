@@ -146,7 +146,7 @@ type Prompter = (s?: string) => string;
 export interface InterpreterOptions {
   corePath?: string;
   getAssociatedExports: (m: Module) => string[];
-  loadModule: (path: string) => Promise<Module>,
+  loadModule: (path: string) => Promise<Module>;
   printer: Printer;
   prompt: Prompter;
   beforeEval: (expr: Expression, scope: Scope) => void;
@@ -154,7 +154,7 @@ export interface InterpreterOptions {
 
 const defaultOptions: InterpreterOptions = {
   getAssociatedExports() {
-    throw new Error("Core module requested, but no export loader is available.")
+    throw new Error("Core module requested, but no export loader is available.");
   },
   loadModule() {
     throw new Error("No loadModule function provided to interpreter");
@@ -173,7 +173,7 @@ const defaultOptions: InterpreterOptions = {
 export class Interpreter {
   private options: InterpreterOptions;
 
-  private moduleExportMap: Map<string, { module: Module, binder: Binder }> = new Map();
+  private moduleExportMap: Map<string, { module: Module; binder: Binder }> = new Map();
 
   public constructor(options: Partial<InterpreterOptions> = {}) {
     this.options = { ...defaultOptions, ...options };
@@ -195,8 +195,8 @@ export class Interpreter {
         parameter: {
           kind: "String",
           value: canonicalizedPath,
-        }
-      })
+        },
+      });
 
       const coreModule = this.moduleExportMap.get(canonicalizedPath);
       if (!coreModule) throw new Error("Core module not found");
@@ -215,8 +215,8 @@ export class Interpreter {
           parameter: {
             kind: "String",
             value: name,
-          }
-        })
+          },
+        });
       }
     }
 
@@ -279,15 +279,15 @@ export class Interpreter {
               throw new Error(`Expected a string argument to 'import', got '${parameter?.kind}'`);
             }
 
-            const {
-              moduleExports,
-              canonicalizedPath
-            } = await this.loadModule(executionPath, parameter.value);
+            const { moduleExports, canonicalizedPath } = await this.loadModule(
+              executionPath,
+              parameter.value
+            );
 
             // Evaluate the exports in their own scope.
             return this.evalExpr(moduleExports.expr, moduleExports.scope, canonicalizedPath);
           },
-        }
+        };
       }
       case "print_stmt":
         return {
@@ -431,8 +431,8 @@ export class Interpreter {
           fn: async (v: Value) => {
             console.error("panic:", await this._strconv(v, executionPath));
             process.exit(1);
-          }
-        }
+          },
+        };
       default:
         throw new Error("Unimplemented intrinsic " + name);
     }
@@ -468,7 +468,9 @@ export class Interpreter {
       case "none":
         return v.kind;
       case "tuple": {
-        const vals = await Promise.all(v.value.map((bind) => this.evalExpr(bind.expr, bind.scope, executionPath)));
+        const vals = await Promise.all(
+          v.value.map((bind) => this.evalExpr(bind.expr, bind.scope, executionPath))
+        );
         return "(" + vals.map((v: Value) => this._strconv(v, executionPath)).join(", ") + ")";
       }
       default: {
@@ -484,27 +486,75 @@ export class Interpreter {
     }
   }
 
-  private async binaryOperator({ op, left, right }: BinaryOp, scope: Scope, modulePath: string): Promise<Value> {
-    const lv = await this.evalExpr(left, scope, modulePath);
-    const rv = await this.evalExpr(right, scope, modulePath);
+  private async binaryOperator(
+    { op, left, right }: BinaryOp,
+    scope: Scope,
+    modulePath: string
+  ): Promise<Value> {
     switch (op) {
       case BinaryOperator.ADD:
       case BinaryOperator.SUB:
       case BinaryOperator.MUL:
       case BinaryOperator.DIV:
-      case BinaryOperator.MOD:
+      case BinaryOperator.MOD: {
+        const lv = await this.evalExpr(left, scope, modulePath);
+        const rv = await this.evalExpr(right, scope, modulePath);
         if (lv.kind !== "number" || rv.kind !== "number") {
           throw new Error("Attempted to do arithmetic on non-numbers");
         } else {
           return arithOp(lv, rv, op);
         }
+      }
 
-      default:
+      case BinaryOperator.AND:
+      case BinaryOperator.OR: {
+        const lv = await this.evalExpr(left, scope, modulePath);
+
+        const lvTruth = getTruthValue(lv);
+
+        if (op === BinaryOperator.AND && !lvTruth) {
+          return {
+            kind: "boolean",
+            value: false,
+          };
+        } else if (op === BinaryOperator.OR && lvTruth) {
+          return {
+            kind: "boolean",
+            value: true,
+          };
+        }
+
+        const rv = await this.evalExpr(right, scope, modulePath);
+
+        const rvTruth = getTruthValue(rv);
+
+        return {
+          kind: "boolean",
+          value: rvTruth,
+        };
+      }
+
+      case BinaryOperator.EQ:
+      case BinaryOperator.NEQ:
+      case BinaryOperator.GT:
+      case BinaryOperator.GEQ:
+      case BinaryOperator.LT:
+      case BinaryOperator.LEQ: {
+        const lv = await this.evalExpr(left, scope, modulePath);
+        const rv = await this.evalExpr(right, scope, modulePath);
         return compareOp(lv, rv, op);
+      }
+      default:
+        const _: never = op;
+        throw new Error("Unimplemented binary operator " + _);
     }
   }
 
-  private async unaryOperator({ op, expr }: UnaryOp, scope: Scope, modulePath: string): Promise<Value> {
+  private async unaryOperator(
+    { op, expr }: UnaryOp,
+    scope: Scope,
+    modulePath: string
+  ): Promise<Value> {
     const val = await this.evalExpr(expr, scope, modulePath);
     switch (op) {
       case UnaryOperator.MINUS:
@@ -571,7 +621,9 @@ export class Interpreter {
 
         if (calleeValue.kind === "intrinsic") {
           // Handle intrinsics specially for now
-          return calleeValue.fn(parameter ? await this.evalExpr(parameter, scope, modulePath) : undefined);
+          return calleeValue.fn(
+            parameter ? await this.evalExpr(parameter, scope, modulePath) : undefined
+          );
         }
 
         if (calleeValue.kind !== "closure") {
@@ -580,7 +632,10 @@ export class Interpreter {
 
         // if (callee.kind === "Name" && callee.name === "__loop") debugger;
 
-        const evalScope = new Scope((e, s) => this.evalExpr(e, s, modulePath), calleeValue.value.body.scope);
+        const evalScope = new Scope(
+          (e, s) => this.evalExpr(e, s, modulePath),
+          calleeValue.value.body.scope
+        );
 
         // if (calleeValue.value.parameter === "__iter") debugger;
 

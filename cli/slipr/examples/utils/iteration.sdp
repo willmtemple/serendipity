@@ -1,12 +1,70 @@
-fn apply[Out](s: Seq[In], f: fn (In) -> Out): Seq[Out] -> (
-  if s then (
-    (f(s[0]), apply(s[1], f))
+// Copyright (c) Will Temple.
+// Licensed under the MIT license.
+
+type Option[T] = T | none;
+
+/**
+ * A sequence of values of type T.
+ */
+type Seq[T] = Option[(T, Seq[T])];
+
+/**
+ * Creates a sequence of numbers incrementing by one starting from `n`.
+ * 
+ * @param n The number to start from.
+ */
+fn seq(n: natural): Seq[natural] -> (n, seq(n + 1));
+
+/**
+ * Creates a sequence representing a range of integers beginning with `start`
+ * and ending with `end` (not inclusive of `end`).
+ * 
+ * @param start The number to start from.
+ * @param end The number to end at.
+ */
+fn range(start: integer, end: integer): Seq[integer] -> (
+  if start < end then (
+    (start, range(start + 1, end))
   )
-  else none
+  else (
+    none
+  )
 );
 
+/**
+ * The natural numbers, beginning from zero.
+ */
+const naturals: Seq[natural] = with (
+  nat = fn (n) -> (n, nat(n + 1))
+) nat(0);
+
+/**
+ * Applies a function to each element of a sequence.
+ * 
+ * @param s The sequence to apply to.
+ * @param f The function to apply.
+ * @type In The type of the input elements.
+ * @type Out The type of the output elements.
+ * @return A sequence of the output elements.
+ */
+fn apply[In, Out](s: Seq[In], f: fn(In) -> Out): Seq[Out] -> (if s then ((f(s[0]), apply(s[1], f))) else none);
+
+/**
+ * Creates a sequence by repeatedly applying a function `f` to a value.
+ * 
+ * @param n The initial value.
+ * @param f The function to apply.
+ * @type T The type of the value.
+ */
 fn seq_by[T](n: T, f: fn(T) -> T): Seq[T] -> (n, seq_by(f(n), f));
 
+/**
+ * Takes the first `n` elements of a sequence.
+ * 
+ * @param s The sequence to take from.
+ * @param n The number of elements to take.
+ * @type T The type of the elements.
+ */
 fn take[T](s: Seq[T], n: natural): Seq[T] -> (
   if n < 1 then (
     none
@@ -24,5 +82,8 @@ fn take[T](s: Seq[T], n: natural): Seq[T] -> (
 export {
   apply,
   seq_by,
-  take
+  take,
+  seq,
+  naturals,
+  range
 }

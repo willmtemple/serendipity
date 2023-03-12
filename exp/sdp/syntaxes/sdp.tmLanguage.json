@@ -1,0 +1,105 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Serendipity",
+  "patterns": [
+    {
+      "include": "#keywords-control"
+    },
+    {
+      "include": "#keywords-other"
+    },
+    {
+      "include": "#comment"
+    },
+    {
+      "include": "#type-constraint"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#declaration"
+    },
+    {
+      "include": "#statement"
+    }
+  ],
+  "repository": {
+    "type-constraint": {
+      "patterns": [
+        {
+          "name": "meta.type.annotation.sdp",
+          "begin": ":\\s([a-zA-Z_][a-zA-Z0-9_]*)\\[([^\\]]*)\\]",
+          "end": "\\(|\\)",
+          "beginCaptures": {
+            "1": {
+              "name": "entity.name.type.sdp"
+            },
+            "2": {
+              "patterns": [
+                {
+                  "name": "entity.name.type.sdp",
+                  "match": "[a-zA-Z_][a-zA-Z0-9_]*"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "declaration": {
+      "patterns": []
+    },
+    "statement": {
+      "patterns": []
+    },
+    "comment": {
+      "patterns": [
+        {
+          "include": "#multi-line-comment"
+        },
+        {
+          "include": "#single-line-comment"
+        }
+      ]
+    },
+    "multi-line-comment": {
+      "name": "comment.block.sdp",
+      "begin": "/\\*",
+      "end": "\\*/"
+    },
+    "single-line-comment": {
+      "name": "comment.line.double-slash.sdp",
+      "begin": "//",
+      "end": "$"
+    },
+    "keywords-control": {
+      "patterns": [
+        {
+          "name": "keyword.control.sdp",
+          "match": "\\b(if|while|for|in|loop|main|then|else|pass|break|continue|import|export|with|do)\\b"
+        }
+      ]
+    },
+    "keywords-other": {
+      "patterns": [
+        {
+          "name": "keyword.other.sdp",
+          "match": "\\b(fn|type|const|interface|use|none)\\b"
+        }
+      ]
+    },
+    "strings": {
+      "name": "string.quoted.double.sdp",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.sdp",
+          "match": "\\\\."
+        }
+      ]
+    }
+  },
+  "scopeName": "source.sdp"
+}

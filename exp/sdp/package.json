@@ -1,0 +1,55 @@
+{
+  "name": "@serendipity/code",
+  "displayName": "sdp",
+  "description": "SDP langauge support for Visual Studio Code.",
+  "version": "0.1.0",
+  "engines": {
+    "vscode": "^1.76.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "scripts": {
+    "build": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "clean": "rm -rf ./dist"
+  },
+  "devDependencies": {
+    "@types/node": "^16.0.0",
+    "@types/vscode": "^1.56.0",
+    "typescript": "~4.9.4"
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "sdp",
+        "aliases": [
+          "Serendipity",
+          "sdp"
+        ],
+        "extensions": [
+          ".sdp"
+        ],
+        "configuration": "./sdp-language-config.json"
+      },
+      {
+        "id": "sdf",
+        "aliases": [
+          "SegLISP Document",
+          "sdf"
+        ],
+        "extensions": [
+          ".sdf"
+        ],
+        "configuration": "./sdf-language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "sdp",
+        "scopeName": "source.sdp",
+        "path": "./syntaxes/sdp.tmLanguage.json"
+      }
+    ]
+  }
+}

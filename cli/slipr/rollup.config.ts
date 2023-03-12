@@ -9,7 +9,7 @@ import commonjs from "@rollup/plugin-commonjs";
 import wasm from "@rollup/plugin-wasm";
 import sourcemap from "rollup-plugin-sourcemaps";
 
-const config: RollupOptions = {
+const sliprConfig: RollupOptions = {
   input: "dist-esm/bin/slipr.js",
   output: {
     file: "dist/bin/slipr.js",
@@ -17,9 +17,7 @@ const config: RollupOptions = {
     sourcemap: true,
   },
   context: "this",
-  external: [
-    "fs", "os", "path", "child_process", "crypto", "@serendipity/parser"
-  ],
+  external: ["fs", "os", "path", "child_process", "crypto", "@serendipity/parser"],
   plugins: [
     sourcemap(),
     nodeResolve({
@@ -30,4 +28,23 @@ const config: RollupOptions = {
   ],
 };
 
-export default config;
+const formatConfig: RollupOptions = {
+  input: "dist-esm/bin/format.js",
+  output: {
+    file: "dist/bin/format.js",
+    format: "cjs",
+    sourcemap: true,
+  },
+  context: "this",
+  external: ["fs", "os", "path", "child_process", "crypto", "@serendipity/parser"],
+  plugins: [
+    sourcemap(),
+    nodeResolve({
+      preferBuiltins: true,
+    }),
+    commonjs(),
+    wasm(),
+  ],
+};
+
+export default [sliprConfig, formatConfig];
