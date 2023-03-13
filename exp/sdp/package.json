@@ -31,17 +31,6 @@
           ".sdp"
         ],
         "configuration": "./sdp-language-config.json"
-      },
-      {
-        "id": "sdf",
-        "aliases": [
-          "SegLISP Document",
-          "sdf"
-        ],
-        "extensions": [
-          ".sdf"
-        ],
-        "configuration": "./sdf-language-configuration.json"
       }
     ],
     "grammars": [
@@ -49,6 +38,12 @@
         "language": "sdp",
         "scopeName": "source.sdp",
         "path": "./syntaxes/sdp.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "sdp.helloWorld",
+        "title": "Hello World"
       }
     ]
   }

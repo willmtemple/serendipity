@@ -12,6 +12,11 @@ export type FormatUnit =
   | FormatAlternative
   | undefined;
 
+/**
+ * A lazy format unit.
+ */
+export type LazyFormatUnit = () => FormatUnit;
+
 export const FormatUnit = {
   Block: (
     delimiters: [string, string],
@@ -22,7 +27,7 @@ export const FormatUnit = {
     contents,
   }),
 
-  Body: (contents: Iterable<FormatUnit>): FormatBody => ({
+  Body: (...contents: FormatUnit[]): FormatBody => ({
     kind: "body",
     contents,
   }),
@@ -56,7 +61,7 @@ export const FormatUnit = {
 
   Alternative: (
     preferred: FormatUnit,
-    alternative: FormatUnit
+    alternative: FormatUnit | LazyFormatUnit
   ): FormatAlternative => ({
     kind: "alternative",
     preferred,
@@ -101,7 +106,7 @@ export interface ReflowOptions {
 export interface FormatAlternative {
   kind: "alternative";
   preferred: FormatUnit;
-  alternative: FormatUnit;
+  alternative: FormatUnit | LazyFormatUnit;
 }
 
 /**
@@ -192,7 +197,7 @@ function createFormatContext(config: FormatConfig): FormatContext {
   return self;
 }
 
-export function formatFile(
+export function writeFile(
   contents: Iterable<FormatUnit>,
   config?: Partial<FormatConfig>
 ): string {
@@ -201,14 +206,14 @@ export function formatFile(
   );
 
   for (const block of contents) {
-    writeBlock(ctx, block);
+    writeUnit(ctx, block);
     ctx.newLine();
   }
 
   return ctx.finalize();
 }
 
-function writeBlock(ctx: FormatContext, block: FormatUnit): void {
+function writeUnit(ctx: FormatContext, block: FormatUnit): void {
   if (!block) return;
 
   switch (block.kind) {
@@ -225,7 +230,7 @@ function writeBlock(ctx: FormatContext, block: FormatUnit): void {
       writeBody(ctx, block);
       break;
     case "block":
-      writeBlockBody(ctx, block);
+      writeBlock(ctx, block);
       break;
     case "alternative":
       writeAlternative(ctx, block);
@@ -250,7 +255,7 @@ function writeReflow(ctx: FormatContext, reflow: FormatReflow): void {
     ctx.newLine();
     ctx.indent();
     for (const block of reflow.contents) {
-      writeBlock(ctx, block);
+      writeUnit(ctx, block);
       ctx.newLine();
     }
 
@@ -260,7 +265,7 @@ function writeReflow(ctx: FormatContext, reflow: FormatReflow): void {
     ctx.write(reflow.delimiters[0]);
     ctx.write(reflow.cushion ?? "");
     for (const block of reflow.contents) {
-      writeBlock(ctx, block);
+      writeUnit(ctx, block);
     }
 
     if (reflow.trimPostfix && ctx.currentLine.endsWith(reflow.trimPostfix)) {
@@ -274,25 +279,48 @@ function writeReflow(ctx: FormatContext, reflow: FormatReflow): void {
 
 function writeSequence(ctx: FormatContext, sequence: FormatSequence): void {
   for (const block of sequence.contents) {
-    writeBlock(ctx, block);
+    writeUnit(ctx, block);
   }
 }
 
 function writeBody(ctx: FormatContext, body: FormatBody): void {
+  let first = true;
+
   for (const block of body.contents) {
-    writeBlock(ctx, block);
-    ctx.newLine();
+    if (!first) {
+      ctx.newLine();
+    } else {
+      first = false;
+    }
+    writeUnit(ctx, block);
   }
 }
 
-function writeBlockBody(ctx: FormatContext, body: FormatBlock): void {
+function writeBlock(ctx: FormatContext, body: FormatBlock): void {
+  const contentsArray = Array.from(body.contents);
+
+  // Special case. If the block is empty then we write the delimiters with no newline separation. Downstream consumers
+  // will need to be aware of this.
+  if (contentsArray.length === 0) {
+    ctx.write(body.delimiters[0]);
+    ctx.write(body.delimiters[1]);
+    return;
+  }
+
   ctx.write(body.delimiters[0]);
   ctx.newLine();
   ctx.indent();
+
   for (const block of body.contents) {
-    writeBlock(ctx, block);
+    writeUnit(ctx, block);
     ctx.newLine();
   }
+
+  // Clear the last line if it is blank. This is a special case for blocks.
+  if (ctx.lines[ctx.lines.length - 1]?.trim() === "") {
+    ctx.lines.pop();
+  }
+
   ctx.unindent();
   ctx.write(body.delimiters[1]);
 }
@@ -307,9 +335,13 @@ function writeAlternative(
     isNaN(minimumLineLength) ||
     minimumLineLength + ctx.currentLine.length > ctx.config.maxLineLength
   ) {
-    writeBlock(ctx, alternative.alternative);
+    if (typeof alternative.alternative === "function") {
+      writeUnit(ctx, alternative.alternative());
+    } else {
+      writeUnit(ctx, alternative.alternative);
+    }
   } else {
-    writeBlock(ctx, alternative.preferred);
+    writeUnit(ctx, alternative.preferred);
   }
 }
 
@@ -337,28 +369,28 @@ function getFullLineLength(block: FormatUnit): number {
   return length;
 }
 
-function _getFullLineLength(block: Extract<FormatUnit, object>): number {
-  switch (block.kind) {
+function _getFullLineLength(unit: Extract<FormatUnit, object>): number {
+  switch (unit.kind) {
     case "span":
-      return block.span.length;
+      return unit.span.length;
     case "reflow": {
       const delimiterLength =
-        block.delimiters[0].length + block.delimiters[1].length;
+        unit.delimiters[0].length + unit.delimiters[1].length;
       const fullLength =
         delimiterLength +
-        Array.from(block.contents).reduce(
+        Array.from(unit.contents).reduce(
           (acc, block) => acc + getFullLineLength(block),
           0
         );
 
-      const postFixLength = block.trimPostfix?.length ?? 0;
+      const postFixLength = unit.trimPostfix?.length ?? 0;
 
-      const cushionLength = (block.cushion?.length ?? 0) * 2;
+      const cushionLength = (unit.cushion?.length ?? 0) * 2;
 
       return fullLength + postFixLength + cushionLength;
     }
     case "sequence": {
-      const contentsArray = Array.from(block.contents);
+      const contentsArray = Array.from(unit.contents);
 
       return contentsArray.reduce(
         (acc, block) => acc + getFullLineLength(block),
@@ -366,13 +398,17 @@ function _getFullLineLength(block: Extract<FormatUnit, object>): number {
       );
     }
     case "alternative":
-      return getFullLineLength(block.preferred);
+      return getFullLineLength(unit.preferred);
     case "body":
       return NaN;
-    case "block":
-      return NaN;
+    case "block": {
+      const contentsArray = Array.from(unit.contents);
+      return contentsArray.length === 0
+        ? unit.delimiters[0].length + unit.delimiters[1].length
+        : NaN;
+    }
     default:
-      return unreachable(block);
+      return unreachable(unit);
   }
 }
 

@@ -223,6 +223,7 @@ pub type Verbatim<'ast> = ParseNode<&'ast str>;
 #[derive(Debug, Clone, JsInterop)]
 pub enum Expression<'ast> {
     // Elemental Terms
+    // TODO: no tuple variants! they suck and are hard to work with in TypeScript
     Number(&'ast str),
     String(String),
     Boolean(bool),
