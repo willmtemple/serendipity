@@ -1,74 +1,155 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 
-import * as surface from "@serendipity/syntax-surface";
-import { useStores, EditorDetachedSyntax, EditorGlobal } from "@serendipity/editor-stores";
+import type { Declaration, ParseNode } from "@serendipity/parser";
+import { useStores, type EditorDetachedSyntax, type EditorGlobal, type EditorTopLevel } from "@serendipity/editor-stores";
 
-import CloseButton from "../../editor/CloseButton";
-
+import { Binder, CloseButton } from "../../editor";
 import BoundingBox from "../../layout/BoundingBox";
+import SvgFlex from "../../layout/SvgFlex";
+import Expression from "../expression";
+import Statement from "../statement";
 
-import Define from "./Define";
-import DefineFunc from "./DefineFunc";
-import Detached from "./Detached";
-import Main from "./Main";
+function getColor(kind: string) {
+  return {
+    Main: "maroon",
+    Const: "darkblue",
+    Function: "darkviolet",
+    Import: "darkgreen",
+    Export: "darkorange",
+    TypeAlias: "#333333",
+    Interface: "#555555",
+  }[kind] ?? "black";
+}
 
-import { match } from "omnimatch";
-
-export { Define, DefineFunc, Detached, Main };
-
-function getColor(glb: surface.Global) {
+function Detached(props: { global: EditorDetachedSyntax; onDelete(): void }) {
   return (
-    match(glb, {
-      Define: () => "darkblue",
-      DefineFunction: () => "darkviolet",
-      Main: () => "maroon",
-    }) ?? "black"
+    <BoundingBox color="#555" containerProps={{ className: "syntax global detached" }}>
+      <g>
+        <SvgFlex direction="vertical" padding={10} align="beginning">
+          <CloseButton onClick={props.onDelete} />
+          <text>detached {props.global.syntaxKind}</text>
+          {props.global.syntaxKind === "expression" ? (
+            <Expression bind={props.global} bindKey="element" fixed />
+          ) : (
+            props.global.element.map((_, idx) => (
+              <Statement key={idx} bind={props.global} bindKey="element" bindIdx={idx} fixed />
+            ))
+          )}
+        </SvgFlex>
+      </g>
+    </BoundingBox>
   );
+}
+
+function DeclarationBody(props: { declaration: ParseNode<Declaration>; onDelete(): void }) {
+  const declaration = props.declaration.value;
+  switch (declaration.kind) {
+    case "Main":
+      return (
+        <SvgFlex direction="vertical" padding={12} align="beginning">
+          <SvgFlex direction="horizontal" padding={10} align="middle">
+            <CloseButton onClick={props.onDelete} />
+            <text>main</text>
+          </SvgFlex>
+          <Expression bind={declaration} bindKey="body" />
+        </SvgFlex>
+      );
+    case "Const":
+      return (
+        <SvgFlex direction="vertical" padding={12} align="beginning">
+          <SvgFlex direction="horizontal" padding={10} align="middle">
+            <CloseButton onClick={props.onDelete} />
+            <text>const</text>
+            <Binder bind={declaration.identifier} bindKey="value" />
+            <text>=</text>
+          </SvgFlex>
+          <Expression bind={declaration} bindKey="value" />
+        </SvgFlex>
+      );
+    case "Function":
+      return (
+        <SvgFlex direction="vertical" padding={12} align="beginning">
+          <SvgFlex direction="horizontal" padding={10} align="middle">
+            <CloseButton onClick={props.onDelete} />
+            <text>fn</text>
+            <Binder bind={declaration.identifier} bindKey="value" />
+            <text>(</text>
+            {declaration.parameters.value.map((param, idx) => (
+              <Binder key={idx} bind={param.value.name} bindKey="value" />
+            ))}
+            <text>) {"->"}</text>
+          </SvgFlex>
+          <Expression bind={declaration} bindKey="body" />
+        </SvgFlex>
+      );
+    case "Import":
+      return (
+        <SvgFlex direction="horizontal" padding={10} align="middle">
+          <CloseButton onClick={props.onDelete} />
+          <text>import</text>
+          <Binder bind={(declaration.pattern.value as any).name ?? declaration.moduleSpecifier} bindKey="value" />
+          <text>use</text>
+          <Binder bind={declaration.moduleSpecifier} bindKey="value" />
+        </SvgFlex>
+      );
+    case "Export":
+      return (
+        <SvgFlex direction="horizontal" padding={10} align="middle">
+          <CloseButton onClick={props.onDelete} />
+          <text>export</text>
+          <text>{declaration.elements.value.length} elements</text>
+        </SvgFlex>
+      );
+    case "TypeAlias":
+      return (
+        <SvgFlex direction="horizontal" padding={10} align="middle">
+          <CloseButton onClick={props.onDelete} />
+          <text>type</text>
+          <Binder bind={declaration.name} bindKey="value" />
+          <text>= {declaration.value.value.kind}</text>
+        </SvgFlex>
+      );
+    case "Interface":
+      return (
+        <SvgFlex direction="horizontal" padding={10} align="middle">
+          <CloseButton onClick={props.onDelete} />
+          <text>interface</text>
+          <Binder bind={declaration.name} bindKey="value" />
+          <text>{declaration.body.value.length} fields</text>
+        </SvgFlex>
+      );
+    default:
+      return null;
+  }
 }
 
 const Global = observer(
   React.forwardRef<any, { global: EditorGlobal }>((props, ref) => {
     const { Project } = useStores();
+    const onDelete = () => Project.rmNodeByGUID(Project.metadataFor(props.global).guid);
 
-    function deleteNode() {
-      Project.rmNodeByGUID(props.global.metadata.editor.guid);
+    if (props.global.kind === "_editor_detachedsyntax") {
+      return <Detached global={props.global} onDelete={onDelete} />;
     }
 
-    const glb = props.global;
-    const kind = glb.kind;
-
-    if (kind === "_editor_detachedsyntax") {
-      return <Detached ref={ref} onDelete={deleteNode} global={glb as EditorDetachedSyntax} />;
-    }
-
-    const body = match(glb, {
-      Main: (glb) => <Main onDelete={deleteNode} main={glb} />,
-      Define: (glb) => <Define onDelete={deleteNode} define={glb} />,
-      DefineFunction: (glb) => <DefineFunc onDelete={deleteNode} definefunc={glb} />,
-    }) ?? (
-      <g ref={ref}>
-        <CloseButton onClick={deleteNode} />
-        <text style={{ fontFamily: "monospace", fontWeight: 900 }} y={20} x={32} fill="white">
-          {glb.kind} (unimplemented)
-        </text>
-      </g>
-    );
-
-    const guid = glb.metadata.editor.guid;
+    const topLevel = props.global as EditorTopLevel;
+    const declaration = topLevel.declaration;
+    const guid = Project.metadataFor(topLevel).guid;
 
     return (
       <BoundingBox
         ref={ref}
-        color={getColor(glb as surface.Global)}
-        containerProps={{ id: guid, className: "syntax global " + glb.kind.toLowerCase() }}
+        color={getColor(declaration.value.kind)}
+        containerProps={{ id: guid, className: "syntax global " + declaration.value.kind.toLowerCase() }}
       >
-        {body}
+        <g>
+          <DeclarationBody declaration={declaration} onDelete={onDelete} />
+        </g>
       </BoundingBox>
     );
   })
 );
 
 Global.displayName = "Global";
-
 export default Global;

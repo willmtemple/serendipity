@@ -1,10 +1,10 @@
-import vscode, { languages, TextEdit } from "vscode";
+import vscode, { languages, window, TextEdit } from "vscode";
 
 export function activate(ctx: vscode.ExtensionContext) {
   console.log("Extension activated.");
 
-  const disposable = vscode.commands.registerCommand("sdp.helloworld", () => {
-    console.log("Command executed.");
+  const disposable = vscode.commands.registerCommand("sdp.helloWorld", () => {
+    window.showInformationMessage("Cool beans!");
   });
 
   ctx.subscriptions.push(disposable);
@@ -12,7 +12,7 @@ export function activate(ctx: vscode.ExtensionContext) {
 
 languages.registerDocumentFormattingEditProvider("sdp", {
   provideDocumentFormattingEdits(document, options, token): TextEdit[] {
-    throw new Error("Not implemented");
+    window.showErrorMessage("Formatting is not implemented.");
     return [];
   },
 });

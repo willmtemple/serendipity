@@ -6,6 +6,8 @@ import { useStores } from "@serendipity/editor-stores";
 import { printModule } from "../print";
 import { Icon } from "./util/Icon";
 
+const MonacoEditor = Editor as any;
+
 function Workspace() {
   const { Project } = useStores();
 
@@ -25,7 +27,7 @@ function Workspace() {
         &nbsp; The program text is currently informational only. Edits will be
         discarded. Running the program will not reflect changes to the text.
       </div>
-      <Editor defaultValue={text} onChange={() => {}} />
+      <MonacoEditor defaultValue={text} onChange={() => {}} />
     </div>
   );
 }

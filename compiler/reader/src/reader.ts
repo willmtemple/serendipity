@@ -207,7 +207,7 @@ export async function readArray(ctx: ReaderContext, alt: boolean = false): Promi
 
   return {
     kind: LexicalKind.Array,
-    alt,
+    ...(alt ? { alt } : {}),
     delimiter: open === CharacterCode.OpenSquareBracket ? "square" : "curly",
     values,
   };

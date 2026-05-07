@@ -1,13 +1,12 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 
-import { SyntaxObject } from "@serendipity/syntax";
 import { useStores } from "@serendipity/editor-stores";
 
 import { useResizeParentEffect } from "../../hooks/measure";
 
 interface SyntaxHoleProps {
-  bind: SyntaxObject;
+  bind: object;
   bindKey: string | number;
   bindIdx?: number | undefined;
 

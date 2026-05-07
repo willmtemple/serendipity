@@ -1,6 +1,6 @@
 import { autorun, makeAutoObservable, set, toJS } from "mobx";
 
-import { Module } from "@serendipity/syntax-surface";
+import type { Module } from "@serendipity/parser";
 
 const LOCAL_STORE_KEY = "userPrefs";
 

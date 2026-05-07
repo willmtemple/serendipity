@@ -46,7 +46,7 @@ const blankExtent: Rect = {
 };
 
 type HTMLElementWithBBox = HTMLElement & { getBBox(): Rect };
-type SizeableChildRef = React.RefObject<HTMLElementWithBBox> | null;
+type SizeableChildRef = React.RefObject<HTMLElementWithBBox | null> | null;
 
 function refChildren(children: React.ReactNode, debug: boolean = false) {
   debug && console.log("Reffing all:", children);
@@ -60,12 +60,12 @@ function refChildren(children: React.ReactNode, debug: boolean = false) {
   const newChildren = React.Children.map(React.Children.toArray(children), (c) => {
     if (React.isValidElement(c)) {
       debug && console.log("Valid element:", c);
-      const existingRef = (c as unknown as { ref: React.RefObject<HTMLElementWithBBox> }).ref;
+      const existingRef = (c as unknown as { ref: React.RefObject<HTMLElementWithBBox | null> }).ref;
 
       if (existingRef) {
         refs.push(existingRef);
       }
-      return React.cloneElement(c, {
+      return React.cloneElement(c as React.ReactElement<any>, {
         ref: existingRef ?? ref(),
       });
     } else {
@@ -100,12 +100,12 @@ export function measureChildren<P extends {}>(
 
     const resizeParent = useResizeParent();
 
-    const extendedProps: P & MeasurementProps = {
+    const extendedProps = {
       ...props,
       sizes: rects,
       children,
       ref,
-    };
+    } as unknown as P & MeasurementProps;
 
     debug && console.log("Children (Render):", props.children, childRefs, componentName);
 

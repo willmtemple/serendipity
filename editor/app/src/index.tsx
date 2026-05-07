@@ -1,7 +1,6 @@
 import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import "./styles/index.scss";
-import * as serviceWorker from "./serviceWorker";
 
 import chalk from "ansi-colors";
 
@@ -12,9 +11,30 @@ import { Prefs } from "@serendipity/editor-stores";
 import { Interpreter } from "@serendipity/interpreter";
 import { CheckedEvent } from "@serendipity/editor-stores";
 
-ReactDOM.render(<App />, document.getElementById("root"));
+const root = document.getElementById("root");
+if (!root) {
+  throw new Error("Unable to find #root element");
+}
+
+createRoot(root).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+function writeTerminal(message: string) {
+  console.info("Serendipity terminal:", message);
+  Prefs.eventBus.dispatchEvent(
+    new CustomEvent("data", {
+      detail: {
+        message,
+      },
+    }) as CheckedEvent<CustomEvent<{ message: string }>, "data">
+  );
+}
 
 Prefs.eventBus.addEventListener("runProgram", (evt) => {
+  console.info("Serendipity run event received", evt.detail.program);
   const program = evt.detail.program;
 
   const compiler = createLoweringCompiler();
@@ -22,35 +42,27 @@ Prefs.eventBus.addEventListener("runProgram", (evt) => {
   const compiledProgram = compiler.compile(program);
 
   try {
+    writeTerminal(chalk.cyan("Running program..."));
+
     if (compiledProgram.kind !== "ok") {
       throw new Error(`Failed to compile program: ${compiledProgram.error}`);
     }
 
     const interpreter = new Interpreter({
       printer: (s: string) => {
-        Prefs.eventBus.dispatchEvent(
-          new CustomEvent("data", {
-            detail: {
-              message: s,
-            },
-          }) as CheckedEvent<CustomEvent<{ message: string }>, "data">
-        );
+        writeTerminal(s);
       },
     });
 
-    interpreter.execModule(compiledProgram.value);
+    void interpreter
+      .execModule(compiledProgram.value, window.location.pathname)
+      .then(() => writeTerminal(chalk.green("Program finished.")))
+      .catch((e) => {
+        console.error(e);
+        writeTerminal(chalk.red((e as Error).message));
+      });
   } catch (e) {
-    Prefs.eventBus.dispatchEvent(
-      new CustomEvent("data", {
-        detail: {
-          message: chalk.red((e as Error).message),
-        },
-      }) as CheckedEvent<CustomEvent<{ message: string }>, "data">
-    );
+    console.error(e);
+    writeTerminal(chalk.red((e as Error).message));
   }
 });
-
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://bit.ly/CRA-PWA
-serviceWorker.unregister();

@@ -84,6 +84,7 @@ const DEFAULT_RECT: Rect = {
 export interface StatementBlockProps {
   color?: string;
   stroke?: string;
+  transform?: string;
 
   // Set extra props on the top-level g element
   containerProps?: any;
@@ -98,7 +99,7 @@ export const StatementBlock = measureChildren(
     const color = Color(props.color);
 
     return (
-      <g {...props.containerProps} ref={ref}>
+      <g {...props.containerProps} transform={props.transform} ref={ref}>
         <path
           stroke={color.darken(0.35).string()}
           strokeWidth={1.5}

@@ -1,158 +1,102 @@
-import { useStores } from "@serendipity/editor-stores";
-import { Expression, Global, Statement } from "@serendipity/syntax-surface";
-import { factory } from "omnimatch";
+import { decl, expr, node, parameter, recordElement, stmt, type, useStores } from "@serendipity/editor-stores";
 import React, { useEffect } from "react";
+
+import type { Declaration, Expression, ParseNode, Statement } from "@serendipity/parser";
+
 import { registerSource, unregister } from "../../util/Draggable";
-import { Position } from "../../util/Position";
+import type { Position } from "../../util/Position";
 import { BoundingBox, ExpressionBlock, Indent, StatementBlock, SvgFlex } from "../layout";
 
-const expr = factory<Expression>();
-const stmt = factory<Statement>();
-const global = factory<Global>();
-
-const hole = () => expr["@hole"]({});
-
-const paletteExprs: Expression[] = [
-  expr.Accessor({ accessee: hole(), index: hole() }),
-  expr.Arithmetic({ left: hole(), op: "+", right: hole() }),
-  expr.Boolean({ value: false }),
-  expr.Call({ callee: hole(), parameters: [] }),
-  expr.Closure({ body: hole(), parameters: [] }),
-  expr.Compare({ left: hole(), right: hole(), op: "==" }),
-  expr.If({ cond: hole(), then: hole(), _else: hole() }),
-  expr.List({ contents: [] }),
-  expr.Name({ name: "" }),
-  expr.Number({ value: 0 }),
-  expr.Procedure({ body: [{ kind: "@hole" }] }),
-  expr.Record({ data: {} }),
-  expr.String({ value: "" }),
-  expr.Tuple({ values: [] }),
-  expr.Void({}),
-  expr.With({ binding: ["_", hole()], expr: hole() }),
+const paletteDeclarations: Array<[string, ParseNode<Declaration>]> = [
+  ["main", decl.main()],
+  ["const", decl.const()],
+  ["function", decl.function("fn", [parameter("arg")])],
+  ["import", decl.import()],
+  ["export", decl.export()],
+  ["type alias", decl.typeAlias()],
+  ["interface", decl.interface()],
 ];
 
-const paletteGlobals: Global[] = [
-  global.Define({ name: "new", value: expr["@hole"]({}) }),
-  global.DefineFunction({ name: "new", body: hole(), parameters: [] }),
-  global.Main({ body: hole() }),
+const paletteExprs: Array<[string, ParseNode<Expression>]> = [
+  ["number", node(expr.number())],
+  ["string", node(expr.string())],
+  ["boolean", node(expr.boolean())],
+  ["name", node(expr.name())],
+  ["none", node(expr.none())],
+  ["unary", node(expr.unary())],
+  ["arithmetic", node(expr.arithmetic())],
+  ["compare", node(expr.compare())],
+  ["logical", node(expr.logical())],
+  ["accessor", node(expr.accessor())],
+  ["field", node(expr.fieldAccess())],
+  ["function", node(expr.fn([parameter("arg")]))],
+  ["call", node(expr.call())],
+  ["with", node(expr.with())],
+  ["tuple", node(expr.tuple())],
+  ["list", node(expr.list())],
+  ["procedure", node(expr.procedure())],
+  ["if", node(expr.if())],
+  ["record", node(expr.record([recordElement.keyValue()]))],
 ];
 
-const paletteStatements: Statement[] = [
-  stmt.Break({}),
-  stmt.Do({ body: hole() }),
-  stmt.ForIn({ body: { kind: "@hole" }, value: hole(), binding: "_" }),
-  stmt.Forever({ body: { kind: "@hole" } }),
-  stmt.If({ condition: hole(), body: { kind: "@hole" }, _else: { kind: "@hole" } }),
-  stmt.Let({ name: "_", value: hole() }),
-  stmt.Print({ value: hole() }),
+const paletteStatements: Array<[string, ParseNode<Statement>]> = [
+  ["let", node(stmt.let())],
+  ["set", node(stmt.set())],
+  ["if", node(stmt.if())],
+  ["for in", node(stmt.forIn())],
+  ["forever", node(stmt.forever())],
+  ["do", node(stmt.do())],
+  ["break", node(stmt.break())],
+  ["continue", node(stmt.continue())],
+  ["pass", node(stmt.pass())],
+  ["expression", node(stmt.expression())],
 ];
 
-const ExprSource = React.forwardRef(
-  (props: { transform?: string; item: Expression }, ref: React.ForwardedRef<SVGElement>) => {
-    const { Project } = useStores();
+const paletteTypes = [
+  ["reference", type.reference()],
+  ["tuple", type.tuple()],
+  ["union", type.union()],
+  ["intersection", type.intersection()],
+  ["function", type.fn()],
+];
 
-    const containerProps = {
-      className: "draggable syntax expression source " + props.item.kind.toLowerCase(),
-    };
+const Source = React.forwardRef<SVGGElement, {
+  className: string;
+  label: string;
+  add(pos: Position): string;
+  transform?: string;
+  children: React.ReactNode;
+}>((props, forwardedRef) => {
+  const localRef = React.useRef<SVGGElement>(null);
 
-    useEffect(() => {
-      if ((ref as React.MutableRefObject<SVGGElement>).current) {
-        const id = registerSource((pos: Position) =>
-          Project.addGlobal(
-            {
-              kind: "_editor_detachedsyntax",
-              syntaxKind: "expression",
-              element: { ...props.item },
-            },
-            pos
-          )
-        );
+  useEffect(() => {
+    if (!localRef.current) return;
+    const id = registerSource(props.add);
+    (localRef.current as any)["data-ondetach"] = id;
+    return () => unregister(id);
+  });
 
-        (ref as any).current["data-ondetach"] = id;
-
-        return () => {
-          unregister(id);
-        };
-      }
-    });
-
-    return (
-      <ExpressionBlock ref={ref} containerProps={containerProps} transform={props.transform}>
-        <text transform="translate(0, 4)">{props.item.kind}</text>
-      </ExpressionBlock>
-    );
+  function setRef(element: SVGGElement | null) {
+    localRef.current = element;
+    if (typeof forwardedRef === "function") {
+      forwardedRef(element);
+    } else if (forwardedRef) {
+      forwardedRef.current = element;
+    }
   }
-);
 
-const StmtSource = React.forwardRef(
-  (props: { transform?: string; item: Statement }, ref: React.ForwardedRef<SVGElement>) => {
-    const { Project } = useStores();
+  return (
+    <g ref={setRef} className={props.className} transform={props.transform}>
+      {props.children}
+    </g>
+  );
+});
 
-    const containerProps = {
-      className: "draggable syntax statement source " + props.item.kind.toLowerCase(),
-      transform: props.transform,
-    };
-
-    useEffect(() => {
-      if ((ref as React.MutableRefObject<SVGGElement>).current) {
-        const id = registerSource((pos: Position) =>
-          Project.addGlobal(
-            {
-              kind: "_editor_detachedsyntax",
-              syntaxKind: "statement",
-              element: [{ ...props.item }],
-            },
-            pos
-          )
-        );
-
-        (ref as any).current["data-ondetach"] = id;
-
-        return () => {
-          unregister(id);
-        };
-      }
-    });
-
-    return (
-      <StatementBlock ref={ref} containerProps={containerProps}>
-        <text transform="translate(0, 4)">{props.item.kind}</text>
-      </StatementBlock>
-    );
-  }
-);
-
-const GlblSource = React.forwardRef(
-  (props: { transform?: string; item: Global }, ref: React.ForwardedRef<SVGElement>) => {
-    const { Project } = useStores();
-
-    const containerProps = {
-      className: "draggable syntax global source " + props.item.kind.toLowerCase(),
-      transform: props.transform,
-    };
-
-    useEffect(() => {
-      if ((ref as React.MutableRefObject<SVGGElement>).current) {
-        const id = registerSource((pos: Position) => Project.addGlobal({ ...props.item }, pos));
-
-        (ref as any).current["data-ondetach"] = id;
-
-        return () => {
-          unregister(id);
-        };
-      }
-    });
-
-    return (
-      <BoundingBox ref={ref} containerProps={containerProps}>
-        <text transform="translate(0, 4)">{props.item.kind}</text>
-      </BoundingBox>
-    );
-  }
-);
+Source.displayName = "Source";
 
 function Palette() {
-  const [show, setShow] = React.useState([false, false, true]);
+  const { Project } = useStores();
+  const [show, setShow] = React.useState([true, true, true, false]);
 
   function invert(idx: number) {
     const next = [...show];
@@ -160,37 +104,76 @@ function Palette() {
     setShow(next);
   }
 
-  const contents = [
+  const contents: React.ReactNode[] = [
     <text className="button" key="g_label" onClick={() => invert(0)}>
-      GLOBALS
+      DECLARATIONS
     </text>,
     ...(show[0]
-      ? paletteGlobals.map((v, idx) => {
-          return <GlblSource key={`g_${idx}`} item={v} />;
-        })
+      ? paletteDeclarations.map(([label, item], idx) => (
+          <Source
+            key={`d_${idx}`}
+            className="draggable syntax global source"
+            label={label}
+            add={(pos) => Project.addDeclaration(item, pos)}
+          >
+            <BoundingBox>
+              <text transform="translate(0, 4)">{label}</text>
+            </BoundingBox>
+          </Source>
+        ))
       : []),
     <text className="button" key="e_label" onClick={() => invert(1)}>
       EXPRESSIONS
     </text>,
     ...(show[1]
-      ? paletteExprs.map((v, idx) => {
-          return <ExprSource key={`e_${idx}`} item={v} />;
-        })
+      ? paletteExprs.map(([label, item], idx) => (
+          <Source
+            key={`e_${idx}`}
+            className="draggable syntax expression source"
+            label={label}
+            add={(pos) => Project.addDetachedExpression(item, pos)}
+          >
+            <ExpressionBlock>
+              <text transform="translate(0, 4)">{label}</text>
+            </ExpressionBlock>
+          </Source>
+        ))
       : []),
     <text className="button" key="s_label" onClick={() => invert(2)}>
       STATEMENTS
     </text>,
     ...(show[2]
-      ? paletteStatements.map((v, idx) => {
-          return <StmtSource key={`s_${idx}`} item={v} />;
-        })
+      ? paletteStatements.map(([label, item], idx) => (
+          <Source
+            key={`s_${idx}`}
+            className="draggable syntax statement source"
+            label={label}
+            add={(pos) => Project.addDetachedStatements([item], pos)}
+          >
+            <StatementBlock color="black">
+              <text transform="translate(0, 4)">{label}</text>
+            </StatementBlock>
+          </Source>
+        ))
+      : []),
+    <text className="button" key="t_label" onClick={() => invert(3)}>
+      TYPES
+    </text>,
+    ...(show[3]
+      ? paletteTypes.map(([label, item], idx) => (
+          <BoundingBox key={`t_${idx}`}>
+            <text transform="translate(0, 4)">
+              {label}: {(item as { kind: string }).kind}
+            </text>
+          </BoundingBox>
+        ))
       : []),
   ];
 
   return (
     <Indent x={12}>
       <SvgFlex direction="vertical" align="beginning" padding={20}>
-        {...contents}
+        {contents}
       </SvgFlex>
     </Indent>
   );

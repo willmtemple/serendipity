@@ -43,8 +43,7 @@ export function resize() {
 
 export function makeDraggable(_svg: SVGSVGElement) {
   if (_svg.isDraggable) {
-    console.warn("Attempted to register SVG element as draggable twice.");
-    return;
+    return () => {};
   }
 
   _svg.isDraggable = true;
@@ -54,7 +53,8 @@ export function makeDraggable(_svg: SVGSVGElement) {
   _svg.addEventListener("mouseup", endDrag);
   _svg.addEventListener("mouseleave", endDrag);
 
-  _svg.addEventListener("wheel", action(zoom));
+  const wheelHandler = action(zoom);
+  _svg.addEventListener("wheel", wheelHandler);
 
   const svg = document.getElementById("blockSpace") as unknown as SVGSVGElement;
   const bgSvg = document.getElementById("workspaceBackgroundContainer") as unknown as SVGSVGElement;
@@ -412,4 +412,14 @@ export function makeDraggable(_svg: SVGSVGElement) {
       }
     }
   }
+
+  return () => {
+    _svg.removeEventListener("mousedown", startDrag);
+    _svg.removeEventListener("mousemove", drag);
+    _svg.removeEventListener("mouseup", endDrag);
+    _svg.removeEventListener("mouseleave", endDrag);
+    _svg.removeEventListener("wheel", wheelHandler);
+    window.removeEventListener("resize", resizeViewBox);
+    _svg.isDraggable = false;
+  };
 }

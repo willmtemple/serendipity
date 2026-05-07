@@ -1,47 +1,31 @@
-// Copyright (c) Serendipity Project Contributors
-// All rights reserved.
-// Licensed under the terms of the GNU General Public License v3 or later.
+import { decl, expr, module, node, stmt } from "./parserFactories";
 
-import { Module, Global, makeExpr, Statement } from "@serendipity/syntax-surface";
+import type { Module } from "@serendipity/parser";
 
-import { factory } from "omnimatch";
-
-const { Define, DefineFunction, Main } = factory<Global>();
-const { Accessor, Arithmetic, Call, Compare, If, Name, Number, Procedure, Tuple, Void } = makeExpr;
-const { ForIn, Print } = factory<Statement>();
-
-export const surfaceExample: Module = {
-  globals: [
-    Define({
-      name: "recList",
-      value: Tuple(Number(1), Name("recList"))
-    }),
-    DefineFunction({
-      name: "take",
-      parameters: ["n", "list"],
-      body: If(
-        Compare("==", Name("n"), Number(0)),
-        Void,
-        Tuple(
-          Accessor(Name("list"), Number(0)),
-          Call(
-            Name("take"),
-            Arithmetic("-", Name("n"), Number(1)),
-            Accessor(Name("list"), Number(1))
-          )
-        )
-      )
-    }),
-    Main({
-      body: Procedure(
-        ForIn({
-          binding: "i",
-          value: Call(Name("take"), Number(10), Name("recList")),
-          body: Print({
-            value: Name("i")
-          })
-        })
-      )
-    })
-  ]
-};
+export const defaultProject: Module = module([
+  decl.const("recList", expr.tuple([expr.number("1"), expr.name("recList")])),
+  decl.function(
+    "take",
+    [{ name: node("n") }, { name: node("list") }],
+    expr.if(
+      expr.compare({ kind: "Equal" }, expr.name("n"), expr.number("0")),
+      expr.none(),
+      expr.tuple([
+        expr.accessor(expr.name("list"), expr.number("0")),
+        expr.call(expr.name("take"), [
+          expr.arithmetic({ kind: "Subtract" }, expr.name("n"), expr.number("1")),
+          expr.accessor(expr.name("list"), expr.number("1")),
+        ]),
+      ])
+    )
+  ),
+  decl.main(
+    expr.procedure([
+      stmt.forIn(
+        "i",
+        expr.call(expr.name("take"), [expr.number("10"), expr.name("recList")]),
+        stmt.expression(expr.call(expr.fieldAccess(expr.name("__core"), "print_stmt"), [expr.name("i")]))
+      ),
+    ])
+  ),
+]);

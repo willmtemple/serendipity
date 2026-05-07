@@ -1,11 +1,6 @@
 import React from "react";
 
-import {
-  Redirect,
-  BrowserRouter as Router,
-  Route,
-  Switch,
-} from "react-router-dom";
+import { BrowserRouter as Router, Navigate, Route, Routes } from "react-router-dom";
 
 import { Workspace as CaminoWorkspace } from "@serendipity/camino";
 import { StoreProvider } from "@serendipity/editor-stores";
@@ -23,17 +18,11 @@ function App() {
       <Router>
         <Navbar />
         <StoreProvider>
-          <Switch>
-            <Route path="/blocks">
-              <CaminoWorkspace />
-            </Route>
-            <Route path="/text">
-              <MonacoWorkspace />
-            </Route>
-            <Route exact path="/">
-              <Redirect to="/blocks" />
-            </Route>
-          </Switch>
+          <Routes>
+            <Route path="/blocks" element={<CaminoWorkspace />} />
+            <Route path="/text" element={<MonacoWorkspace />} />
+            <Route path="/" element={<Navigate to="/blocks" replace />} />
+          </Routes>
         </StoreProvider>
       </Router>
       <Tray />

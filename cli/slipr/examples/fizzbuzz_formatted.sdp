@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 // This is a simple implementation of FizzBuzz demonstrating basic procedural
-// programming.
+// programming in Serendipity.
 
 import { range } = use("./utils/iteration.sdp");
 

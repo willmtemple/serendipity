@@ -4,6 +4,7 @@ import { MeasurementProps, measureChildren } from "../../hooks/measure";
 
 export interface BoundingBoxProps {
   color?: string;
+  transform?: string;
 
   // Set extra props on the top-level g element
   containerProps?: any;
@@ -14,7 +15,7 @@ type CompleteProps = MeasurementProps & React.PropsWithChildren<BoundingBoxProps
 export const BoundingBox = measureChildren(
   React.forwardRef<SVGGElement, CompleteProps>((props, ref) => {
     return (
-      <g {...props.containerProps} ref={ref}>
+      <g {...props.containerProps} transform={props.transform} ref={ref}>
         <rect
           className="boundary"
           rx={3}

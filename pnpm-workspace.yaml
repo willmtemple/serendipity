@@ -1,0 +1,16 @@
+packages:
+  - "cli/*"
+  - "compiler/*"
+  - "editor/*"
+  - "runtime/*"
+  - "syntax/*"
+  - "tools/eslint-config"
+  - "tools/scripts"
+  - "lib/*"
+  - "exp/*"
+
+ignoredBuiltDependencies:
+  - "@parcel/watcher"
+  - "core-js"
+  - "esbuild"
+  - "node-sass"

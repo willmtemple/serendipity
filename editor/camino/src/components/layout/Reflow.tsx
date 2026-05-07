@@ -14,7 +14,7 @@ export interface ReflowProps {
 
   transform?: string | undefined;
 
-  children: JSX.Element[];
+  children: React.ReactElement[];
 }
 
 const DEFAULT_PROPS = {
@@ -31,24 +31,24 @@ interface HasBBox {
   getBBox?(): Rect;
 }
 
-const _M = new WeakMap<JSX.Element, React.RefObject<HasBBox>>();
-const _C = new WeakMap<JSX.Element, JSX.Element>();
+const _M = new WeakMap<React.ReactElement, React.RefObject<HasBBox | null>>();
+const _C = new WeakMap<React.ReactElement, React.ReactElement>();
 
 // TODO: why did I do this? Is it better than `measureChildren`?
-function useCustomMeasurements(children: JSX.Element[]): [React.ReactNode, Rect[]] {
+function useCustomMeasurements(children: React.ReactElement[]): [React.ReactNode, Rect[]] {
   const [boxes, setBoxes] = React.useState<Rect[]>([]);
 
-  const refs: React.RefObject<HasBBox>[] = [];
+  const refs: Array<React.RefObject<HasBBox | null>> = [];
 
   const reffed = React.Children.map(children, (c) => {
-    let ref: React.RefObject<HasBBox>;
-    let withRef: JSX.Element;
+    let ref: React.RefObject<HasBBox | null>;
+    let withRef: React.ReactElement;
     if (_M.has(c)) {
       ref = _M.get(c)!;
       withRef = _C.get(c)!;
     } else {
       ref = React.createRef();
-      withRef = React.cloneElement(c, { ref });
+      withRef = React.cloneElement(c as React.ReactElement<any>, { ref });
       _M.set(c, ref);
       _C.set(c, withRef);
     }
@@ -67,7 +67,7 @@ function useCustomMeasurements(children: JSX.Element[]): [React.ReactNode, Rect[
   return [reffed, boxes];
 }
 
-export const Reflow = React.forwardRef<SVGElement, React.PropsWithChildren<ReflowProps>>(
+export const Reflow = React.forwardRef<SVGGElement, React.PropsWithChildren<ReflowProps>>(
   (props, ref) => {
     const reflowInfo = {
       ...DEFAULT_PROPS,

@@ -4,7 +4,7 @@
   "description": "Core library for SDP languages",
   "main": "\"\"",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "echo no tests yet",
     "build": "echo no build yet"
   },
   "author": "",

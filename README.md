@@ -59,20 +59,19 @@ Compared to these platforms, Serendipity is designed for:
 
 ## Development
 
-Serendipity is written in TypeScript. This is a monorepo containing all of
-Serendipity's many packages. You need [Rush](https://rushjs.io)
-(`npm install -g @microsoft/rush` or similar) to build the repository.
+Serendipity is written in TypeScript. This is a pnpm monorepo containing all of
+Serendipity's many packages. Use the pnpm version declared in `package.json`.
 
 To install all dependencies and link inter-dependent packages within the repo:
 
 ```
-$ rush update
+$ pnpm install
 ```
 
 Then, build the whole repository:
 
 ```
-$ rush build
+$ pnpm build
 ```
 
 For information about contributing to Serendipity, see

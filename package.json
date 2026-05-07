@@ -1,0 +1,28 @@
+{
+  "name": "serendipity",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.32.1",
+  "type": "module",
+  "scripts": {
+    "build": "pnpm -r --sort run build",
+    "clean": "pnpm -r --parallel run clean",
+    "dev": "pnpm --filter @serendipity/editor-app dev",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "pnpm -r --parallel run lint",
+    "test": "pnpm -r --if-present run test",
+    "typecheck": "pnpm -r --if-present run typecheck"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^25.6.2",
+    "@vitejs/plugin-react": "^6.0.1",
+    "eslint": "^10.0.1",
+    "prettier": "^3.8.3",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.2",
+    "vite": "^8.0.11",
+    "vitest": "^4.1.5"
+  }
+}

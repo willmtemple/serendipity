@@ -79,11 +79,17 @@ fn take[T](s: Seq[T], n: natural): Seq[T] -> (
   )
 );
 
+/**
+ * Repeats a value infinitely.
+ */
+fn repeat[T](n: T): Seq[T] -> (n, repeat(n));
+
 export {
   apply,
   seq_by,
   take,
   seq,
   naturals,
-  range
+  range,
+  repeat,
 }

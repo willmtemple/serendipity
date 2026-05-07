@@ -8,7 +8,9 @@ export {
   EditorDetachedSyntax,
   EditorDetachedExpression,
   EditorDetachedStatements,
+  EditorTopLevel,
   EditorGlobal
 } from "./stores/ProjectStore";
 export { DefaultPrefsStore as Prefs, CheckedEvent } from "./stores/PrefsStore";
 export { useStores, StoreProvider } from "./hook";
+export * from "./parserFactories";

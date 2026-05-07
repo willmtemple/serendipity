@@ -4,7 +4,8 @@
   "description": "Scripts used for building/managing serendipity",
   "main": "package.json",
   "scripts": {
-    "build": "true"
+    "build": "true",
+    "generate-workspace": "ts-node generate-workspace.ts"
   },
   "license": "MIT",
   "dependencies": {

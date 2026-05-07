@@ -10,12 +10,13 @@ import { useStores } from "@serendipity/editor-stores";
 import Palette from "./components/editor/Palette";
 
 export const Workspace = observer(() => {
-  const workspaceSvg: React.RefObject<SVGSVGElement> = React.useRef(null);
+  const workspaceSvg = React.useRef<SVGSVGElement>(null);
 
   React.useLayoutEffect(() => {
     if (workspaceSvg.current) {
-      makeDraggable(workspaceSvg.current);
+      return makeDraggable(workspaceSvg.current);
     }
+    return undefined;
   }, []);
 
   const { Project } = useStores();
@@ -64,7 +65,7 @@ export const Workspace = observer(() => {
             <feBlend in="SourceGraphic" in2="blurOut" mode="normal" />
           </filter>
         </defs>
-        {Project.program.globals.map((glb, idx) => {
+        {Project.program.items.map((glb, idx) => {
           const meta = untracked(() => Project.metadataFor(glb));
           return (
             <g
@@ -75,7 +76,7 @@ export const Workspace = observer(() => {
               data-port-compatibility={
                 glb.kind === "_editor_detachedsyntax" ? glb.syntaxKind : undefined
               }
-              className={"draggable global " + glb.kind.toLowerCase()}
+              className={"draggable global " + (glb.kind === "declaration" ? glb.declaration.value.kind : glb.kind).toLowerCase()}
               transform={untracked(() => `translate(${meta.pos.x}, ${meta.pos.y})`)}
             >
               <Global global={glb} />

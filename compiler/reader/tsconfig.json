@@ -2,7 +2,9 @@
   "extends": "../../tsconfig.esm",
   "compilerOptions": {
     "outDir": "dist-esm/",
+    "rootDir": "src/",
+    "ignoreDeprecations": "6.0",
+    "types": ["node"]
   },
-  "include": ["src/**/*.ts", "test/**/*.ts", "examples/**/*.ts"],
+  "include": ["src/**/*.ts"],
 }
-

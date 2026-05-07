@@ -3,7 +3,6 @@ import * as React from "react";
 import { Link, useLocation } from "react-router-dom";
 
 import { Prefs, Project } from "@serendipity/editor-stores";
-import { Module } from "@serendipity/syntax-surface";
 
 import { Icon } from "./util/Icon";
 import { CheckedEvent } from "@serendipity/editor-stores";
@@ -14,6 +13,7 @@ const MODES = {
 } as const;
 
 async function onPlayButtonPressed() {
+  console.info("Serendipity run requested");
   if (!Prefs.isTerminalOpen) {
     Prefs.toggleTerminal();
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -24,7 +24,7 @@ async function onPlayButtonPressed() {
       detail: {
         program: Project.canonicalProgram,
       },
-    }) as CheckedEvent<CustomEvent<{ program: Module }>, "runProgram">
+    }) as CheckedEvent<CustomEvent<{ program: typeof Project.canonicalProgram }>, "runProgram">
   );
 }
 

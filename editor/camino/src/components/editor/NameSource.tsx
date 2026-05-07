@@ -6,7 +6,7 @@ import { ExpressionBlock } from "../layout";
 import { BinderProps } from "./Binder";
 import { Binder } from ".";
 import { registerSource, unregister } from "../../util/Draggable";
-import { Project } from "@serendipity/editor-stores";
+import { expr, node, Project } from "@serendipity/editor-stores";
 import { Position } from "../../util/Position";
 
 interface NameSourceProps {
@@ -29,10 +29,7 @@ function NameSource(props: NameSourceProps, ref: React.ForwardedRef<unknown>) {
           {
             kind: "_editor_detachedsyntax",
             syntaxKind: "expression",
-            element: {
-              kind: "Name",
-              name: props.binderProps.bind[props.binderProps.bindKey],
-            },
+            element: node(expr.name(props.binderProps.bind[props.binderProps.bindKey])),
           },
           pos
         )

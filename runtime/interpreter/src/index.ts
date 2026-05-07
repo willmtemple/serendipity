@@ -19,7 +19,35 @@ import { match } from "omnimatch";
 
 import { Value, NumberV, IntrinsicV } from "./value";
 import { Binder, Scope } from "./scope";
-import path from "node:path";
+
+function dirname(input: string): string {
+  const normalized = input.replace(/\\/g, "/");
+  const idx = normalized.lastIndexOf("/");
+  return idx === -1 ? "." : normalized.slice(0, idx) || "/";
+}
+
+function normalizePath(input: string): string {
+  const absolute = input.startsWith("/");
+  const parts: string[] = [];
+  for (const part of input.split("/")) {
+    if (!part || part === ".") continue;
+    if (part === "..") {
+      parts.pop();
+    } else {
+      parts.push(part);
+    }
+  }
+  return `${absolute ? "/" : ""}${parts.join("/")}` || (absolute ? "/" : ".");
+}
+
+function resolveModulePath(executionPath: string, modulePath: string): string {
+  try {
+    return new URL(modulePath, executionPath).toString();
+  } catch {
+    if (modulePath.startsWith("/")) return normalizePath(modulePath);
+    return normalizePath(`${dirname(executionPath)}/${modulePath}`);
+  }
+}
 
 function _isTotalType(v: Value): boolean {
   switch (v.kind) {
@@ -229,7 +257,7 @@ export class Interpreter {
     }
 
     if (main) {
-      this.evalExpr(
+      await this.evalExpr(
         {
           kind: "Name",
           name: "__start",
@@ -429,8 +457,7 @@ export class Interpreter {
         return {
           kind: "intrinsic",
           fn: async (v: Value) => {
-            console.error("panic:", await this._strconv(v, executionPath));
-            process.exit(1);
+            throw new Error("panic: " + (await this._strconv(v, executionPath)));
           },
         };
       default:
@@ -439,7 +466,7 @@ export class Interpreter {
   }
 
   private async loadModule(executionPath: string, modulePath: string) {
-    const canonicalizedPath = path.resolve(path.dirname(executionPath), modulePath);
+    const canonicalizedPath = resolveModulePath(executionPath, modulePath);
 
     let moduleExports: Binder;
     if (this.moduleExportMap.has(canonicalizedPath)) {

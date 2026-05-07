@@ -1,457 +1,412 @@
-import { action, autorun, makeAutoObservable, observable, set, toJS } from "mobx";
+import { autorun, makeAutoObservable, observable, set, toJS } from "mobx";
 
-import { surfaceExample } from "../defaultProject";
+import { defaultProject } from "../defaultProject";
+import { expr, isParseNode, node } from "../parserFactories";
 
-import type { Module, Expression, Statement } from "@serendipity/parser";
+import type { Declaration, Expression, Module, ParseNode, Statement } from "@serendipity/parser";
 
-const id = function createIdSystem() {
+const KEY_PROJECT = "userProject";
+const DOCUMENT_VERSION = 1;
+
+const guid = (function createIdSystem() {
   let id = 0;
+  return () => String((id += 1));
+})();
 
-  return () => {
-    return (id += 1);
-  };
-};
-
-const NODE_METADATA = new WeakMap<object, NodeMetadata>();
-const ACTIVE_NODES = new Map<number, object>();
-
-function getMetadataFor(item: number | object): NodeMetadata | null {
-  let node: object | undefined;
-  if (typeof item === "number") {
-    node = ACTIVE_NODES.get(item);
-  } else {
-    node = item;
-  }
-
-  if (node) return NODE_METADATA.get(node) ?? null;
-
-  return null;
-}
-
-interface NodeMetadata {
-  id: number;
-  position: Position;
-}
-
-interface Position {
+export interface Position {
   x: number;
   y: number;
 }
-
-const KEY_PROJECT = "userProject";
 
 export interface EditorMetadata {
   guid: string;
   pos: Position;
 }
 
-interface EditorMetadataWrapper {
-  editor: EditorMetadata;
-  [k: string]: any;
-}
-
-export interface EditorMain extends Main {
-  metadata: EditorMetadataWrapper;
-}
-export interface EditorDefine extends Define {
-  metadata: EditorMetadataWrapper;
-}
-export interface EditorDefineFunction extends DefineFunction {
-  metadata: EditorMetadataWrapper;
+export interface EditorTopLevel {
+  kind: "declaration";
+  declaration: ParseNode<Declaration>;
+  metadata: { editor: EditorMetadata };
 }
 
 interface EditorDetachedSyntaxBase {
   kind: "_editor_detachedsyntax";
-  metadata: EditorMetadataWrapper;
+  metadata: { editor: EditorMetadata };
 }
 
 export interface EditorDetachedExpression extends EditorDetachedSyntaxBase {
   syntaxKind: "expression";
-  element: Expression;
+  element: ParseNode<Expression>;
 }
 
 export interface EditorDetachedStatements extends EditorDetachedSyntaxBase {
   syntaxKind: "statement";
-  element: Statement[];
+  element: Array<ParseNode<Statement>>;
 }
 
-export type EditorDetachedSyntax = EditorDetachedStatements | EditorDetachedExpression;
-
-export type EditorGlobal =
-  | EditorMain
-  | EditorDefine
-  | EditorDefineFunction
-  | EditorDetachedExpression
-  | EditorDetachedStatements;
-
+export type EditorDetachedSyntax = EditorDetachedExpression | EditorDetachedStatements;
+export type EditorGlobal = EditorTopLevel | EditorDetachedSyntax;
 export type EditorUnregisteredGlobal =
-  | Omit<EditorMain, "metadata">
-  | Omit<EditorDefine, "metadata">
-  | Omit<EditorDefineFunction, "metadata">
+  | ParseNode<Declaration>
+  | Omit<EditorTopLevel, "metadata">
   | Omit<EditorDetachedExpression, "metadata">
   | Omit<EditorDetachedStatements, "metadata">;
 
-export interface EditorModule {
-  globals: EditorGlobal[];
+export interface EditorDocument {
+  version: 1;
+  items: EditorGlobal[];
+}
+
+function clone<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
+}
+
+function reviveTupleVariants<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((item) => reviveTupleVariants(item)) as T;
+  }
+
+  if (typeof value !== "object" || value === null) {
+    return value;
+  }
+
+  const record = value as Record<string, unknown>;
+  const revivedEntries = Object.fromEntries(
+    Object.entries(record).map(([key, child]) => [key, reviveTupleVariants(child)])
+  );
+
+  if (typeof revivedEntries.kind === "string" && "0" in revivedEntries) {
+    const tuple: unknown[] = [];
+    Object.keys(revivedEntries)
+      .filter((key) => /^\d+$/.test(key))
+      .sort((left, right) => Number(left) - Number(right))
+      .forEach((key) => {
+        tuple[Number(key)] = revivedEntries[key];
+        delete revivedEntries[key];
+      });
+    return Object.assign(tuple, revivedEntries) as T;
+  }
+
+  return revivedEntries as T;
+}
+
+function isEditorDocument(value: unknown): value is EditorDocument {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    (value as { version?: unknown }).version === DOCUMENT_VERSION &&
+    Array.isArray((value as { items?: unknown }).items)
+  );
+}
+
+function isDetached(value: unknown): value is EditorDetachedSyntax {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    (value as { kind?: unknown }).kind === "_editor_detachedsyntax"
+  );
+}
+
+function isEditorTopLevel(value: unknown): value is EditorTopLevel {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    (value as { kind?: unknown }).kind === "declaration" &&
+    isParseNode((value as { declaration?: unknown }).declaration)
+  );
+}
+
+function makeTopLevel(declaration: ParseNode<Declaration>, pos: Position = { x: 0, y: 0 }): EditorTopLevel {
+  return observable({
+    kind: "declaration",
+    declaration,
+    metadata: { editor: { guid: guid(), pos } },
+  }) as EditorTopLevel;
+}
+
+function nodeValueKind(value: unknown): string | undefined {
+  if (isParseNode(value)) return nodeValueKind(value.value);
+  if (typeof value === "object" && value !== null && "kind" in value) {
+    return String((value as { kind: unknown }).kind);
+  }
+  return undefined;
+}
+
+function isHole(value: unknown): boolean {
+  return nodeValueKind(value) === "Hole" || nodeValueKind(value) === "@hole";
+}
+
+function installEmergencyDebugClearStorage() {
+  if (typeof window === "undefined") return;
+  const target = window as unknown as {
+    Debug?: { project?: Record<string, unknown> };
+  };
+  target.Debug = target.Debug ?? {};
+  target.Debug.project = target.Debug.project ?? {};
+  target.Debug.project.clearStorage = () => localStorage.removeItem(KEY_PROJECT);
 }
 
 export class ProjectStore {
-  public program: EditorModule = {
-    globals: [],
-  };
+  public document: EditorDocument = { version: DOCUMENT_VERSION, items: [] };
 
-  private byGUID: { [k: string]: SyntaxObject } = {};
+  private byGUID: Record<string, object> = {};
+  private metadata = new WeakMap<object, EditorMetadata>();
 
   constructor() {
     makeAutoObservable(this);
     const storedData = localStorage.getItem(KEY_PROJECT);
     if (storedData) {
-      set(this.program, JSON.parse(storedData));
+      const parsed = JSON.parse(storedData);
+      if (!isEditorDocument(parsed)) {
+        installEmergencyDebugClearStorage();
+        throw new Error(
+          "Stored Camino project is incompatible with the parser editor model. Run window.Debug.project.clearStorage() and reload."
+        );
+      }
+      set(this.document, parsed);
     } else {
-      set(this.program, surfaceExample);
+      set(this.document, this.createDefaultDocument());
     }
 
     this.loadGUIDTable();
 
     let firstRun = true;
     autorun(() => {
-      const json = JSON.stringify(toJS(this.program));
-      if (!firstRun) {
-        localStorage.setItem(KEY_PROJECT, json);
-      }
+      const json = JSON.stringify(toJS(this.document));
+      if (!firstRun) localStorage.setItem(KEY_PROJECT, json);
       firstRun = false;
     });
   }
 
-  /**
-   * Returns the "clean" AST with no detached syntax objects,
-   * suitable for passing into the compiler.
-   */
+  get program(): EditorDocument {
+    return this.document;
+  }
+
+  get globals(): EditorGlobal[] {
+    return this.document.items;
+  }
+
   get canonicalProgram(): Module {
-    return {
-      globals: toJS(this.program).globals.filter(
-        (g) => g.kind !== "_editor_detachedsyntax"
-      ) as Global[],
-    };
+    return this.toParserModule();
   }
 
-  /**
-   * Clear the entire program
-   */
+  public toParserModule(): Module {
+    const declarations = toJS(this.document.items)
+      .filter(isEditorTopLevel)
+      .map((item) => item.declaration);
+    this.assertNoEditorHoles(declarations);
+    return reviveTupleVariants({ declarations });
+  }
+
+  public clearStorage() {
+    localStorage.removeItem(KEY_PROJECT);
+  }
+
   public clear() {
-    this.program.globals = [];
+    this.document.items = [];
     this.byGUID = {};
-  }
-
-  /**
-   * Delete a node from the AST by integer index
-   * @param idx the index of the global to remove
-   */
-  public rmNode(idx: number) {
-    const glb = this.program.globals[idx];
-    if (glb) {
-      this.program.globals.splice(idx, 1);
-      delete this.byGUID[glb.metadata.editor.guid];
-    }
-  }
-
-  /**
-   * Delete a node from the AST by its GUID
-   * @param guid the unique id of the global node to remove
-   */
-  public rmNodeByGUID(id: string) {
-    this.program.globals = this.program.globals.filter((glb) => glb.metadata.editor.guid !== id);
-    delete this.byGUID[id];
+    this.metadata = new WeakMap();
   }
 
   public reset() {
-    // TODO find some way to get rid of distinction between editor module
-    // and stx module
-    this.program = surfaceExample as EditorModule;
+    this.document = this.createDefaultDocument();
     this.loadGUIDTable();
+  }
+
+  public rmNode(idx: number) {
+    const item = this.document.items[idx];
+    if (item) this.rmNodeByGUID(this.metadataFor(item).guid);
+  }
+
+  public rmNodeByGUID(id: string) {
+    this.document.items = this.document.items.filter((item) => this.metadataFor(item).guid !== id);
+    delete this.byGUID[id];
+  }
+
+  public addDeclaration(declaration: ParseNode<Declaration>, pos?: Position): string {
+    return this.addTopLevel(makeTopLevel(clone(declaration), pos));
+  }
+
+  public addDetachedExpression(element: ParseNode<Expression>, pos?: Position): string {
+    return this.addTopLevel({
+      kind: "_editor_detachedsyntax",
+      syntaxKind: "expression",
+      element: clone(element),
+      metadata: { editor: { guid: guid(), pos: pos ?? { x: 0, y: 0 } } },
+    });
+  }
+
+  public addDetachedStatements(element: Array<ParseNode<Statement>>, pos?: Position): string {
+    return this.addTopLevel({
+      kind: "_editor_detachedsyntax",
+      syntaxKind: "statement",
+      element: clone(element),
+      metadata: { editor: { guid: guid(), pos: pos ?? { x: 0, y: 0 } } },
+    });
+  }
+
+  public addGlobal(newGlobal: EditorUnregisteredGlobal, pos?: Position): string {
+    if (isParseNode<Declaration>(newGlobal)) return this.addDeclaration(newGlobal, pos);
+    if ((newGlobal as { kind?: unknown }).kind === "declaration") {
+      return this.addDeclaration((newGlobal as Omit<EditorTopLevel, "metadata">).declaration, pos);
+    }
+    if (isDetached(newGlobal)) {
+      return newGlobal.syntaxKind === "expression"
+        ? this.addDetachedExpression(newGlobal.element, pos)
+        : this.addDetachedStatements(newGlobal.element, pos);
+    }
+    throw new Error("Unsupported editor global");
   }
 
   public insertInto(vid: string, into: string, key: string, idx?: number) {
     const parent = this.byGUID[into];
-    console.log(parent);
-    const setNode = action((n: any, mode?: string) => {
-      const l = parent && (parent as any)[key];
-      if (l) {
-        if (idx !== undefined && l[idx]) {
-          if (mode === "statement" && l[idx].kind !== "@hole") {
-            (parent as any)[key] = (l as any[]).concat(n as any[]);
-          } else if (mode === "statement") {
-            (parent as any)[key] = n;
-          } else {
-            (parent as any)[key][idx] = n;
-          }
-          this.rmNodeByGUID(this.metadataFor(v).guid);
-          return;
-        } else if (idx === undefined) {
-          if (mode === "statement") {
-            // Break the first statement of the list off
-            (parent as any)[key] = (n as any[]).splice(0, 1)[0];
-            // Clean up v if it is done
-            if (n.length === 0) {
-              this.rmNodeByGUID(this.metadataFor(v).guid);
-            }
-          } else {
-            (parent as any)[key] = n;
-            this.rmNodeByGUID(this.metadataFor(v).guid);
-          }
-          return;
-        }
-      }
-
-      throw new Error("No such key(s) on that object");
-    });
-
-    const v = this.byGUID[vid] as EditorDetachedSyntax;
-    if (!v || !v.hasOwnProperty("syntaxKind")) {
-      throw new Error("No such node to be inserted " + v);
+    const detached = this.byGUID[vid] as EditorDetachedSyntax | undefined;
+    if (!parent || !detached || detached.kind !== "_editor_detachedsyntax") {
+      throw new Error("Cannot insert detached syntax: missing source or target");
     }
 
-    setNode(v.element, v.syntaxKind);
+    const replacement = detached.syntaxKind === "expression" ? detached.element : detached.element;
+    this.writeChild(parent, key, replacement, idx, detached.syntaxKind);
+    this.rmNodeByGUID(vid);
   }
 
-  public detachExpression(
-    id: string,
-    key: string,
-    pos: Position,
-    idx?: number
-  ): string | undefined {
+  public detachExpression(id: string, key: string, pos: Position, idx?: number): string | undefined {
     const parent = this.byGUID[id];
-    const node: Expression = (() => {
-      const v = parent && (parent as any)[key];
-      if (idx !== undefined) {
-        return v[idx];
-      } else {
-        return v;
-      }
-    })();
+    const target = this.readChild<ParseNode<Expression>>(parent, key, idx);
+    if (!target) throw new Error("No such expression target");
+    if (isHole(target)) return;
 
-    if (!node) {
-      throw new Error("No such key(s) on that object during 'get'");
-    }
-
-    // Detaching a hole
-    if (node.kind === "@hole") return;
-
-    const setNode = action((n: Expression) => {
-      const v = parent && (parent as any)[key];
-      if (v) {
-        if (idx !== undefined && v[idx]) {
-          v[idx] = n;
-          return;
-        } else if (idx === undefined) {
-          (parent as any)[key] = n;
-          return;
-        }
-      }
-
-      throw new Error("No such key(s) on that object");
-    });
-
-    const newGlobalObject: EditorGlobal = observable({
-      kind: "_editor_detachedsyntax",
-      syntaxKind: "expression",
-      element: node as Expression,
-      metadata: {
-        editor: {
-          guid: guid(),
-          pos: { ...pos },
-        },
-      },
-    });
-
-    const newHole = {
-      kind: "@hole",
-      metadata: {
-        editor: {
-          guid: guid(),
-        },
-      },
-    } as const;
-    setNode(newHole);
-    this.byGUID[newHole.metadata!.editor.guid] = newHole;
-
-    // Put the clone onto the globals stack
-    this.byGUID[newGlobalObject.metadata.editor.guid] = newGlobalObject;
-    this.program.globals.push(newGlobalObject);
-
-    return newGlobalObject.metadata.editor.guid;
+    const replacement = node(expr.hole());
+    this.writeChild(parent, key, replacement, idx, "expression");
+    this.loadSyntaxObject(replacement);
+    return this.addDetachedExpression(target, pos);
   }
 
   public detachStatement(id: string, key: string, pos: Position, idx?: number): string {
     const parent = this.byGUID[id];
-    const node = (() => {
-      const v = parent && (parent as any)[key];
-      if (idx !== undefined) {
-        return v[idx];
-      } else {
-        return v;
-      }
-    })();
+    const target = this.readChild<ParseNode<Statement> | Array<ParseNode<Statement>>>(parent, key, idx);
+    if (!target) throw new Error("No such statement target");
 
-    if (!node) {
-      throw new Error("No such key(s) on that object during 'get'");
-    }
-
-    const killNode = action((): Statement[] => {
-      const v = parent && (parent as any)[key];
-      if (v) {
-        if (idx !== undefined && v[idx]) {
-          const l = v as any[];
-          if (l.length > 1 && idx !== 0) {
-            return (v as any[]).splice(idx, v.length - idx);
-          } else {
-            const g = guid();
-            (parent as any)[key] = [
-              {
-                kind: "@hole",
-                metadata: {
-                  editor: {
-                    guid: g,
-                  },
-                },
-              },
-            ];
-            return v;
-          }
-        } else if (idx === undefined) {
-          const g = guid();
-          const old = (parent as any)[key];
-          (parent as any)[key] = {
-            kind: "@hole",
-            metadata: {
-              editor: {
-                guid: g,
-              },
-            },
-          };
-          return [old];
-        }
-      }
-
-      throw new Error("No such key(s) on that object");
-    });
-
-    const newGlobalObject = observable({
-      kind: "_editor_detachedsyntax",
-      syntaxKind: "statement",
-      element: killNode(),
-      metadata: {
-        editor: {
-          guid: guid(),
-          pos: { ...pos },
-        },
-      },
-    } as const);
-
-    // Put the clone onto the globals stack
-    this.byGUID[newGlobalObject.metadata.editor.guid] = newGlobalObject;
-    this.program.globals.push(newGlobalObject);
-
-    return newGlobalObject.metadata.editor.guid;
-  }
-
-  public addGlobal(newGlobal: EditorUnregisteredGlobal, pos?: Position): string {
-    const g = observable(newGlobal) as EditorGlobal;
-    this.loadSyntaxObject(g);
-    const id = this.metadataFor(g as SyntaxObject).guid;
-    this.updatePos(id, pos ?? { x: 0, y: 0 });
-    this.program.globals.push(g);
-    return id;
+    const detached = Array.isArray(target) ? target : [target];
+    const replacement = node({ kind: "Pass" } as Statement);
+    this.writeChild(parent, key, idx === undefined ? [replacement] : replacement, idx, "statement");
+    return this.addDetachedStatements(detached, pos);
   }
 
   public dump() {
-    console.log(toJS(this.program));
+    console.log(toJS(this.document));
   }
 
   public getText(): string {
-    return JSON.stringify(
-      toJS(this.program.globals.filter((g) => g.kind !== "_editor_detachedsyntax")),
-      undefined,
-      2
-    );
+    return JSON.stringify(this.toParserModule(), undefined, 2);
   }
 
   public bump(idx: number) {
-    if (idx + 1 < this.program.globals.length) {
-      const g = this.program.globals.splice(idx, 1);
-      this.program.globals.push(g[0]!);
-    }
-  }
-
-  public initMetadata(g: EditorGlobal) {
-    if (!g.metadata) {
-      g.metadata = {
-        editor: {
-          guid: guid(),
-          pos: {
-            x: 0,
-            y: 0,
-          },
-        },
-      };
+    if (idx + 1 < this.document.items.length) {
+      const item = this.document.items.splice(idx, 1);
+      this.document.items.push(item[0]!);
     }
   }
 
   public updatePos(id: string, pos: Position) {
-    const glb = this.byGUID[id];
-    if (glb) {
-      this.metadataFor(glb).pos = pos;
-    } else {
-      console.warn("No such guid exists", guid, pos);
+    const item = this.byGUID[id];
+    if (item) this.metadataFor(item).pos = pos;
+    else console.warn("No such guid exists", id, pos);
+  }
+
+  public metadataFor(node: object): EditorMetadata {
+    if ("metadata" in node && (node as { metadata?: { editor?: EditorMetadata } }).metadata?.editor) {
+      return (node as { metadata: { editor: EditorMetadata } }).metadata.editor;
+    }
+    const existing = this.metadata.get(node);
+    if (existing) return existing;
+    const next = { guid: guid(), pos: { x: 0, y: 0 } };
+    this.metadata.set(node, next);
+    this.byGUID[next.guid] = node;
+    return next;
+  }
+
+  public loadGUID(node: object): string {
+    return this.metadataFor(node).guid;
+  }
+
+  private addTopLevel<T extends EditorGlobal>(item: T): string {
+    const observableItem = observable(item) as T;
+    this.document.items.push(observableItem);
+    this.loadSyntaxObject(observableItem);
+    return this.metadataFor(observableItem).guid;
+  }
+
+  private createDefaultDocument(): EditorDocument {
+    return {
+      version: DOCUMENT_VERSION,
+      items: defaultProject.declarations.map((declaration, idx) =>
+        makeTopLevel(clone(declaration), { x: 80, y: 80 + idx * 150 })
+      ),
+    };
+  }
+
+  private readChild<T>(parent: unknown, key: string, idx?: number): T | undefined {
+    if (!parent || typeof parent !== "object") return undefined;
+    const value = (parent as Record<string, unknown>)[key];
+    if (idx !== undefined && Array.isArray(value)) return value[idx] as T;
+    return value as T;
+  }
+
+  private writeChild(parent: unknown, key: string, value: unknown, idx: number | undefined, mode: "expression" | "statement") {
+    if (!parent || typeof parent !== "object") throw new Error("Cannot write child of missing parent");
+    const target = parent as Record<string, unknown>;
+    const current = target[key];
+
+    if (idx !== undefined) {
+      if (!Array.isArray(current)) throw new Error(`Cannot write indexed child ${key}`);
+      if (mode === "statement" && Array.isArray(value)) current.splice(idx, 1, ...value);
+      else current[idx] = value;
+      this.loadSyntaxObject(value);
+      return;
+    }
+
+    target[key] = value;
+    this.loadSyntaxObject(value);
+  }
+
+  private assertNoEditorHoles(value: unknown) {
+    if (isParseNode(value) && (value.value as { kind?: string }).kind === "Hole") {
+      throw new Error("Program still contains expression holes");
+    }
+    if (Array.isArray(value)) {
+      value.forEach((item) => this.assertNoEditorHoles(item));
+      return;
+    }
+    if (typeof value === "object" && value !== null) {
+      Object.values(value).forEach((child) => this.assertNoEditorHoles(child));
     }
   }
 
-  public metadataFor(node: SyntaxObject) {
-    return node.metadata!.editor as EditorMetadata;
-  }
+  private loadSyntaxObject(value: unknown) {
+    if (Array.isArray(value)) {
+      value.forEach((child) => this.loadSyntaxObject(child));
+      return;
+    }
+    if (typeof value !== "object" || value === null) return;
 
-  public loadGUID(node: SyntaxObject): string {
-    if (!node.metadata) {
-      node.metadata = {
-        editor: {
-          guid: guid(),
-        },
-      };
-    } else if (!node.metadata.editor) {
-      node.metadata.editor = {
-        guid: guid(),
-      };
-    } else if (!node.metadata.editor.guid) {
-      node.metadata.editor.guid = guid();
+    const object = value as object;
+    if (nodeValueKind(object) || isParseNode(object) || isEditorTopLevel(object) || isDetached(object)) {
+      const meta = this.metadataFor(object);
+      this.byGUID[meta.guid] = object;
     }
 
-    this.byGUID[node.metadata.editor.guid] = node;
-
-    return node.metadata.editor.guid;
-  }
-
-  private loadSyntaxObject(v: any) {
-    if (typeof v === "object") {
-      if (v.hasOwnProperty("kind") || v.hasOwnProperty("syntaxKind")) {
-        this.loadGUID(v);
-      }
-
-      Object.keys(v)
-        .filter((k) => k !== "kind" && k !== "metadata")
-        .forEach((k) => {
-          this.loadSyntaxObject(v[k]);
-        });
-    }
+    Object.entries(object)
+      .filter(([key]) => key !== "metadata" && key !== "range")
+      .forEach(([, child]) => this.loadSyntaxObject(child));
   }
 
   private loadGUIDTable() {
     this.byGUID = {};
-
-    // Bootstrap the process with the globals.
-    this.program.globals.forEach((g) => {
-      this.initMetadata(g);
-      this.byGUID[this.loadGUID(g)] = g;
-      this.loadSyntaxObject(g);
+    this.metadata = new WeakMap();
+    this.document.items.forEach((item) => {
+      this.metadataFor(item);
+      this.loadSyntaxObject(item);
     });
   }
 }

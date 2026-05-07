@@ -6,10 +6,10 @@ use itertools::Itertools;
 use seglisp::{
     js_interop::{InteropInto, JsInterop, JsValue},
     parse::{
-        impl_parse, ExpectedString, ListPattern, Parse, ParseError, ParseNode, ParseResult, Sigil,
+        impl_parse, ExpectedString, ListPattern, Parse, ParseError, ParseNode, ParseResult,
         SigilPattern, Symbol, SymbolPattern,
     },
-    Body, Diagnostic, DiagnosticLocation, DiagnosticPhase, DiagnosticSeverity, NodeContext,
+    Body, Diagnostic, DiagnosticLocation, DiagnosticPhase, DiagnosticSeverity, NodeContext, Sigil,
     SegLisp, SegLispNode, Segment,
 };
 
@@ -186,7 +186,7 @@ impl<'ast> Parse<'ast, Segment<'ast>> for Declaration<'ast> {
                     abridged: false,
                     inner_diagnostics: None,
                     location: DiagnosticLocation::Range(keyword.range),
-                    message: format!("unknown global '{v}', expected one of 'main', 'const', 'fn', 'type', 'interface'"),
+                    message: format!("unknown global '{v}', expected one of 'main', 'const', 'fn', 'type', 'interface'").into(),
                     note: None,
                     phase: DiagnosticPhase::Parse,
                     severity: DiagnosticSeverity::Error,
@@ -562,7 +562,7 @@ impl<'ast> Parse<'ast, Segment<'ast>> for Expression<'ast> {
                 // Basic expressions
                 SegLisp::Symbol(s) => Ok(Expression::Name(s)),
                 SegLisp::Number(v) => Ok(Expression::Number(v)),
-                SegLisp::String(v) => Ok(Expression::String(v.clone())),
+                SegLisp::String(v) => Ok(Expression::String(v.to_string())),
 
                 // Proc
                 SegLisp::Sigil("#") => Ok(Expression::Procedure {
@@ -570,6 +570,7 @@ impl<'ast> Parse<'ast, Segment<'ast>> for Expression<'ast> {
                 }),
 
                 SegLisp::Sigil(_) => Err(ParseError::WrongToken("TODO: not a sigil".into())),
+                SegLisp::Regex(_) => Err(ParseError::WrongToken("TODO: not a regex".into())),
                 SegLisp::List { .. } => unreachable!(),
             };
 
@@ -598,16 +599,22 @@ impl_parse! {
 
 #[derive(Debug, Clone, JsInterop)]
 pub enum Type<'ast> {
-    Kind,
-    Never,
-    Unknown,
-
     Reference {
         name: Verbatim<'ast>,
         generic_parameters: Option<ParsedVec<Type<'ast>>>,
     },
 
+    Parametric {
+        generic_parameters: ParsedVec<&'ast str>,
+        template: Box<ParseNode<Type<'ast>>>,
+    },
+
     Union {
+        left: Box<ParseNode<Type<'ast>>>,
+        right: Box<ParseNode<Type<'ast>>>,
+    },
+
+    Intersection {
         left: Box<ParseNode<Type<'ast>>>,
         right: Box<ParseNode<Type<'ast>>>,
     },
@@ -616,37 +623,46 @@ pub enum Type<'ast> {
         members: ParsedVec<Type<'ast>>,
     },
 
+    Record {
+        entries: ParsedVec<RecordTypeEntry<'ast>>,
+    },
+
+    Activated {
+        type_: Box<ParseNode<Type<'ast>>>,
+        arguments: ParsedVec<Type<'ast>>,
+    },
+
     Function {
         fn_keyword: Verbatim<'ast>,
+        generic_parameters: Option<ParsedVec<Type<'ast>>>,
         parameters: ParsedVec<Type<'ast>>,
-        arrow_token: Verbatim<'ast>,
-        return_type: Box<ParseNode<Type<'ast>>>,
+        return_type: ParseNode<Option<ReturnType<'ast>>>,
     },
+}
+
+#[derive(Debug, Clone, JsInterop)]
+pub struct RecordTypeEntry<'ast> {
+    pub name: Verbatim<'ast>,
+    pub colon_token: Verbatim<'ast>,
+    pub type_: Box<ParseNode<Type<'ast>>>,
+}
+
+#[derive(Debug, Clone, JsInterop)]
+pub struct ReturnType<'ast> {
+    arrow_token: Verbatim<'ast>,
+    type_: Box<ParseNode<Type<'ast>>>,
 }
 
 impl_parse! {
     fn <'ast> parse::<Type<'ast>>(ctx: Segment) {
         fn parse_simple<'ast>(ctx: &NodeContext<'ast, Segment<'ast>>) -> ParseResult<Type<'ast>> {
             Ok(match &ctx.require_peek()?.value {
-                SegLisp::Sigil("*") => {
-                    ctx.next().unwrap();
-                    Type::Kind
-                },
-                SegLisp::Sigil("!") => {
-                    ctx.next().unwrap();
-                    Type::Never
-                },
-                SegLisp::Sigil("_") => {
-                    ctx.next().unwrap();
-                    Type::Unknown
-                },
                 SegLisp::Symbol("fn") => {
                     Type::Function {
                         fn_keyword: ctx.parse_from(Symbol!["fn"]).unwrap(),
+                        generic_parameters: ctx.parse_from(ListPattern::each().expect_delimiter('[')).map(Some).unwrap_or(None),
                         parameters: ctx.parse_from(ListPattern::each().expect_delimiter('('))?,
-                        arrow_token: ctx.parse_from(Sigil!("->"))?,
-                        return_type: Box::new(ctx.parse()?)
-
+                        return_type: ctx.parse()?
                     }
                 }
                 SegLisp::Symbol(_) => {
@@ -663,7 +679,13 @@ impl_parse! {
 
                         v.value.remove(0).value
                     }
-                }
+                },
+                // Record type
+                SegLisp::List { delimiters: ('{', _), .. } => {
+                    Type::Record {
+                        entries: ctx.parse_from(ListPattern::each().expect_delimiter('{'))?
+                    }
+                },
                 _ => todo!("guh")
             })
         }
@@ -671,18 +693,47 @@ impl_parse! {
         fn parse_compound<'ast>(ctx: &NodeContext<'ast, Segment<'ast>>) -> ParseResult<Type<'ast>> {
             let t: ParseNode<Type<'ast>> = ctx.parse_node(parse_simple)?;
 
-            if let Some(SegLisp::Sigil("|")) = ctx.peek().map(|node| &node.value) {
-                ctx.next().unwrap();
-                Ok(Type::Union {
-                    left: Box::new(t),
-                    right: Box::new(ctx.parse_node(parse_simple)?)
-                })
-            } else {
-                Ok(t.value)
+            match ctx.peek().map(|node| &node.value) {
+                Some(SegLisp::List { delimiters: ('(', _), .. }) => {
+                    Ok(Type::Activated {
+                        type_: Box::new(t),
+                        arguments: ctx.parse_from(ListPattern::each().expect_delimiter('('))?
+                    })
+                },
+                Some(SegLisp::Sigil("&")) => {
+                    ctx.next().unwrap();
+                    Ok(Type::Intersection {
+                        left: Box::new(t),
+                        right: Box::new(ctx.parse_node(parse_simple)?)
+                    })
+                },
+                Some(SegLisp::Sigil("|")) => {
+                    ctx.next().unwrap();
+                    Ok(Type::Union {
+                        left: Box::new(t),
+                        right: Box::new(ctx.parse_node(parse_simple)?)
+                    })
+                },
+                _ => Ok(t.value)
             }
         }
 
         parse_compound(ctx)
+    }
+
+    fn <'ast> parse::<RecordTypeEntry<'ast>>(ctx: Segment) {
+        Ok(RecordTypeEntry {
+            name: ctx.parse_from(Symbol!())?,
+            colon_token: ctx.parse_from(Sigil![":"])?,
+            type_: Box::new(ctx.parse()?),
+        })
+    }
+
+    fn <'ast> parse::<ReturnType<'ast>>(ctx: Segment) {
+        Ok(ReturnType {
+            arrow_token: ctx.parse_from(Sigil!["->"])?,
+            type_: Box::new(ctx.parse()?),
+        })
     }
 }
 

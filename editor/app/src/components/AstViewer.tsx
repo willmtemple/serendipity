@@ -1,6 +1,6 @@
 import { useStores } from "@serendipity/editor-stores";
 import { observer } from "mobx-react";
-import JSONTree from "react-json-tree";
+import { JSONTree } from "react-json-tree";
 
 // Thank you Defman21
 const theme = {
@@ -26,10 +26,11 @@ const theme = {
 
 export const AstViewer = observer(() => {
   const { Project } = useStores();
+  const program = Project.canonicalProgram;
 
   return (
     <div className="ast-viewer" style={{ background: "#19191a" }}>
-      <JSONTree theme={theme} data={Project.canonicalProgram.globals} />
+      <JSONTree theme={theme} data={program.declarations} />
     </div>
   );
 });

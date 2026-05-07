@@ -685,8 +685,9 @@ function optionallyBlockStatement(
 }
 
 function formatType(ctx: FormatContext, node: ParseNode<Type>): FormatUnit {
+  const value = node.value as any;
   return (
-    match(node.value, {
+    match(value, {
       Never: (): FormatSpan => ({
         kind: "span",
         span: "!",
@@ -713,18 +714,19 @@ function formatType(ctx: FormatContext, node: ParseNode<Type>): FormatUnit {
             : []),
         ],
       }),
-      Function: ({ fnKeyword, parameters, arrowToken, returnType }): FormatSequence => ({
+      Function: ({ fnKeyword, parameters, arrowToken, returnType }: any): FormatSequence => ({
         kind: "sequence",
         contents: [
           formatVerbatim(ctx, fnKeyword),
           formatBalancedList(ctx, parameters, ["(", ")"], formatType, commaSpace),
           space,
-          formatVerbatim(ctx, arrowToken),
-          space,
-          optionallyParenthesizeBlock(formatType(ctx, returnType)),
+          ...(arrowToken ? [formatVerbatim(ctx, arrowToken), space] : []),
+          ...(returnType
+            ? [optionallyParenthesizeBlock(formatType(ctx, returnType))]
+            : []),
         ],
       }),
-    }) ?? unimplemented(node.value.kind)
+    }) ?? unimplemented(value.kind)
   );
 }
 

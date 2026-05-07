@@ -1,96 +1,148 @@
-// Copyright (c) William Temple
-// Licensed under the MIT license.
-
-import {
+import type {
+  Declaration,
   Expression,
-  Global,
   Module,
+  ParseNode,
+  RecordElement,
   Statement,
-} from "@serendipity/syntax-surface";
+} from "@serendipity/parser";
 
-import { match } from "omnimatch";
-
-const INDENT_SPACES = 2;
-
-const MAX_LINE_LENGTH = 120;
-
-function makeIndent(indent: number) {
-  return " ".repeat(indent * INDENT_SPACES);
+function op(value: { kind: string }) {
+  return {
+    Add: "+",
+    Subtract: "-",
+    Multiply: "*",
+    Divide: "/",
+    Modulus: "%",
+    Equal: "==",
+    NotEqual: "!=",
+    LessThan: "<",
+    LessThanOrEqual: "<=",
+    GreaterThan: ">",
+    GreaterThanOrEqual: ">=",
+    And: "and",
+    Or: "or",
+    Negate: "not",
+    Minus: "-",
+  }[value.kind] ?? value.kind;
 }
 
-function formatList(items: string[], sep: string, indent: number = 0) {
-  const length =
-    items.reduce((accum, item) => item.length + accum, 0) +
-    (items.length - 1) * (sep.length + 1) +
-    indent * INDENT_SPACES;
-
-  return length > MAX_LINE_LENGTH
-    ? items.join(`${sep}\n` + makeIndent(indent))
-    : items.join(`${sep} `);
+function printRecordElement(element: ParseNode<RecordElement>): string {
+  switch (element.value.kind) {
+    case "Identifier":
+      return element.value.name.value;
+    case "KeyValuePair":
+      return `${element.value.key.value}: ${printExpression(element.value.value)}`;
+    case "Spread":
+      return `...${printExpression(element.value.value)}`;
+    default:
+      return String((element.value as { kind?: string }).kind ?? "record-element");
+  }
 }
 
-function printStatement(statement: Statement): string {
-  const x = printExpression;
-  return match(statement, {
-    Break: () => "break",
-    Do: ({ body }) => `do ${x(body)}`,
-    ForIn: ({ binding, value, body }) =>
-      `for ${binding} in ${x(value)} (${printStatement(body)})`,
-    Forever: ({ body }) => "",
-    If: ({ condition, body, _else }) => {
-      let out = `if ${x(condition)} (${printStatement(body)})`;
-      if (_else !== undefined) {
-        out += ` else (${printStatement(_else)})`;
-      }
-
-      return out;
-    },
-    Let: ({ name, value }) => `let ${name} = ${x(value)}`,
-    Print: ({ value }) => `print ${x(value)}`,
-    Set: ({ name, value }) => `set! ${name} = ${x(value)}`,
-    "@hole": () => "...",
-  });
+function printStatement(statement: ParseNode<Statement>): string {
+  const value = statement.value;
+  switch (value.kind) {
+    case "Let":
+      return `let ${value.assignment.value.symbol.value} = ${printExpression(value.assignment.value.value)}`;
+    case "Set":
+      return `set ${value[0].value.symbol.value} = ${printExpression(value[0].value.value)}`;
+    case "If":
+      return `if ${printExpression(value.condition)} then ${printStatement(value.then)}${
+        value.Else ? ` else ${printStatement(value.Else.value.body)}` : ""
+      }`;
+    case "ForIn":
+      return `for ${value.binding.value} in ${printExpression(value.iterator)} ${printStatement(value.body)}`;
+    case "Forever":
+      return `forever ${printStatement(value[0])}`;
+    case "Do":
+      return `do ${printExpression(value[0])}`;
+    case "Break":
+      return "break";
+    case "Continue":
+      return "continue";
+    case "Pass":
+      return "pass";
+    case "Expression":
+      return printExpression(value[0]);
+    default:
+      return String((value as { kind?: string }).kind ?? "statement");
+  }
 }
 
-function printExpression(expression: Expression): string {
-  const x = printExpression;
-  return match(expression, {
-    Arithmetic: ({ left, op, right }) => `${x(left)} ${op} ${x(right)}`,
-    Accessor: ({ accessee, index }) => `${x(accessee)}[${x(index)}]`,
-    Boolean: ({ value }) => (value ? "true" : "false"),
-    Call: ({ callee, parameters }) =>
-      `${x(callee)}(${formatList(parameters.map(x), ",")})`,
-    Closure: ({ parameters, body }) =>
-      `fn (${formatList(parameters, ",")}) -> ${x(body)}`,
-    Compare: ({ left, op, right }) => `${x(left)} ${op} ${x(right)}`,
-    If: ({ cond, then, _else }) =>
-      `if ${x(cond)} then ${x(then)} else ${x(_else)}`,
-    List: ({ contents }) => `[${formatList(contents.map(x), ",")}]`,
-    Name: ({ name }) => name,
-    Number: ({ value }) => value.toString(),
-    Record: ({ data }) =>
-      `{${Object.entries(data)
-        .map(([k, v]) => `${k}: ${printExpression(v)}`)
-        .join(", ")}}`,
-    Procedure: ({ body }) => `#[${formatList(body.map(printStatement), ";")}]`,
-    String: ({ value }) => `"${value}"`,
-    Tuple: ({ values }) => `(${formatList(values.map(x), ",")})`,
-    Void: () => "empty",
-    With: ({ binding, expr }) =>
-      `with (${binding[0]} = ${x(binding[1])}) ${x(expr)}`,
-    "@hole": () => "...",
-  });
+function printExpression(expression: ParseNode<Expression>): string {
+  const value = expression.value;
+  switch (value.kind) {
+    case "Number":
+    case "Name":
+      return value[0];
+    case "String":
+      return JSON.stringify(value[0]);
+    case "Boolean":
+      return String(value[0]);
+    case "Hole":
+      return "...";
+    case "None":
+      return "none";
+    case "As":
+      return `${printExpression(value.expr)} as ${value.type.value.kind}`;
+    case "Unary":
+      return `${op(value.operator.value)} ${printExpression(value.expression)}`;
+    case "Compare":
+    case "Arithmetic":
+    case "Logical":
+      return `${printExpression(value.left)} ${op(value.operator.value)} ${printExpression(value.right)}`;
+    case "Accessor":
+      return `${printExpression(value.accessee)}[${printExpression(value.index)}]`;
+    case "FieldAccess":
+      return `${printExpression(value.accessee)}.${value.field.value}`;
+    case "Function":
+      return `fn (${value.parameters.value.map((p) => p.value.name.value).join(", ")}) -> ${printExpression(value.body)}`;
+    case "Call":
+      return `${printExpression(value.callee)}(${value.parameters.value.map(printExpression).join(", ")})`;
+    case "With":
+      return `with ${value.bindings.value
+        .map((binding) => `${binding.value.symbol.value} = ${printExpression(binding.value.value)}`)
+        .join(", ")} ${printExpression(value.body)}`;
+    case "Tuple":
+      return `(${value.elements.value.map(printExpression).join(", ")})`;
+    case "List":
+      return `[${value.elements.value.map(printExpression).join(", ")}]`;
+    case "Procedure":
+      return `#[${value.body.value.map(printStatement).join("; ")}]`;
+    case "If":
+      return `if ${printExpression(value.condition)} then ${printExpression(value.then)} else ${printExpression(value.Else)}`;
+    case "Record":
+      return `{${value.elements.value.map(printRecordElement).join(", ")}}`;
+    default:
+      return String((value as { kind?: string }).kind ?? "expression");
+  }
 }
 
-function printGlobal(global: Global): string {
-  return match(global, {
-    Define: ({ name, value }) => `let ${name} = ${printExpression(value)};`,
-    DefineFunction: ({ name, parameters, body }) =>
-      `fn ${name}(${formatList(parameters, ",")}) => ${printExpression(body)};`,
-    Main: ({ body }) => `on start ${printExpression(body)};`,
-  });
+function printDeclaration(declaration: ParseNode<Declaration>): string {
+  const value = declaration.value;
+  switch (value.kind) {
+    case "Main":
+      return `main ${printExpression(value.body)}`;
+    case "Const":
+      return `const ${value.identifier.value} = ${printExpression(value.value)}`;
+    case "Function":
+      return `fn ${value.identifier.value}(${value.parameters.value
+        .map((param) => param.value.name.value)
+        .join(", ")}) -> ${printExpression(value.body)}`;
+    case "Import":
+      return `import ${value.pattern.value.kind} use ${JSON.stringify(value.moduleSpecifier.value)}`;
+    case "Export":
+      return `export {${value.elements.value.map(printRecordElement).join(", ")}}`;
+    case "TypeAlias":
+      return `type ${value.name.value} = ${value.value.value.kind}`;
+    case "Interface":
+      return `interface ${value.name.value} { ${value.body.value.length} fields }`;
+    default:
+      return String((value as { kind?: string }).kind ?? "declaration");
+  }
 }
 
 export function printModule(module: Module): string {
-  return module.globals.map(printGlobal).join("\n\n");
+  return module.declarations.map(printDeclaration).join("\n\n");
 }

@@ -8,7 +8,7 @@ import { fit } from "xterm/lib/addons/fit/fit";
 import "xterm/dist/xterm.css";
 
 export const Terminal: React.FC = () => {
-  const termDiv: React.RefObject<HTMLDivElement> = React.createRef();
+  const termDiv = React.useRef<HTMLDivElement>(null);
 
   const { Prefs } = useStores();
 

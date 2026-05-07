@@ -1,99 +1,129 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 
-import { SyntaxObject } from "@serendipity/syntax";
-import * as surface from "@serendipity/syntax-surface";
+import type { ParseNode, Statement as ParserStatement } from "@serendipity/parser";
 import { useStores } from "@serendipity/editor-stores";
 
-import SyntaxHole from "../../editor/StatementHole";
-
+import { Binder, StatementHole } from "../../editor";
 import StatementBlock from "../../layout/StatementBlock";
+import SvgFlex from "../../layout/SvgFlex";
+import Expression from "../expression";
 
-import Do from "./Do";
-import ForIn from "./ForIn";
-import Print from "./Print";
-import { match } from "omnimatch";
-import Break from "./Break";
-import Forever from "./Forever";
-import If from "./If";
-
-export { Do, ForIn, Print };
+interface StatementProps {
+  bind: any;
+  bindKey: string;
+  bindIdx?: number;
+  transform?: string;
+  fixed?: boolean;
+}
 
 function getColor(kind: string) {
   switch (kind) {
-    case "Print":
+    case "Expression":
+    case "Do":
       return "#1F75FE";
     case "ForIn":
       return "grey";
+    case "If":
+      return "#B03060";
     default:
       return "black";
   }
 }
 
-interface StatementProps {
-  bind: unknown;
-  bindKey: string;
-  bindIdx?: number;
-
-  transform?: string;
-
-  fixed?: boolean;
-}
-
 const Statement = observer(
   React.forwardRef<unknown, StatementProps>((props, ref) => {
     const { Project } = useStores();
+    const stmtNode = (props.bindIdx === undefined
+      ? props.bind[props.bindKey]
+      : props.bind[props.bindKey][props.bindIdx]) as ParseNode<ParserStatement>;
+    const stmt = stmtNode.value;
 
-    const stmt = (props.bindIdx === undefined
-      ? (props.bind as any)[props.bindKey]
-      : ((props.bind as any)[props.bindKey] as any)[props.bindIdx]) as surface.Statement;
+    const body = (() => {
+      switch (stmt.kind) {
+        case "Let":
+          return (
+            <SvgFlex direction="horizontal" padding={8} align="middle">
+              <text>let</text>
+              <Binder bind={stmt.assignment.value.symbol} bindKey="value" />
+              <text>=</text>
+              <Expression bind={stmt.assignment.value} bindKey="value" />
+            </SvgFlex>
+          );
+        case "Set":
+          return (
+            <SvgFlex direction="horizontal" padding={8} align="middle">
+              <text>set</text>
+              <Binder bind={stmt[0].value.symbol} bindKey="value" />
+              <text>=</text>
+              <Expression bind={stmt[0].value} bindKey="value" />
+            </SvgFlex>
+          );
+        case "If":
+          return (
+            <SvgFlex direction="vertical" padding={10} align="beginning">
+              <SvgFlex direction="horizontal" padding={8} align="middle">
+                <text>if</text>
+                <Expression bind={stmt} bindKey="condition" />
+              </SvgFlex>
+              <Statement bind={stmt} bindKey="then" fixed />
+              {stmt.Else ? <Statement bind={stmt.Else.value} bindKey="body" fixed /> : <text>no else</text>}
+            </SvgFlex>
+          );
+        case "ForIn":
+          return (
+            <SvgFlex direction="vertical" padding={10} align="beginning">
+              <SvgFlex direction="horizontal" padding={8} align="middle">
+                <text>for</text>
+                <Binder bind={stmt.binding} bindKey="value" />
+                <text>in</text>
+                <Expression bind={stmt} bindKey="iterator" />
+              </SvgFlex>
+              <Statement bind={stmt} bindKey="body" fixed />
+            </SvgFlex>
+          );
+        case "Forever":
+          return (
+            <SvgFlex direction="vertical" padding={10} align="beginning">
+              <text>forever</text>
+              <Statement bind={stmt} bindKey="0" fixed />
+            </SvgFlex>
+          );
+        case "Do":
+        case "Expression":
+          return (
+            <SvgFlex direction="horizontal" padding={8} align="middle">
+              <text>{stmt.kind === "Do" ? "do" : "expr"}</text>
+              <Expression bind={stmt} bindKey="0" />
+            </SvgFlex>
+          );
+        case "Break":
+          return <text>break</text>;
+        case "Continue":
+          return <text>continue</text>;
+        case "Pass":
+          return <text>pass</text>;
+      }
+    })();
 
-    if (stmt.kind === "@hole") {
-      return (
-        <SyntaxHole
-          ref={ref as React.ForwardedRef<SVGPathElement>}
-          transform={props.transform}
-          bind={props.bind as SyntaxObject}
-          bindKey={props.bindKey as string}
-          bindIdx={props.bindIdx}
-          kind="statement"
-        />
-      );
-    }
-
-    const body = match(stmt, {
-      Print: (stmt) => <Print print={stmt} />,
-      ForIn: (stmt) => <ForIn forin={stmt} />,
-      Do: (stmt) => <Do do={stmt} />,
-      Break: (_) => <Break />,
-      Forever: (stmt) => <Forever forever={stmt} />,
-      If: (stmt) => <If _if={stmt} />,
-    }) ?? (
-      <text
-        ref={ref as React.ForwardedRef<SVGTextElement>}
-        fill="white"
-        fontFamily="Source Code Pro"
-        fontWeight="600"
-      >
-        {stmt.kind} (unimplemented)
-      </text>
-    );
-
-    // Set up node metadata for DOM access
-    const containerProps: { [k: string]: any } = {};
-    const guid = Project.metadataFor(stmt as SyntaxObject).guid;
-    containerProps.id = guid;
-    containerProps.className =
-      (props.fixed ? "" : "draggable ") + "syntax statement " + stmt.kind.toLowerCase();
-    containerProps["data-guid"] = guid;
-    containerProps["data-parent-guid"] = Project.metadataFor(props.bind as SyntaxObject).guid;
-    containerProps["data-mutation-key"] = props.bindKey;
-    if (props.bindIdx !== undefined) {
-      containerProps["data-mutation-idx"] = props.bindIdx;
-    }
+    const guid = Project.metadataFor(stmtNode).guid;
+    const parentGuid = Project.metadataFor(props.bind).guid;
+    const containerProps: Record<string, unknown> = {
+      id: guid,
+      className: (props.fixed ? "" : "draggable ") + "syntax statement " + stmt.kind.toLowerCase(),
+      "data-guid": guid,
+      "data-parent-guid": parentGuid,
+      "data-mutation-key": props.bindKey,
+    };
+    if (props.bindIdx !== undefined) containerProps["data-mutation-idx"] = props.bindIdx;
 
     return (
-      <StatementBlock ref={ref} color={getColor(stmt.kind)} containerProps={containerProps}>
+      <StatementBlock
+        ref={ref}
+        color={getColor(stmt.kind)}
+        containerProps={containerProps}
+        {...(props.transform === undefined ? {} : { transform: props.transform })}
+      >
         {body}
       </StatementBlock>
     );
@@ -101,5 +131,4 @@ const Statement = observer(
 );
 
 Statement.displayName = "Statement";
-
 export default Statement;
