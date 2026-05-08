@@ -21,13 +21,13 @@ function getColor(kind: string) {
   switch (kind) {
     case "Expression":
     case "Do":
-      return "#1F75FE";
+      return "var(--camino-statement)";
     case "ForIn":
-      return "grey";
+      return "var(--camino-statement)";
     case "If":
-      return "#B03060";
+      return "var(--camino-control)";
     default:
-      return "black";
+      return "var(--camino-statement)";
   }
 }
 
@@ -44,18 +44,18 @@ const Statement = observer(
         case "Let":
           return (
             <SvgFlex direction="horizontal" padding={8} align="middle">
-              <text>let</text>
+              <text className="keyword-token">let</text>
               <Binder bind={stmt.assignment.value.symbol} bindKey="value" />
-              <text>=</text>
+              <text className="operator-token">=</text>
               <Expression bind={stmt.assignment.value} bindKey="value" />
             </SvgFlex>
           );
         case "Set":
           return (
             <SvgFlex direction="horizontal" padding={8} align="middle">
-              <text>set</text>
+              <text className="keyword-token">set</text>
               <Binder bind={stmt[0].value.symbol} bindKey="value" />
-              <text>=</text>
+              <text className="operator-token">=</text>
               <Expression bind={stmt[0].value} bindKey="value" />
             </SvgFlex>
           );
@@ -63,7 +63,7 @@ const Statement = observer(
           return (
             <SvgFlex direction="vertical" padding={10} align="beginning">
               <SvgFlex direction="horizontal" padding={8} align="middle">
-                <text>if</text>
+                <text className="control-token">if</text>
                 <Expression bind={stmt} bindKey="condition" />
               </SvgFlex>
               <Statement bind={stmt} bindKey="then" fixed />
@@ -74,9 +74,9 @@ const Statement = observer(
           return (
             <SvgFlex direction="vertical" padding={10} align="beginning">
               <SvgFlex direction="horizontal" padding={8} align="middle">
-                <text>for</text>
+                <text className="keyword-token">for</text>
                 <Binder bind={stmt.binding} bindKey="value" />
-                <text>in</text>
+                <text className="keyword-token">in</text>
                 <Expression bind={stmt} bindKey="iterator" />
               </SvgFlex>
               <Statement bind={stmt} bindKey="body" fixed />
@@ -85,7 +85,7 @@ const Statement = observer(
         case "Forever":
           return (
             <SvgFlex direction="vertical" padding={10} align="beginning">
-              <text>forever</text>
+              <text className="keyword-token">forever</text>
               <Statement bind={stmt} bindKey="0" fixed />
             </SvgFlex>
           );
@@ -93,16 +93,16 @@ const Statement = observer(
         case "Expression":
           return (
             <SvgFlex direction="horizontal" padding={8} align="middle">
-              <text>{stmt.kind === "Do" ? "do" : "expr"}</text>
+              <text className={stmt.kind === "Do" ? "keyword-token" : "punctuation-token"}>{stmt.kind === "Do" ? "do" : "expr"}</text>
               <Expression bind={stmt} bindKey="0" />
             </SvgFlex>
           );
         case "Break":
-          return <text>break</text>;
+          return <text className="keyword-token">break</text>;
         case "Continue":
-          return <text>continue</text>;
+          return <text className="keyword-token">continue</text>;
         case "Pass":
-          return <text>pass</text>;
+          return <text className="keyword-token">pass</text>;
       }
     })();
 

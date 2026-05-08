@@ -57,7 +57,7 @@ const ExprList = React.forwardRef<SVGGElement, { list: ParseNode<Array<ParseNode
   const children: React.ReactNode[] = [];
   props.list.value.forEach((_, idx) => {
     children.push(<ExpressionChild key={`expr-${idx}`} bind={props.list} bindKey="value" bindIdx={idx} />);
-    if (idx < props.list.value.length - 1) children.push(<text key={`sep-${idx}`}>{props.separator ?? ","}</text>);
+    if (idx < props.list.value.length - 1) children.push(<text className="punctuation-token" key={`sep-${idx}`}>{props.separator ?? ","}</text>);
   });
   children.push(<AddButton key="add" onClick={() => props.list.value.push(makeNode(makeExpr.hole()))} />);
   return (
@@ -75,7 +75,7 @@ const RecordElementView = React.forwardRef<SVGGElement, { element: ParseNode<Rec
     return (
       <SvgFlex ref={ref} direction="horizontal" padding={8} align="middle">
         <Binder bind={element.key} bindKey="value" />
-        <text>:</text>
+        <text className="punctuation-token">:</text>
         <ExpressionChild bind={element} bindKey="value" />
       </SvgFlex>
     );
@@ -89,7 +89,7 @@ const RecordElementView = React.forwardRef<SVGGElement, { element: ParseNode<Rec
   }
   return (
     <SvgFlex ref={ref} direction="horizontal" padding={8} align="middle">
-      <text>...</text>
+      <text className="punctuation-token">...</text>
       <ExpressionChild bind={element} bindKey="value" />
     </SvgFlex>
   );
@@ -132,11 +132,11 @@ const Expression = observer(
         case "Name":
           return <Binder bind={expr} bindKey={0} />;
         case "None":
-          return <text>none</text>;
+          return <text className="literal-token">none</text>;
         case "Unary":
           return (
             <SvgFlex direction="horizontal" padding={8} align="middle">
-              <text>{labelForOperator(expr.operator.value)}</text>
+              <text className="operator-token">{labelForOperator(expr.operator.value)}</text>
               <ExpressionChild bind={expr} bindKey="expression" />
             </SvgFlex>
           );
@@ -146,7 +146,7 @@ const Expression = observer(
           return (
             <SvgFlex direction="horizontal" padding={8} align="middle">
               <ExpressionChild bind={expr} bindKey="left" />
-              <text>{labelForOperator(expr.operator.value)}</text>
+              <text className="operator-token">{labelForOperator(expr.operator.value)}</text>
               <ExpressionChild bind={expr} bindKey="right" />
             </SvgFlex>
           );
@@ -154,16 +154,16 @@ const Expression = observer(
           return (
             <SvgFlex direction="horizontal" padding={8} align="middle">
               <ExpressionChild bind={expr} bindKey="accessee" />
-              <text>[</text>
+              <text className="punctuation-token">[</text>
               <ExpressionChild bind={expr} bindKey="index" />
-              <text>]</text>
+              <text className="punctuation-token">]</text>
             </SvgFlex>
           );
         case "FieldAccess":
           return (
             <SvgFlex direction="horizontal" padding={4} align="middle">
               <ExpressionChild bind={expr} bindKey="accessee" />
-              <text>.</text>
+              <text className="punctuation-token">.</text>
               <Binder bind={expr.field} bindKey="value" />
             </SvgFlex>
           );
@@ -172,16 +172,16 @@ const Expression = observer(
           expr.parameters.value.forEach((param: any, idx: number) => {
             parameterChildren.push(<Binder key={`param-${idx}`} bind={param.value.name} bindKey="value" />);
             if (idx < expr.parameters.value.length - 1) {
-              parameterChildren.push(<text key={`param-sep-${idx}`}>,</text>);
+              parameterChildren.push(<text className="punctuation-token" key={`param-sep-${idx}`}>,</text>);
             }
           });
           return (
             <SvgFlex direction="horizontal" padding={8} align="middle">
-              <text>fn</text>
-              <text>(</text>
+              <text className="keyword-token">fn</text>
+              <text className="punctuation-token">(</text>
               {parameterChildren}
               <AddButton onClick={() => expr.parameters.value.push({ ...expr.parameters.value[0], value: { name: { ...expr.fnKeyword, value: "arg" } } } as any)} />
-              <text>{"->"}</text>
+              <text className="operator-token">{"->"}</text>
               <ExpressionChild bind={expr} bindKey="body" />
             </SvgFlex>
           );
@@ -190,9 +190,9 @@ const Expression = observer(
           return (
             <SvgFlex direction="horizontal" padding={6} align="middle">
               <ExpressionChild bind={expr} bindKey="callee" />
-              <text>(</text>
+              <text className="call-token">(</text>
               <ExprList list={expr.parameters} />
-              <text>)</text>
+              <text className="call-token">)</text>
             </SvgFlex>
           );
         case "With": {
@@ -201,14 +201,14 @@ const Expression = observer(
             bindingChildren.push(
               <Binder key={`binding-name-${idx}`} bind={binding.value.symbol} bindKey="value" />
             );
-            bindingChildren.push(<text key={`binding-eq-${idx}`}>=</text>);
+            bindingChildren.push(<text className="operator-token" key={`binding-eq-${idx}`}>=</text>);
             bindingChildren.push(
               <ExpressionChild key={`binding-value-${idx}`} bind={binding.value} bindKey="value" />
             );
           });
           return (
             <SvgFlex direction="horizontal" padding={8} align="middle">
-              <text>with</text>
+              <text className="keyword-token">with</text>
               {bindingChildren}
               <ExpressionChild bind={expr} bindKey="body" />
             </SvgFlex>
@@ -218,15 +218,15 @@ const Expression = observer(
         case "List":
           return (
             <SvgFlex direction="horizontal" padding={6} align="middle">
-              <text>{expr.kind === "Tuple" ? "(" : "["}</text>
+              <text className="punctuation-token">{expr.kind === "Tuple" ? "(" : "["}</text>
               <ExprList list={expr.elements} />
-              <text>{expr.kind === "Tuple" ? ")" : "]"}</text>
+              <text className="punctuation-token">{expr.kind === "Tuple" ? ")" : "]"}</text>
             </SvgFlex>
           );
         case "Procedure":
           return (
-            <SvgFlex direction="vertical" padding={8} align="beginning">
-              <text>procedure</text>
+            <SvgFlex direction="vertical" padding={10} align="beginning">
+              <text className="keyword-token">do</text>
               {expr.body.value.map((_, idx: number) => (
                 <Statement key={idx} bind={expr.body} bindKey="value" bindIdx={idx} fixed />
               ))}
@@ -234,30 +234,37 @@ const Expression = observer(
           );
         case "If":
           return (
-            <SvgFlex direction="horizontal" padding={8} align="middle">
-              <text>if</text>
-              <ExpressionChild bind={expr} bindKey="condition" />
-              <text>then</text>
-              <ExpressionChild bind={expr} bindKey="then" />
-              <text>else</text>
-              <ExpressionChild bind={expr} bindKey="Else" />
+            <SvgFlex direction="vertical" padding={8} align="beginning">
+              <SvgFlex direction="horizontal" padding={8} align="middle">
+                <text className="control-token">if</text>
+                <ExpressionChild bind={expr} bindKey="condition" />
+              </SvgFlex>
+              <SvgFlex direction="horizontal" padding={8} align="middle">
+                <text className="control-token">then</text>
+                <ExpressionChild bind={expr} bindKey="then" />
+              </SvgFlex>
+              <SvgFlex direction="horizontal" padding={8} align="middle">
+                <text className="control-token">else</text>
+                <ExpressionChild bind={expr} bindKey="Else" />
+              </SvgFlex>
             </SvgFlex>
           );
         case "Record":
           return (
             <SvgFlex direction="horizontal" padding={8} align="middle">
-              <text>{"{"}</text>
+              <text className="punctuation-token">{"{"}</text>
               {expr.elements.value.map((element, idx) => (
                 <RecordElementView key={idx} element={element} />
               ))}
-              <text>{"}"}</text>
+              <text className="punctuation-token">{"}"}</text>
             </SvgFlex>
           );
         case "As":
           return (
             <SvgFlex direction="horizontal" padding={8} align="middle">
               <ExpressionChild bind={expr} bindKey="expr" />
-              <text>as type</text>
+              <text className="keyword-token">as</text>
+              <text>type</text>
             </SvgFlex>
           );
       }

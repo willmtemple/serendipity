@@ -22,102 +22,96 @@ function getColor(kind: string) {
   }[kind] ?? "black";
 }
 
-function Detached(props: { global: EditorDetachedSyntax; onDelete(): void }) {
-  return (
-    <BoundingBox color="#555" containerProps={{ className: "syntax global detached" }}>
-      <g>
-        <SvgFlex direction="vertical" padding={10} align="beginning">
-          <CloseButton onClick={props.onDelete} />
-          <text>detached {props.global.syntaxKind}</text>
-          {props.global.syntaxKind === "expression" ? (
-            <Expression bind={props.global} bindKey="element" fixed />
-          ) : (
-            props.global.element.map((_, idx) => (
-              <Statement key={idx} bind={props.global} bindKey="element" bindIdx={idx} fixed />
-            ))
-          )}
-        </SvgFlex>
-      </g>
-    </BoundingBox>
+function Detached(props: { global: EditorDetachedSyntax }) {
+  return props.global.syntaxKind === "expression" ? (
+    <Expression bind={props.global} bindKey="element" fixed />
+  ) : (
+    <SvgFlex direction="vertical" padding={10} align="beginning">
+      {props.global.element.map((_, idx) => (
+        <Statement key={idx} bind={props.global} bindKey="element" bindIdx={idx} fixed />
+      ))}
+    </SvgFlex>
   );
 }
 
 function DeclarationBody(props: { declaration: ParseNode<Declaration>; onDelete(): void }) {
   const declaration = props.declaration.value;
+  const Header = ({ children }: React.PropsWithChildren) => (
+    <SvgFlex direction="horizontal" padding={10} align="middle">
+      <CloseButton onClick={props.onDelete} />
+      {children}
+    </SvgFlex>
+  );
+
   switch (declaration.kind) {
     case "Main":
       return (
-        <SvgFlex direction="vertical" padding={12} align="beginning">
-          <SvgFlex direction="horizontal" padding={10} align="middle">
-            <CloseButton onClick={props.onDelete} />
-            <text>main</text>
-          </SvgFlex>
+        <SvgFlex direction="vertical" padding={10} align="beginning">
+          <Header>
+            <text className="keyword-token">main</text>
+          </Header>
           <Expression bind={declaration} bindKey="body" />
         </SvgFlex>
       );
     case "Const":
       return (
-        <SvgFlex direction="vertical" padding={12} align="beginning">
-          <SvgFlex direction="horizontal" padding={10} align="middle">
-            <CloseButton onClick={props.onDelete} />
-            <text>const</text>
+        <SvgFlex direction="vertical" padding={10} align="beginning">
+          <Header>
+            <text className="keyword-token">const</text>
             <Binder bind={declaration.identifier} bindKey="value" />
-            <text>=</text>
-          </SvgFlex>
+            <text className="operator-token">=</text>
+          </Header>
           <Expression bind={declaration} bindKey="value" />
         </SvgFlex>
       );
     case "Function":
       return (
-        <SvgFlex direction="vertical" padding={12} align="beginning">
-          <SvgFlex direction="horizontal" padding={10} align="middle">
-            <CloseButton onClick={props.onDelete} />
-            <text>fn</text>
+        <SvgFlex direction="vertical" padding={10} align="beginning">
+          <Header>
+            <text className="keyword-token">fn</text>
             <Binder bind={declaration.identifier} bindKey="value" />
-            <text>(</text>
+            <text className="punctuation-token">(</text>
             {declaration.parameters.value.map((param, idx) => (
               <Binder key={idx} bind={param.value.name} bindKey="value" />
             ))}
-            <text>) {"->"}</text>
-          </SvgFlex>
+            <text className="punctuation-token">)</text>
+            <text className="operator-token">{"->"}</text>
+          </Header>
           <Expression bind={declaration} bindKey="body" />
         </SvgFlex>
       );
     case "Import":
       return (
-        <SvgFlex direction="horizontal" padding={10} align="middle">
-          <CloseButton onClick={props.onDelete} />
-          <text>import</text>
+        <Header>
+          <text className="keyword-token">import</text>
           <Binder bind={(declaration.pattern.value as any).name ?? declaration.moduleSpecifier} bindKey="value" />
-          <text>use</text>
+          <text className="keyword-token">use</text>
           <Binder bind={declaration.moduleSpecifier} bindKey="value" />
-        </SvgFlex>
+        </Header>
       );
     case "Export":
       return (
-        <SvgFlex direction="horizontal" padding={10} align="middle">
-          <CloseButton onClick={props.onDelete} />
-          <text>export</text>
+        <Header>
+          <text className="keyword-token">export</text>
           <text>{declaration.elements.value.length} elements</text>
-        </SvgFlex>
+        </Header>
       );
     case "TypeAlias":
       return (
-        <SvgFlex direction="horizontal" padding={10} align="middle">
-          <CloseButton onClick={props.onDelete} />
-          <text>type</text>
+        <Header>
+          <text className="keyword-token">type</text>
           <Binder bind={declaration.name} bindKey="value" />
-          <text>= {declaration.value.value.kind}</text>
-        </SvgFlex>
+          <text className="operator-token">=</text>
+          <text>{declaration.value.value.kind}</text>
+        </Header>
       );
     case "Interface":
       return (
-        <SvgFlex direction="horizontal" padding={10} align="middle">
-          <CloseButton onClick={props.onDelete} />
-          <text>interface</text>
+        <Header>
+          <text className="keyword-token">interface</text>
           <Binder bind={declaration.name} bindKey="value" />
           <text>{declaration.body.value.length} fields</text>
-        </SvgFlex>
+        </Header>
       );
     default:
       return null;
@@ -130,7 +124,7 @@ const Global = observer(
     const onDelete = () => Project.rmNodeByGUID(Project.metadataFor(props.global).guid);
 
     if (props.global.kind === "_editor_detachedsyntax") {
-      return <Detached global={props.global} onDelete={onDelete} />;
+      return <Detached global={props.global} />;
     }
 
     const topLevel = props.global as EditorTopLevel;

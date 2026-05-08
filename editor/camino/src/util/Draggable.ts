@@ -91,7 +91,7 @@ export function makeDraggable(_svg: SVGSVGElement) {
   let dragMode: "detach" | undefined;
   let dragStart: Position | undefined;
   let offset: { x: any; y: any };
-  let transform: SVGTransform;
+  let transform: SVGTransform | undefined;
   let resume: string | undefined;
   let heldItemKind: "expression" | "statement" | undefined;
   const background: HTMLElement | null = document.getElementById("workspaceBackground");
@@ -151,6 +151,21 @@ export function makeDraggable(_svg: SVGSVGElement) {
     return node;
   }
 
+  function ensureTranslate(element: SVGGraphicsElement): SVGTransform {
+    const transforms = element.transform.baseVal;
+
+    if (
+      transforms.numberOfItems === 0 ||
+      transforms.getItem(0).type !== SVGTransform.SVG_TRANSFORM_TRANSLATE
+    ) {
+      const translate = svg.createSVGTransform();
+      translate.setTranslate(0, 0);
+      transforms.insertItemBefore(translate, 0);
+    }
+
+    return transforms.getItem(0);
+  }
+
   function startDrag(evt: MouseEvent) {
     if (evt.button !== 0) {
       return;
@@ -172,12 +187,14 @@ export function makeDraggable(_svg: SVGSVGElement) {
       if (node === _svg) {
         // Drag the background
         selectedElement = svg;
+        transform = undefined;
         offset = getMousePosition(evt);
       } else if (node && node.classList.contains("syntax")) {
         // We are dragging an expression out of its container
         selectedElement = node as SVGGraphicsElement;
         dragMode = "detach";
         dragStart = getMousePosition(evt);
+        transform = undefined;
       } else if (node) {
         selectedElement = node as SVGGraphicsElement;
 
@@ -188,20 +205,7 @@ export function makeDraggable(_svg: SVGSVGElement) {
 
         offset = getMousePosition(evt);
 
-        const transforms = selectedElement.transform.baseVal;
-
-        // numberOfItems ???????
-        if (
-          transforms.numberOfItems === 0 ||
-          transforms.getItem(0).type !== SVGTransform.SVG_TRANSFORM_TRANSLATE
-        ) {
-          const translate = svg.createSVGTransform();
-          translate.setTranslate(0, 0);
-
-          selectedElement.transform.baseVal.insertItemBefore(translate, 0);
-        }
-
-        transform = transforms.getItem(0);
+        transform = ensureTranslate(selectedElement);
 
         offset.x -= transform.matrix.e;
         offset.y -= transform.matrix.f;
@@ -225,23 +229,14 @@ export function makeDraggable(_svg: SVGSVGElement) {
         selectedElement = e as unknown as SVGGraphicsElement;
         selectedElement.classList.add("nomouse");
 
-        const transforms = selectedElement.transform.baseVal;
-
-        // numberOfItems ???????
-        if (
-          transforms.numberOfItems === 0 ||
-          transforms.getItem(0).type !== SVGTransform.SVG_TRANSFORM_TRANSLATE
-        ) {
-          const translate = svg.createSVGTransform();
-          translate.setTranslate(0, 0);
-
-          selectedElement.transform.baseVal.insertItemBefore(translate, 0);
-        }
-
-        transform = transforms.getItem(0);
+        transform = ensureTranslate(selectedElement);
 
         offset.x -= transform.matrix.e;
         offset.y -= transform.matrix.f;
+      } else {
+        selectedElement = undefined;
+        dragMode = undefined;
+        heldItemKind = undefined;
       }
       resume = undefined;
       return;
@@ -327,6 +322,12 @@ export function makeDraggable(_svg: SVGSVGElement) {
         }
       }
     } else if (selectedElement) {
+      if (!transform) {
+        selectedElement = undefined;
+        dragMode = undefined;
+        heldItemKind = undefined;
+        return;
+      }
       evt.preventDefault();
       transform.setTranslate(mouse.x - offset.x, mouse.y - offset.y);
     }
@@ -346,7 +347,7 @@ export function makeDraggable(_svg: SVGSVGElement) {
           if (mouseOver.classList.contains("dumpster")) {
             console.warn("DELETING", draggedGuid);
             Project.rmNodeByGUID(draggedGuid);
-          } else if (heldItemKind && !mouseOver.classList.contains(heldItemKind)) {
+          } else if (heldItemKind && !mouseOver.classList.contains(heldItemKind) && transform) {
             Project.updatePos(draggedGuid, {
               x: roundQuantum(transform.matrix.e),
               y: roundQuantum(transform.matrix.f),
@@ -380,6 +381,7 @@ export function makeDraggable(_svg: SVGSVGElement) {
       heldItemKind = undefined;
     }
     selectedElement = undefined;
+    transform = undefined;
   }
 
   function zoom(bEvt: WheelEvent) {

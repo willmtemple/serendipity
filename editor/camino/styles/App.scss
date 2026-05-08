@@ -88,18 +88,6 @@ svg.camino {
       stroke-width: 2;
     }
 
-    &.global {
-      &.main > rect {
-        fill: var(--camino-global-main, red);
-      }
-      &.definefunction > rect {
-        fill: var(--camino-global-definefunction, purple);
-      }
-      &.define > rect {
-        fill: var(--camino-global-define, blue);
-      }
-    }
-
     &.expression {
       // This is the configuration used by binders
       &.source {
@@ -120,11 +108,7 @@ svg.camino {
         }
       }
 
-      @each $name, $default in $exprDefaults {
-        &.#{$name} > path {
-          fill: var(--camino-expr-#{$name}, $default);
-        }
-      }
+      // Block role colors are owned by the consuming app theme.
     }
   }
 
@@ -214,7 +198,8 @@ svg.camino {
   }
 
   .detached.global > .expression,
-  .detached.global > g > g.statement > path {
+  .detached.global > .statement > path,
+  .detached.global > g > .statement > path {
     filter: url(#dropShadow);
   }
 

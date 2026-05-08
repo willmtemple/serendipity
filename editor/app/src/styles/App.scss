@@ -5,7 +5,7 @@
   --foreground: #{$black};
   --background: #{$white};
 
-  --primary: #{$cyan};
+  --primary: #{$indigo};
   --warning: #{$yellow};
   --error: #{$red};
   --success: #{$green};
@@ -36,23 +36,179 @@
 
   .camino {
     width: 100%;
-    --camino-peg: #00000060;
+    --camino-peg: #5e6a6080;
     pointer-events: auto;
 
-    --camino-expr-procedure: #{darken($purple, 18%)};
-    --camino-expr-name: #{$yellow};
-    --camino-expr-number: #{$cyan};
-    --camino-expr-string: #{darken($green, 18%)};
-    --camino-expr-void: #{$black};
-    --camino-expr-compare: #{$blue};
-    --camino-expr-tuple: #{$green};
-    --camino-expr-if: #{$pink};
-    --camino-expr-accessor: #{$orange};
-    --camino-expr-arithmetic: #{$indigo};
+    --camino-bg: #101412;
+    --camino-card: #202821;
+    --camino-card-stroke: #7d887d;
+    --camino-text: #f3efe3;
+    --camino-muted: #c2b9a7;
+    --camino-expr: #2d413c;
+    --camino-expr-stroke: #8ab0a4;
+    --camino-statement: #29384a;
+    --camino-statement-stroke: #91a7c0;
+    --camino-decl: #28332d;
+    --camino-decl-stroke: #8e9b8f;
+    --camino-literal: #5f4d2e;
+    --camino-literal-stroke: #c9a95d;
+    --camino-name: #394f36;
+    --camino-name-stroke: #9eb98e;
+    --camino-control: #5a3f3d;
+    --camino-control-stroke: #c18578;
+    --camino-call: #2e4c58;
+    --camino-call-stroke: #8db9cc;
+    --camino-binding: #4c4660;
+    --camino-binding-stroke: #aaa0c8;
+    --camino-keyword-token: #d8bd75;
+    --camino-operator-token: #d49a69;
+    --camino-punctuation-token: #adb7ad;
+    --camino-name-token: #b9d99e;
+    --camino-literal-token: #e6c678;
+    --camino-call-token: #9bd1df;
+    --camino-control-token: #d8969f;
+    --camino-danger: #8e4d42;
 
-    --camino-global-main: #{desaturate(darken($red, 5%), 20%)};
-    --camino-global-definefunction: #{$purple};
-    --camino-global-define: #{saturate($blue, 30%)};
+    text {
+      fill: var(--camino-text);
+      font-weight: 650;
+      letter-spacing: 0.01em;
+    }
+
+    .background.fill {
+      fill: var(--camino-bg);
+    }
+
+    .peg {
+      fill: var(--camino-peg);
+    }
+
+    .boundary {
+      fill: var(--block-fill, var(--camino-expr));
+      stroke: var(--block-stroke, var(--camino-expr-stroke));
+      stroke-width: 1.5;
+    }
+
+    .global .boundary {
+      --block-fill: var(--camino-decl);
+      --block-stroke: var(--camino-decl-stroke);
+    }
+
+    .syntax.global.main {
+      --block-fill: #2d332c;
+      --block-stroke: #9eaa7d;
+    }
+
+    .syntax.global.const {
+      --block-fill: #26382f;
+      --block-stroke: #95b59d;
+    }
+
+    .syntax.global.function {
+      --block-fill: #2a3040;
+      --block-stroke: #99a9c7;
+    }
+
+    .keyword-token {
+      fill: var(--camino-keyword-token);
+    }
+
+    .operator-token {
+      fill: var(--camino-operator-token);
+    }
+
+    .punctuation-token {
+      fill: var(--camino-punctuation-token);
+    }
+
+    .name-token {
+      fill: var(--camino-name-token);
+    }
+
+    .literal-token {
+      fill: var(--camino-literal-token);
+    }
+
+    .call-token {
+      fill: var(--camino-call-token);
+    }
+
+    .control-token {
+      fill: var(--camino-control-token);
+    }
+
+    .statement path {
+      fill: var(--camino-statement);
+      stroke: var(--camino-statement-stroke);
+    }
+
+    .expression.number,
+    .expression.string,
+    .expression.boolean,
+    .expression.none {
+      --block-fill: var(--camino-literal);
+      --block-stroke: var(--camino-literal-stroke);
+    }
+
+    .expression.name {
+      --block-fill: var(--camino-name);
+      --block-stroke: var(--camino-name-stroke);
+    }
+
+    .expression.if,
+    .expression.procedure {
+      --block-fill: var(--camino-control);
+      --block-stroke: var(--camino-control-stroke);
+    }
+
+    .expression.call,
+    .expression.fieldaccess,
+    .expression.accessor {
+      --block-fill: var(--camino-call);
+      --block-stroke: var(--camino-call-stroke);
+    }
+
+    .expression.function,
+    .expression.with {
+      --block-fill: var(--camino-binding);
+      --block-stroke: var(--camino-binding-stroke);
+    }
+
+    .binder input {
+      box-sizing: border-box;
+      width: 100%;
+      height: 100%;
+      border: 1px solid #87908990;
+      border-radius: 4px;
+      background: #17201d;
+      color: var(--camino-text);
+      font: inherit;
+      font-weight: 700;
+      padding: 0 6px;
+    }
+
+    .expression.name .binder input {
+      border-color: #9eb98e;
+      background: #263a2b;
+      color: var(--camino-name-token);
+    }
+
+    .expression.number .binder input,
+    .expression.string .binder input,
+    .expression.boolean .binder input {
+      border-color: #c9a95d;
+      background: #463820;
+      color: var(--camino-literal-token);
+    }
+
+    .syntax.global .binder input,
+    .expression.function .binder input,
+    .expression.with .binder input,
+    .statement .binder input {
+      border-color: #8d9a8d;
+      background: #1a231f;
+      color: var(--camino-name-token);
+    }
   }
 
   .tray {

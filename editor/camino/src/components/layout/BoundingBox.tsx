@@ -5,6 +5,7 @@ import { MeasurementProps, measureChildren } from "../../hooks/measure";
 export interface BoundingBoxProps {
   color?: string;
   transform?: string;
+  title?: string;
 
   // Set extra props on the top-level g element
   containerProps?: any;
@@ -18,11 +19,11 @@ export const BoundingBox = measureChildren(
       <g {...props.containerProps} transform={props.transform} ref={ref}>
         <rect
           className="boundary"
-          rx={3}
-          width={(props.sizes[0]?.width ?? 0) + 20}
-          height={(props.sizes[0]?.height ?? 0) + 20}
+          rx={8}
+          width={(props.sizes[0]?.width ?? 0) + 28}
+          height={(props.sizes[0]?.height ?? 0) + 28}
         />
-        <g transform="translate(10,10)">{props.children}</g>
+        <g transform="translate(14,14)">{props.children}</g>
       </g>
     );
   })
