@@ -37,6 +37,9 @@ jobs:
           toolchain: nightly-2026-01-30
           targets: wasm32-unknown-unknown
 
+      - name: Install Rust WASM target
+        run: rustup target add wasm32-unknown-unknown --toolchain nightly-2026-01-30
+
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
