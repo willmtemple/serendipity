@@ -8,8 +8,8 @@
   "types": "./dist/index.d.ts",
   "sideEffects": false,
   "scripts": {
-    "build:wasm:debug": "cargo +nightly build --target wasm32-unknown-unknown",
-    "build:wasm:release": "cargo +nightly build --release --target wasm32-unknown-unknown",
+    "build:wasm:debug": "cargo build --target wasm32-unknown-unknown",
+    "build:wasm:release": "cargo build --release --target wasm32-unknown-unknown",
     "build:bg:bundler": "wasm-bindgen --out-dir=dist-bundler --target bundler ../../target/wasm32-unknown-unknown/debug/serendipity_parser.wasm",
     "build:bg:node": "wasm-bindgen --out-dir=dist-cjs --no-typescript --target nodejs ../../target/wasm32-unknown-unknown/debug/serendipity_parser.wasm",
     "build:bg": "npm run build:bg:bundler && npm run build:bg:node",
