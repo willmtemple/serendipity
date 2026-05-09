@@ -8,6 +8,7 @@ import { Binder, StatementHole } from "../../editor";
 import StatementBlock from "../../layout/StatementBlock";
 import SvgFlex from "../../layout/SvgFlex";
 import Expression from "../expression";
+import { useInteractionState } from "../../../interaction";
 
 interface StatementProps {
   bind: any;
@@ -34,10 +35,39 @@ function getColor(kind: string) {
 const Statement = observer(
   React.forwardRef<unknown, StatementProps>((props, ref) => {
     const { Project } = useStores();
+    const interaction = useInteractionState();
     const stmtNode = (props.bindIdx === undefined
       ? props.bind[props.bindKey]
       : props.bind[props.bindKey][props.bindIdx]) as ParseNode<ParserStatement>;
+    const parentGuid = Project.metadataFor(props.bind).guid;
+
+    if (!stmtNode?.value) {
+      return (
+        <StatementHole
+          ref={ref as React.ForwardedRef<SVGPathElement>}
+          kind="statement"
+          bind={props.bind}
+          bindKey={props.bindKey}
+          bindIdx={props.bindIdx}
+          transform={props.transform}
+        />
+      );
+    }
+
     const stmt = stmtNode.value;
+
+    if ((stmt as { kind?: string }).kind === "Hole") {
+      return (
+        <StatementHole
+          ref={ref as React.ForwardedRef<SVGPathElement>}
+          kind="statement"
+          bind={props.bind}
+          bindKey={props.bindKey}
+          bindIdx={props.bindIdx}
+          transform={props.transform}
+        />
+      );
+    }
 
     const body = (() => {
       switch (stmt.kind) {
@@ -107,11 +137,18 @@ const Statement = observer(
     })();
 
     const guid = Project.metadataFor(stmtNode).guid;
-    const parentGuid = Project.metadataFor(props.bind).guid;
+    const valueGuid = Project.metadataFor(stmt).guid;
     const containerProps: Record<string, unknown> = {
       id: guid,
-      className: (props.fixed ? "" : "draggable ") + "syntax statement " + stmt.kind.toLowerCase(),
+      className:
+        (props.fixed ? "" : "draggable ") +
+        "syntax statement " +
+        stmt.kind.toLowerCase() +
+        (interaction.hoveredGuid === guid ? " hovered" : "") +
+        (interaction.selectedGuid === guid ? " selected" : "") +
+        (interaction.snapParentGuid === guid || interaction.snapParentGuid === valueGuid ? " snap-parent" : ""),
       "data-guid": guid,
+      "data-value-guid": valueGuid,
       "data-parent-guid": parentGuid,
       "data-mutation-key": props.bindKey,
     };

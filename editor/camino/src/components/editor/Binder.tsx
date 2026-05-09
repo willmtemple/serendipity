@@ -22,6 +22,10 @@ function Binder(props: BinderProps, ref: React.ForwardedRef<SVGForeignObjectElem
 
   const [width, setWidth] = React.useState(value.length || 1);
 
+  React.useLayoutEffect(() => {
+    resize();
+  }, [resize, width]);
+
   function _change(evt: React.ChangeEvent<HTMLInputElement>) {
     const v = evt.target.value;
 
@@ -31,7 +35,6 @@ function Binder(props: BinderProps, ref: React.ForwardedRef<SVGForeignObjectElem
     }
 
     setWidth(v.length || 1);
-    resize();
 
     props.bind[props.bindKey] = v;
   }

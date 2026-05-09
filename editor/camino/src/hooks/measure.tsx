@@ -2,7 +2,7 @@ import * as React from "react";
 import { alignRect } from "../util/quantum";
 
 // populate the invalidation context with a default implementation that does nothing
-const ParentLayoutContext = React.createContext<() => void>(() => {
+export const ParentLayoutContext = React.createContext<() => void>(() => {
   return;
 });
 
@@ -44,6 +44,19 @@ const blankExtent: Rect = {
   width: 0,
   height: 0,
 };
+
+function finite(n: number | undefined): number {
+  return typeof n === "number" && Number.isFinite(n) ? n : 0;
+}
+
+function cleanRect(rect: Rect): Rect {
+  return {
+    x: finite(rect.x),
+    y: finite(rect.y),
+    width: finite(rect.width),
+    height: finite(rect.height),
+  };
+}
 
 type HTMLElementWithBBox = HTMLElement & { getBBox(): Rect };
 type SizeableChildRef = React.RefObject<HTMLElementWithBBox | null> | null;
@@ -99,6 +112,18 @@ export function measureChildren<P extends {}>(
     );
 
     const resizeParent = useResizeParent();
+    const rectsRef = React.useRef(rects);
+    const shouldNotifyParent = React.useRef(false);
+
+    React.useLayoutEffect(() => {
+      rectsRef.current = rects;
+    }, [rects]);
+
+    React.useLayoutEffect(() => {
+      if (!shouldNotifyParent.current) return;
+      shouldNotifyParent.current = false;
+      resizeParent();
+    }, [resizeParent, rects]);
 
     const extendedProps = {
       ...props,
@@ -115,10 +140,10 @@ export function measureChildren<P extends {}>(
           "Attempting to resize!",
           childRefs.map((r) => r?.current),
           componentName
-        );
+      );
       if (ready.current && childRefs.every((r) => r === null || r.current !== null)) {
         const _newRects = childRefs.map((r) => r?.current?.getBBox() ?? { ...blankExtent });
-        const newRects = _newRects.map(alignRect);
+        const newRects = _newRects.map((rect) => cleanRect(alignRect(rect)));
 
         debug &&
           console.log(
@@ -130,11 +155,16 @@ export function measureChildren<P extends {}>(
             componentName
           );
 
-        if (rects.length !== newRects.length || newRects.some((r, idx) => !same(r, rects[idx]))) {
+        const currentRects = rectsRef.current;
+        if (
+          currentRects.length !== newRects.length ||
+          newRects.some((r, idx) => !same(r, currentRects[idx]))
+        ) {
+          rectsRef.current = newRects;
+          shouldNotifyParent.current = true;
           setRects(newRects);
         }
       }
-      resizeParent();
     }
 
     // Update logic

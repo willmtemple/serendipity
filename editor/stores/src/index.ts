@@ -9,7 +9,10 @@ export {
   EditorDetachedExpression,
   EditorDetachedStatements,
   EditorTopLevel,
-  EditorGlobal
+  EditorGlobal,
+  EditorCustomBlockDefinition,
+  EditorCustomBlockHole,
+  EditorCustomBlockKind
 } from "./stores/ProjectStore";
 export { DefaultPrefsStore as Prefs, CheckedEvent } from "./stores/PrefsStore";
 export { useStores, StoreProvider } from "./hook";

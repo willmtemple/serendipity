@@ -105,7 +105,7 @@ export const expr: Record<string, any> = {
   list(elements: Expression[] = []): Expression {
     return { kind: "List", elements: nodes(elements) };
   },
-  procedure(body: Statement[] = [stmt.pass()]): Expression {
+  procedure(body: Statement[] = [stmt.hole()]): Expression {
     return { kind: "Procedure", body: nodes(body) };
   },
   if(condition = expr.hole(), then = expr.hole(), Else = expr.hole()): Expression {
@@ -125,13 +125,16 @@ export const expr: Record<string, any> = {
 };
 
 export const stmt: Record<string, any> = {
+  hole(): Statement {
+    return { kind: "Hole" } as unknown as Statement;
+  },
   let(symbol = "_", value = expr.hole()): Statement {
     return { kind: "Let", letKeyword: node("let"), assignment: node(assignment(symbol, value)) };
   },
   set(symbol = "_", value = expr.hole()): Statement {
     return { kind: "Set", 0: node(assignment(symbol, value)) } as unknown as Statement;
   },
-  if(condition = expr.hole(), then = stmt.pass(), Else = stmt.pass()): Statement {
+  if(condition = expr.hole(), then = stmt.hole(), Else = stmt.hole()): Statement {
     return {
       kind: "If",
       ifKeyword: node("if"),
@@ -141,7 +144,7 @@ export const stmt: Record<string, any> = {
       Else: node({ elseKeyword: node("else"), body: node(Else) }),
     };
   },
-  forIn(binding = "item", iterator = expr.hole(), body = stmt.pass()): Statement {
+  forIn(binding = "item", iterator = expr.hole(), body = stmt.hole()): Statement {
     return {
       kind: "ForIn",
       forKeyword: node("for"),
@@ -151,7 +154,7 @@ export const stmt: Record<string, any> = {
       body: node(body),
     };
   },
-  forever(body = stmt.pass()): Statement {
+  forever(body = stmt.hole()): Statement {
     return { kind: "Forever", 0: node(body) } as unknown as Statement;
   },
   do(body = expr.hole()): Statement {
@@ -172,7 +175,7 @@ export const stmt: Record<string, any> = {
 };
 
 export const decl = {
-  main(body = expr.procedure([stmt.expression(expr.call(expr.name("print"), [expr.string("hello from Camino")]))])): ParseNode<Declaration> {
+  main(body = expr.procedure([stmt.expression(expr.call(expr.fieldAccess(expr.name("__core"), "print_stmt"), [expr.string("hello from Camino")]))])): ParseNode<Declaration> {
     return node({ kind: "Main", mainKeyword: node("main"), body: node(body) });
   },
   const(identifier = "value", value = expr.hole()): ParseNode<Declaration> {

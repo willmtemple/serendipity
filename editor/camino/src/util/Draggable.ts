@@ -1,6 +1,6 @@
-import { Prefs, Project } from "@serendipity/editor-stores";
+import { Prefs } from "@serendipity/editor-stores";
 
-import { distance, Position } from "./Position";
+import { Position } from "./Position";
 
 import normalizeWheel from "normalize-wheel";
 import { action } from "mobx";
@@ -19,20 +19,6 @@ declare global {
   interface SVGSVGElement {
     isDraggable: boolean;
   }
-}
-
-type BlockSourceFunction = (pos: Position) => string;
-const registry: Map<symbol, BlockSourceFunction> = new Map();
-
-export function registerSource(handler: BlockSourceFunction): symbol {
-  const id = Symbol();
-  registry.set(id, handler);
-
-  return id;
-}
-
-export function unregister(id: symbol): void {
-  registry.delete(id);
 }
 
 let _resize: () => void | undefined;
@@ -87,19 +73,23 @@ export function makeDraggable(_svg: SVGSVGElement) {
 
   _resize = resizeViewBox;
 
-  let selectedElement: SVGGraphicsElement | undefined;
-  let dragMode: "detach" | undefined;
-  let dragStart: Position | undefined;
-  let offset: { x: any; y: any };
-  let transform: SVGTransform | undefined;
-  let resume: string | undefined;
-  let heldItemKind: "expression" | "statement" | undefined;
+  let isPanning = false;
+  let offset: Position = { x: 0, y: 0 };
   const background: HTMLElement | null = document.getElementById("workspaceBackground");
   const svgBackground = background as unknown as SVGGraphicsElement;
   const bgTranslate = svg.createSVGTransform();
   svgBackground.transform.baseVal.insertItemBefore(bgTranslate, 0);
 
   let canUpdate: boolean = true;
+
+  function pixelStep(): number {
+    return svgDims.scale / (window.devicePixelRatio || 1);
+  }
+
+  function snapPixel(n: number): number {
+    const step = pixelStep();
+    return Math.round(n / step) * step;
+  }
 
   const animate: FrameRequestCallback = (_t) => {
     requestAnimationFrame(animate);
@@ -113,17 +103,16 @@ export function makeDraggable(_svg: SVGSVGElement) {
   function setViewBox() {
     const { left, top, width, height, scale } = svgDims;
 
-    const scaledWidth = Math.ceil(width * scale);
-    const scaledHeight = Math.ceil(height * scale);
+    const snappedLeft = snapPixel(left);
+    const snappedTop = snapPixel(top);
+    const scaledWidth = snapPixel(width * scale);
+    const scaledHeight = snapPixel(height * scale);
 
-    svg.setAttribute("viewBox", `${left} ${top} ${scaledWidth} ${scaledHeight}`);
-    bgSvg.setAttribute("viewBox", `${left} ${top} ${scaledWidth} ${scaledHeight}`);
+    svg.setAttribute("viewBox", `${snappedLeft} ${snappedTop} ${scaledWidth} ${scaledHeight}`);
+    bgSvg.setAttribute("viewBox", `${snappedLeft} ${snappedTop} ${scaledWidth} ${scaledHeight}`);
 
-    // Adjust for background scroll and 20% width margins
-    // (should be width margin on both top and left, as DOM
-    // calculates margins by element width)
-    const bgLeft = Math.ceil(left - width * 0.2);
-    const bgTop = Math.ceil(top - height * 0.2);
+    const bgLeft = snapPixel(snappedLeft - width);
+    const bgTop = snapPixel(snappedTop - height);
     bgTranslate.setTranslate(bgLeft - (bgLeft % 50), bgTop - (bgTop % 50));
 
     canUpdate = true;
@@ -138,32 +127,17 @@ export function makeDraggable(_svg: SVGSVGElement) {
     };
   }
 
-  function findDragRoot(e: Element) {
+  function findDragRoot(e: Element): Element | null {
     let node: Element | null = e;
     while (
       node &&
       node !== _svg &&
-      !node.classList.contains("draggable") &&
+      !node.classList.contains("global") &&
       !node.classList.contains("button")
     ) {
       node = node.parentElement;
     }
     return node;
-  }
-
-  function ensureTranslate(element: SVGGraphicsElement): SVGTransform {
-    const transforms = element.transform.baseVal;
-
-    if (
-      transforms.numberOfItems === 0 ||
-      transforms.getItem(0).type !== SVGTransform.SVG_TRANSFORM_TRANSLATE
-    ) {
-      const translate = svg.createSVGTransform();
-      translate.setTranslate(0, 0);
-      transforms.insertItemBefore(translate, 0);
-    }
-
-    return transforms.getItem(0);
   }
 
   function startDrag(evt: MouseEvent) {
@@ -179,6 +153,14 @@ export function makeDraggable(_svg: SVGSVGElement) {
     const t = evt.target as Element;
     const node = findDragRoot(evt.target as Element);
 
+    if (t.closest(".drop")) {
+      return;
+    }
+
+    if (t.closest("[data-detached-guid]")) {
+      return;
+    }
+
     if (node && node.classList.contains("button")) {
       return;
     }
@@ -186,211 +168,44 @@ export function makeDraggable(_svg: SVGSVGElement) {
     if (t.tagName !== "INPUT") {
       if (node === _svg) {
         // Drag the background
-        selectedElement = svg;
-        transform = undefined;
+        isPanning = true;
         offset = getMousePosition(evt);
-      } else if (node && node.classList.contains("syntax")) {
-        // We are dragging an expression out of its container
-        selectedElement = node as SVGGraphicsElement;
-        dragMode = "detach";
-        dragStart = getMousePosition(evt);
-        transform = undefined;
-      } else if (node) {
-        selectedElement = node as SVGGraphicsElement;
-
-        if (selectedElement.classList.contains("_editor_detachedsyntax")) {
-          selectedElement.classList.add("nomouse");
-          heldItemKind = selectedElement.getAttribute("data-port-compatibility") as any;
-        }
-
-        offset = getMousePosition(evt);
-
-        transform = ensureTranslate(selectedElement);
-
-        offset.x -= transform.matrix.e;
-        offset.y -= transform.matrix.f;
-
-        const dataIdx = selectedElement.getAttribute("data-idx");
-        const idx = dataIdx && parseInt(dataIdx, 10);
-        if (typeof idx === "number" && !isNaN(idx)) {
-          Project.bump(idx);
-        } else {
-          console.warn("Selected global draggable does not have an index.");
-        }
       }
     }
   }
 
   function drag(evt: MouseEvent) {
-    // Resume the drag after a previous detach
-    if (resume !== undefined) {
-      const e = document.getElementById(resume);
-      if (e != null) {
-        selectedElement = e as unknown as SVGGraphicsElement;
-        selectedElement.classList.add("nomouse");
-
-        transform = ensureTranslate(selectedElement);
-
-        offset.x -= transform.matrix.e;
-        offset.y -= transform.matrix.f;
-      } else {
-        selectedElement = undefined;
-        dragMode = undefined;
-        heldItemKind = undefined;
-      }
-      resume = undefined;
-      return;
-    }
-
     const mouse = getMousePosition(evt);
-    if (selectedElement === svg) {
+    if (isPanning) {
       if (canUpdate) {
         evt.preventDefault();
         svgDims.left -= mouse.x - offset.x;
         svgDims.top -= mouse.y - offset.y;
 
-        svgDims.left = Math.ceil(svgDims.left);
-        svgDims.top = Math.ceil(svgDims.top);
+        svgDims.left = snapPixel(svgDims.left);
+        svgDims.top = snapPixel(svgDims.top);
 
         canUpdate = false;
 
         // setViewBox();
       }
-    } else if (selectedElement && dragMode === "detach") {
-      if (distance(dragStart!, getMousePosition(evt)) > 7) {
-        const eltPos = selectedElement.getBoundingClientRect();
-
-        const ctm = svg.getScreenCTM()!;
-        const eltX = (eltPos.left - ctm.e) / ctm.a;
-        const eltY = (eltPos.top - ctm.f) / ctm.d;
-
-        const newPosition = {
-          x: eltX + (mouse.x - dragStart!.x),
-          y: eltY + (mouse.y - dragStart!.y),
-        };
-
-        if (selectedElement.classList.contains("source")) {
-          // We need to run the registered handler
-          const handlerId = (selectedElement as any)["data-ondetach"];
-          const handler = registry.get(handlerId)!;
-          dragMode = undefined;
-          offset = {
-            x: mouse.x,
-            y: mouse.y,
-          };
-          heldItemKind = "expression";
-          resume = handler(newPosition);
-          drag(evt);
-        } else {
-          const guid = selectedElement.getAttribute("data-parent-guid");
-          const key = selectedElement.getAttribute("data-mutation-key");
-          const idx = selectedElement.getAttribute("data-mutation-idx") || undefined;
-
-          if (guid && key) {
-            let newGuid;
-            if (selectedElement.classList.contains("expression")) {
-              heldItemKind = "expression";
-              newGuid = Project.detachExpression(
-                guid,
-                key,
-                newPosition,
-                idx ? parseInt(idx, 10) : undefined
-              );
-            } else {
-              // statement
-              heldItemKind = "statement";
-              newGuid = Project.detachStatement(
-                guid,
-                key,
-                newPosition,
-                idx ? parseInt(idx, 10) : undefined
-              );
-            }
-            dragMode = undefined;
-            offset = {
-              x: mouse.x,
-              y: mouse.y,
-            };
-            resume = newGuid;
-            drag(evt);
-          } else {
-            console.warn(
-              "Tried to detach an element that is marked 'draggable expression' but did not have access info",
-              selectedElement
-            );
-          }
-        }
-      }
-    } else if (selectedElement) {
-      if (!transform) {
-        selectedElement = undefined;
-        dragMode = undefined;
-        heldItemKind = undefined;
-        return;
-      }
-      evt.preventDefault();
-      transform.setTranslate(mouse.x - offset.x, mouse.y - offset.y);
     }
   }
 
-  function endDrag(evt: MouseEvent) {
-    if (selectedElement === svg) {
+  function endDrag() {
+    if (isPanning) {
       Prefs.setPosition(roundQuantum(svgDims.left), roundQuantum(svgDims.top));
-    } else if (selectedElement) {
-      const mouseOver = evt.target as SVGElement;
-      const draggedGuid = selectedElement.getAttribute("data-guid");
-
-      if (draggedGuid) {
-        if (mouseOver && mouseOver.classList.contains("drop")) {
-          // We are dropping an element into this target
-
-          if (mouseOver.classList.contains("dumpster")) {
-            console.warn("DELETING", draggedGuid);
-            Project.rmNodeByGUID(draggedGuid);
-          } else if (heldItemKind && !mouseOver.classList.contains(heldItemKind) && transform) {
-            Project.updatePos(draggedGuid, {
-              x: roundQuantum(transform.matrix.e),
-              y: roundQuantum(transform.matrix.f),
-            });
-          } else {
-            const overGuid = mouseOver.getAttribute("data-parent-guid");
-            const overKey = mouseOver.getAttribute("data-mutation-key");
-            const overIdxS = mouseOver.getAttribute("data-mutation-idx");
-
-            if (
-              overGuid != null &&
-              overKey != null &&
-              overGuid !== draggedGuid &&
-              dragMode !== "detach"
-            ) {
-              const overIdx = overIdxS != null ? parseInt(overIdxS, 10) : undefined;
-
-              console.log("Project.insertInto(", draggedGuid, overGuid, overKey, overIdx, ")");
-              Project.insertInto(draggedGuid, overGuid, overKey, overIdx);
-            }
-          }
-        } else if (transform) {
-          Project.updatePos(draggedGuid, {
-            x: roundQuantum(transform.matrix.e),
-            y: roundQuantum(transform.matrix.f),
-          });
-        }
-      }
-      selectedElement.classList.remove("nomouse");
-      dragMode = undefined;
-      heldItemKind = undefined;
     }
-    selectedElement = undefined;
-    transform = undefined;
+    isPanning = false;
   }
 
   function zoom(bEvt: WheelEvent) {
     const evt = normalizeWheel(bEvt);
     // Don't zoom while dragging anything.
-    if (!selectedElement) {
+    if (!isPanning) {
       if (canUpdate) {
         const oldScale = svgDims.scale;
-        let nextScale = oldScale + evt.spinY / 10;
+        let nextScale = oldScale + evt.spinY / 6;
         nextScale = nextScale < 0.6 ? 0.6 : nextScale;
         nextScale = nextScale > 3.4 ? 3.4 : nextScale;
 
@@ -403,8 +218,8 @@ export function makeDraggable(_svg: SVGSVGElement) {
         svgDims.left = mouse.x - (mouse.x - left) * ratio;
         svgDims.top = mouse.y - (mouse.y - top) * ratio;
 
-        svgDims.left = Math.ceil(svgDims.left);
-        svgDims.top = Math.ceil(svgDims.top);
+        svgDims.left = snapPixel(svgDims.left);
+        svgDims.top = snapPixel(svgDims.top);
 
         Prefs.setPosition(roundQuantum(svgDims.left), roundQuantum(svgDims.top));
 

@@ -8,6 +8,7 @@ import { AddButton, Binder, ExpressionHole } from "../../editor";
 import { expr as makeExpr, node as makeNode } from "@serendipity/editor-stores";
 import { ExpressionBlock, SvgFlex } from "../../layout";
 import Statement from "../statement";
+import { useInteractionState } from "../../../interaction";
 
 export interface ExpressionProps {
   bind: any;
@@ -99,6 +100,7 @@ RecordElementView.displayName = "RecordElementView";
 const Expression = observer(
   React.forwardRef<unknown, React.PropsWithChildren<ExpressionProps>>((props, ref) => {
     const { Project } = useStores();
+    const interaction = useInteractionState();
     const exprNode = (props.bindIdx === undefined
       ? props.bind[props.bindKey]
       : props.bind[props.bindKey][props.bindIdx]) as ParseNode<ParserExpression>;
@@ -114,7 +116,7 @@ const Expression = observer(
     if (expr.kind === "Hole") {
       return (
         <ExpressionHole
-          ref={ref as React.ForwardedRef<SVGPathElement>}
+          ref={ref as React.ForwardedRef<SVGRectElement>}
           transform={props.transform}
           bind={props.bind}
           bindKey={props.bindKey}
@@ -127,10 +129,17 @@ const Expression = observer(
     const body = (() => {
       switch (expr.kind) {
         case "Number":
-        case "String":
         case "Boolean":
         case "Name":
           return <Binder bind={expr} bindKey={0} />;
+        case "String":
+          return (
+            <SvgFlex direction="horizontal" padding={4} align="middle">
+              <text className="literal-token">&ldquo;</text>
+              <Binder bind={expr} bindKey={0} />
+              <text className="literal-token">&rdquo;</text>
+            </SvgFlex>
+          );
         case "None":
           return <text className="literal-token">none</text>;
         case "Unary":
@@ -271,11 +280,19 @@ const Expression = observer(
     })();
 
     const guid = Project.metadataFor(exprNode).guid;
+    const valueGuid = Project.metadataFor(expr).guid;
     const parentGuid = Project.metadataFor(props.bind).guid;
     const containerProps: Record<string, unknown> = {
       id: guid,
-      className: (props.fixed ? "" : "draggable ") + "syntax expression " + expr.kind.toLowerCase(),
+      className:
+        (props.fixed ? "" : "draggable ") +
+        "syntax expression " +
+        expr.kind.toLowerCase() +
+        (interaction.hoveredGuid === guid ? " hovered" : "") +
+        (interaction.selectedGuid === guid ? " selected" : "") +
+        (interaction.snapParentGuid === guid || interaction.snapParentGuid === valueGuid ? " snap-parent" : ""),
       "data-guid": guid,
+      "data-value-guid": valueGuid,
       "data-parent-guid": parentGuid,
       "data-mutation-key": props.bindKey,
     };

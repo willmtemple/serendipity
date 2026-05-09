@@ -1,12 +1,12 @@
 import { autorun, makeAutoObservable, observable, set, toJS } from "mobx";
 
 import { defaultProject } from "../defaultProject";
-import { expr, isParseNode, node } from "../parserFactories";
+import { expr, isParseNode, node, stmt } from "../parserFactories";
 
 import type { Declaration, Expression, Module, ParseNode, Statement } from "@serendipity/parser";
 
 const KEY_PROJECT = "userProject";
-const DOCUMENT_VERSION = 1;
+const DOCUMENT_VERSION = 2;
 
 const guid = (function createIdSystem() {
   let id = 0;
@@ -53,8 +53,26 @@ export type EditorUnregisteredGlobal =
   | Omit<EditorDetachedStatements, "metadata">;
 
 export interface EditorDocument {
-  version: 1;
+  version: 2;
   items: EditorGlobal[];
+  customBlocks: EditorCustomBlockDefinition[];
+}
+
+export type EditorCustomBlockKind = "expression" | "statement";
+
+export interface EditorCustomBlockHole {
+  id: string;
+  name: string;
+  syntaxKind: EditorCustomBlockKind;
+  typeHint?: string;
+}
+
+export interface EditorCustomBlockDefinition {
+  id: string;
+  name: string;
+  syntaxKind: EditorCustomBlockKind;
+  holes: EditorCustomBlockHole[];
+  template: ParseNode<Expression> | Array<ParseNode<Statement>>;
 }
 
 function clone<T>(value: T): T {
@@ -94,9 +112,18 @@ function isEditorDocument(value: unknown): value is EditorDocument {
   return (
     typeof value === "object" &&
     value !== null &&
-    (value as { version?: unknown }).version === DOCUMENT_VERSION &&
+    ((value as { version?: unknown }).version === 1 || (value as { version?: unknown }).version === DOCUMENT_VERSION) &&
     Array.isArray((value as { items?: unknown }).items)
   );
+}
+
+function migrateDocument(value: EditorDocument | { version: 1; items: EditorGlobal[] }): EditorDocument {
+  if (value.version === DOCUMENT_VERSION) return value as EditorDocument;
+  return {
+    version: DOCUMENT_VERSION,
+    items: value.items,
+    customBlocks: [],
+  };
 }
 
 function isDetached(value: unknown): value is EditorDetachedSyntax {
@@ -147,7 +174,7 @@ function installEmergencyDebugClearStorage() {
 }
 
 export class ProjectStore {
-  public document: EditorDocument = { version: DOCUMENT_VERSION, items: [] };
+  public document: EditorDocument = { version: DOCUMENT_VERSION, items: [], customBlocks: [] };
 
   private byGUID: Record<string, object> = {};
   private metadata = new WeakMap<object, EditorMetadata>();
@@ -163,7 +190,7 @@ export class ProjectStore {
           "Stored Camino project is incompatible with the parser editor model. Run window.Debug.project.clearStorage() and reload."
         );
       }
-      set(this.document, parsed);
+      set(this.document, migrateDocument(parsed));
     } else {
       set(this.document, this.createDefaultDocument());
     }
@@ -194,8 +221,9 @@ export class ProjectStore {
     const declarations = toJS(this.document.items)
       .filter(isEditorTopLevel)
       .map((item) => item.declaration);
-    this.assertNoEditorHoles(declarations);
-    return reviveTupleVariants({ declarations });
+    const expanded = this.expandCustomBlocks(declarations);
+    this.assertNoEditorHoles(expanded);
+    return reviveTupleVariants({ declarations: expanded });
   }
 
   public clearStorage() {
@@ -259,8 +287,19 @@ export class ProjectStore {
   }
 
   public insertInto(vid: string, into: string, key: string, idx?: number) {
-    const parent = this.byGUID[into];
-    const detached = this.byGUID[vid] as EditorDetachedSyntax | undefined;
+    let parent = this.byGUID[into];
+    let detached = this.byGUID[vid] as EditorDetachedSyntax | undefined;
+    if (!parent || !detached || detached.kind !== "_editor_detachedsyntax") {
+      this.loadGUIDTable();
+      parent = this.byGUID[into];
+      detached = this.byGUID[vid] as EditorDetachedSyntax | undefined;
+    }
+    if (!detached || detached.kind !== "_editor_detachedsyntax") {
+      detached = this.document.items.find(
+        (item): item is EditorDetachedSyntax =>
+          item.kind === "_editor_detachedsyntax" && this.metadataFor(item).guid === vid
+      );
+    }
     if (!parent || !detached || detached.kind !== "_editor_detachedsyntax") {
       throw new Error("Cannot insert detached syntax: missing source or target");
     }
@@ -288,13 +327,13 @@ export class ProjectStore {
     if (!target) throw new Error("No such statement target");
 
     const detached = Array.isArray(target) ? target : [target];
-    const replacement = node({ kind: "Pass" } as Statement);
+    const replacement = node(stmt.hole());
     this.writeChild(parent, key, idx === undefined ? [replacement] : replacement, idx, "statement");
     return this.addDetachedStatements(detached, pos);
   }
 
   public dump() {
-    console.log(toJS(this.document));
+    return toJS(this.document);
   }
 
   public getText(): string {
@@ -340,6 +379,7 @@ export class ProjectStore {
   private createDefaultDocument(): EditorDocument {
     return {
       version: DOCUMENT_VERSION,
+      customBlocks: [],
       items: defaultProject.declarations.map((declaration, idx) =>
         makeTopLevel(clone(declaration), { x: 80, y: 80 + idx * 150 })
       ),
@@ -368,6 +408,29 @@ export class ProjectStore {
 
     target[key] = value;
     this.loadSyntaxObject(value);
+  }
+
+  public deleteChild(parentId: string, key: string, idx: number | undefined, mode: "expression" | "statement") {
+    const parent = this.byGUID[parentId];
+    if (!parent) throw new Error("Cannot delete child of missing parent");
+    const replacement = mode === "expression" ? node(expr.hole()) : node(stmt.hole());
+    this.writeChild(parent, key, replacement, idx, mode);
+  }
+
+  public placeSyntax(parentId: string, key: string, value: ParseNode<Expression> | ParseNode<Statement> | Array<ParseNode<Statement>>, idx: number | undefined, mode: "expression" | "statement") {
+    const parent = this.byGUID[parentId];
+    if (!parent) throw new Error("Cannot place syntax into missing parent");
+    this.writeChild(parent, key, clone(value), idx, mode);
+  }
+
+  public addCustomBlock(definition: Omit<EditorCustomBlockDefinition, "id">): string {
+    const id = guid();
+    this.document.customBlocks.push({ ...clone(definition), id });
+    return id;
+  }
+
+  public expandCustomBlocks<T>(value: T): T {
+    return value;
   }
 
   private assertNoEditorHoles(value: unknown) {

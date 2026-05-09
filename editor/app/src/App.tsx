@@ -9,8 +9,9 @@ import { Navbar } from "./components/Navbar";
 
 //import { MonacoWorkspace } from "./components/MonacoWorkspace";
 import "./styles/App.scss";
-import Tray from "./components/Tray";
 import { MonacoWorkspace } from "./components/MonacoWorkspace";
+import OutputPanel from "./components/OutputPanel";
+import ToastHost from "./components/ToastHost";
 
 function App() {
   return (
@@ -23,9 +24,10 @@ function App() {
             <Route path="/text" element={<MonacoWorkspace />} />
             <Route path="/" element={<Navigate to="/blocks" replace />} />
           </Routes>
+          <OutputPanel />
         </StoreProvider>
       </Router>
-      <Tray />
+      <ToastHost />
     </div>
   );
 }

@@ -13,11 +13,7 @@ const MODES = {
 } as const;
 
 async function onPlayButtonPressed() {
-  console.info("Serendipity run requested");
-  if (!Prefs.isTerminalOpen) {
-    Prefs.toggleTerminal();
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-  }
+  Prefs.eventBus.dispatchEvent(new CustomEvent("toast", { detail: { level: "info", message: "Running program..." } }) as CheckedEvent<CustomEvent<{ level: "info"; message: string }>, "toast">);
 
   Prefs.eventBus.dispatchEvent(
     new CustomEvent("runProgram", {

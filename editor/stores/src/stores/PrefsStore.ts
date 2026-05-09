@@ -10,7 +10,7 @@ const defaultPrefs = {
     y: 0
   },
   editorScale: 1.0,
-  terminal: false
+  outputPanel: false
 };
 
 export type CheckedEvent<T extends Event, K> = {
@@ -27,8 +27,9 @@ export class PrefsStore {
   public prefs = defaultPrefs;
 
   public eventBus = new EventTarget() as CheckedEventTarget<{
-    data: CustomEvent<{ message: string }>;
+    data: CustomEvent<{ level?: "info" | "success" | "error"; message: string }>;
     runProgram: CustomEvent<{ program: Module }>;
+    toast: CustomEvent<{ level: "info" | "success" | "error"; message: string }>;
   }>;
 
   constructor() {
@@ -54,12 +55,16 @@ export class PrefsStore {
     this.prefs.editorPosition.y = y;
   }
 
-  public toggleTerminal() {
-    this.prefs.terminal = !this.prefs.terminal;
+  public setOutputPanel(open: boolean) {
+    this.prefs.outputPanel = open;
   }
 
-  get isTerminalOpen() {
-    return this.prefs.terminal;
+  public toggleOutputPanel() {
+    this.prefs.outputPanel = !this.prefs.outputPanel;
+  }
+
+  get isOutputPanelOpen() {
+    return this.prefs.outputPanel;
   }
 }
 

@@ -4,6 +4,7 @@ import * as React from "react";
 import { useStores } from "@serendipity/editor-stores";
 
 import { useResizeParentEffect } from "../../hooks/measure";
+import { useInteractionState } from "../../interaction";
 
 interface SyntaxHoleProps {
   bind: object;
@@ -15,83 +16,37 @@ interface SyntaxHoleProps {
   kind: "expression" | "statement";
 }
 
-const RADIUS = 3;
-
-const CAP_HEIGHT = 42;
-
-const cx = [
-  { cy1: 0, cx1: 0, cy2: 35, cx2: 15, ey: 37, ex: 5 }, // left shoulder
-  { cy1: 37, cx1: 5, cy2: 40, cx2: 0, ey: 38, ex: -5 }, // left neck
-  { cy1: 38, cx1: -5, cy2: 20, cx2: -20, ey: 50, ex: -20 }, // left head
-  { cy1: 50, cx1: -20, cy2: 80, cx2: -20, ey: 62, ex: -5 }, // right head
-  { cy1: 62, cx1: -5, cy2: 60, cx2: 0, ey: 63, ex: 5 }, // right neck
-  { cy1: 63, cx1: 5, cy2: 65, cx2: 15, ey: 100, ex: 0 }, // right shoulder
-];
-
-const CAP_INDENT = (cx[0]!.cx2 / 100) * CAP_HEIGHT;
-const CAP_EXTENT = -(cx[2]!.ex / 100) * CAP_HEIGHT;
-
-const puzzlePiece = cx
-  .map((section) => {
-    const nextRow = { ...section };
-    for (const key of Object.keys(nextRow)) {
-      const k = key as keyof typeof nextRow;
-      if (nextRow.hasOwnProperty(k)) {
-        nextRow[k] = (nextRow[k] / 100) * CAP_HEIGHT;
-        if (k.substr(1, 1) === "y") {
-          nextRow[k] = -nextRow[k] + CAP_HEIGHT + RADIUS;
-        } else {
-          nextRow[k] = nextRow[k] + CAP_EXTENT;
-        }
-      }
-    }
-    return nextRow;
-  })
-  .map((r) => `C ${r.cx1} ${r.cy1}, ${r.cx2} ${r.cy2}, ${r.ex} ${r.ey}`)
-  .join(" ");
-
-const path: string = (() => {
-  const r = {
-    width: 87,
-    height: 42 + RADIUS * 2,
-  };
-  const hrun = r.width - RADIUS * 2 + CAP_INDENT;
-  const vrun = r.height - RADIUS * 2;
-
-  return `
-    M ${CAP_EXTENT} ${RADIUS}
-    a ${RADIUS} ${RADIUS} 0 0 1 ${RADIUS} -${RADIUS}
-    h ${hrun}
-    a ${RADIUS} ${RADIUS} 0 0 1 ${RADIUS} ${RADIUS}
-    v ${vrun}
-    a ${RADIUS} ${RADIUS} 0 0 1 -${RADIUS} ${RADIUS}
-    h -${hrun}
-    a ${RADIUS} ${RADIUS} 0 0 1 -${RADIUS} -${RADIUS}
-    l 0 ${CAP_HEIGHT - vrun}
-    ${puzzlePiece}
-    `;
-})();
-
-const ExpressionHole = React.forwardRef<SVGPathElement, SyntaxHoleProps>((props, ref) => {
+const ExpressionHole = React.forwardRef<SVGRectElement, SyntaxHoleProps>((props, ref) => {
   const { Project } = useStores();
+  const interaction = useInteractionState();
 
   useResizeParentEffect();
+  const parentGuid = Project.metadataFor(props.bind).guid;
+  const isSnapTarget =
+    interaction.snapTarget?.kind === props.kind &&
+    interaction.snapTarget.parentGuid === parentGuid &&
+    interaction.snapTarget.key === String(props.bindKey) &&
+    interaction.snapTarget.idx === props.bindIdx;
 
   return (
-    <path
+    <rect
       ref={ref}
       transform={props.transform}
-      className={"drop " + props.kind}
+      className={"drop " + props.kind + (isSnapTarget ? " snap-target" : "")}
       data-bind={props.bind}
       data-bind-key={props.bindKey}
-      data-parent-guid={Project.metadataFor(props.bind).guid}
+      data-parent-guid={parentGuid}
       data-mutation-key={props.bindKey}
       data-mutation-idx={props.bindIdx}
       fill="#FFFFFFA0"
       stroke="#000000"
       strokeWidth={2}
       strokeDasharray="6 4"
-      d={path}
+      x={0}
+      y={0}
+      width={92}
+      height={36}
+      rx={7}
     />
   );
 });

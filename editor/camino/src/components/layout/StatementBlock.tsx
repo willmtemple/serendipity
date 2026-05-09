@@ -19,7 +19,7 @@ export interface StatementBlockProps {
 
 type CompleteProps = MeasurementProps & React.PropsWithChildren<StatementBlockProps>;
 
-function path(width: number, height: number): string {
+export function statementBlockPath(width: number, height: number): string {
   const w = Math.max(width, 96);
   const h = Math.max(height, 32);
   return `
@@ -52,7 +52,7 @@ export const StatementBlock = measureChildren(
 
     return (
       <g {...props.containerProps} transform={props.transform} ref={ref}>
-        <path className="boundary" d={path(width, height)} />
+        <path className="boundary" d={statementBlockPath(width, height)} />
         <g transform={`translate(${PADX},${PADY + TAB_HEIGHT})`}>{props.children}</g>
       </g>
     );

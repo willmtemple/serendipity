@@ -2,8 +2,8 @@ import * as React from "react";
 
 import { MeasurementProps, measureChildren } from "../../hooks/measure";
 
-const PADX = 10;
-const PADY = 7;
+const PADX = 14;
+const PADY = 9;
 const RADIUS = 6;
 
 export interface ExpressionBlockProps {

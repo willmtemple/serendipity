@@ -5,99 +5,105 @@ import * as React from "react";
 import "../styles/App.scss";
 
 import Global from "./components/syntax/global";
+import InsertDrawer from "./components/editor/InsertDrawer";
+import { InteractionContext } from "./interaction";
 import { makeDraggable } from "./util/Draggable";
+import { useWorkspaceInteraction } from "./useWorkspaceInteraction";
 import { useStores } from "@serendipity/editor-stores";
-import Palette from "./components/editor/Palette";
 
 export const Workspace = observer(() => {
   const workspaceSvg = React.useRef<SVGSVGElement>(null);
+  const { Project } = useStores();
+  const {
+    clearInsertContext,
+    deleteSelected,
+    dragPositions,
+    eventHandlers,
+    insertContext,
+    interactionState,
+    selected,
+  } = useWorkspaceInteraction();
 
   React.useLayoutEffect(() => {
-    if (workspaceSvg.current) {
-      return makeDraggable(workspaceSvg.current);
-    }
-    return undefined;
+    const workspace = workspaceSvg.current;
+    if (!workspace) return undefined;
+    return makeDraggable(workspace);
   }, []);
 
-  const { Project } = useStores();
-
   return (
-    <svg
-      ref={workspaceSvg}
-      className="camino workspace"
-      xmlns="http://www.w3.org/2000/svg"
-      preserveAspectRatio="xMinYMin slice"
-    >
-      <svg id="workspaceBackgroundContainer" preserveAspectRatio="xMinYMin slice">
-        <defs>
-          <pattern id="bgPattern" x={0} y={0} width={50} height={50} patternUnits="userSpaceOnUse">
-            <rect className="background fill" x={0} y={0} width={50} height={50} />
-            <circle className="peg" cx={25} cy={25} r={2} />
-          </pattern>
-        </defs>
-        <rect
-          id="workspaceBackground"
-          x="-20%"
-          y="-20%"
-          width="200%"
-          height="200%"
-          fill="url(#bgPattern)"
-        />
-      </svg>
-      <svg id="blockSpace" preserveAspectRatio="xMinYMin slice">
-        <defs>
-          <filter id="detachedElement">
-            <feColorMatrix in="SourceGraphic" type="saturate" values="0.80" />
-          </filter>
-          <filter id="dropGlow" x="-20%" y="-20%" filterUnits="userSpaceOnUse">
-            <feFlood result="flood" floodColor="#FFFFFF" floodOpacity={1} />
-            <feComposite in="flood" result="mask" in2="SourceGraphic" operator="in" />
-            <feMorphology in="mask" result="dilated" operator="dilate" radius="2" />
-            <feGaussianBlur in="dilated" result="blurred" stdDeviation={4} />
-            <feMerge>
-              <feMergeNode in="blurred" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-          <filter id="dropShadow" filterUnits="userSpaceOnUse">
-            <feOffset result="offOut" in="SourceAlpha" dx="1" dy="1" />
-            <feGaussianBlur result="blurOut" in="offOut" stdDeviation="3" />
-            <feBlend in="SourceGraphic" in2="blurOut" mode="normal" />
-          </filter>
-        </defs>
-        {Project.program.items.map((glb, idx) => {
-          const meta = untracked(() => Project.metadataFor(glb));
-          return (
-            <g
-              key={untracked(() => meta.guid)}
-              id={meta.guid}
-              data-guid={meta.guid}
-              data-idx={idx}
-              data-port-compatibility={
-                glb.kind === "_editor_detachedsyntax" ? glb.syntaxKind : undefined
-              }
-              className={"draggable global " + (glb.kind === "declaration" ? glb.declaration.value.kind : glb.kind).toLowerCase()}
-              transform={untracked(() => `translate(${meta.pos.x}, ${meta.pos.y})`)}
-            >
-              <Global global={glb} />
-            </g>
-          );
-        })}
-      </svg>
-      <rect x={0} y={0} width={200} height="100%" fill="#FF000020" className="drop dumpster" />
+    <div className="camino-shell">
       <svg
-        x="80%"
-        width="20%"
-        y={0}
-        height="100%"
-        id="palette"
+        ref={workspaceSvg}
+        className="camino workspace"
+        xmlns="http://www.w3.org/2000/svg"
         preserveAspectRatio="xMinYMin slice"
-        clip="auto"
-        overflow="scroll"
+        {...eventHandlers}
       >
-        <rect height="100%" width="100%" fill="#00000044" />
-        <Palette />
+        <svg id="workspaceBackgroundContainer" preserveAspectRatio="xMinYMin slice">
+          <defs>
+            <pattern id="bgPattern" x={0} y={0} width={50} height={50} patternUnits="userSpaceOnUse">
+              <rect className="background fill" x={0} y={0} width={50} height={50} />
+              <circle className="peg" cx={25} cy={25} r={2} />
+            </pattern>
+          </defs>
+          <rect id="workspaceBackground" x="-100000" y="-100000" width="200000" height="200000" fill="url(#bgPattern)" />
+        </svg>
+        <svg id="blockSpace" preserveAspectRatio="xMinYMin slice">
+          <defs>
+            <filter id="detachedElement">
+              <feColorMatrix in="SourceGraphic" type="saturate" values="0.80" />
+            </filter>
+            <filter id="dropGlow" x="-20%" y="-20%" filterUnits="userSpaceOnUse">
+              <feFlood result="flood" floodColor="#FFFFFF" floodOpacity={1} />
+              <feComposite in="flood" result="mask" in2="SourceGraphic" operator="in" />
+              <feMorphology in="mask" result="dilated" operator="dilate" radius="2" />
+              <feGaussianBlur in="dilated" result="blurred" stdDeviation={4} />
+              <feMerge>
+                <feMergeNode in="blurred" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <filter id="dropShadow" filterUnits="userSpaceOnUse">
+              <feOffset result="offOut" in="SourceAlpha" dx="1" dy="1" />
+              <feGaussianBlur result="blurOut" in="offOut" stdDeviation="3" />
+              <feBlend in="SourceGraphic" in2="blurOut" mode="normal" />
+            </filter>
+          </defs>
+          <InteractionContext.Provider value={interactionState}>
+            {Project.program.items.map((glb, idx) => {
+              const meta = untracked(() => Project.metadataFor(glb));
+              const guid = untracked(() => meta.guid);
+              const { x, y } = dragPositions[guid] ?? meta.pos;
+              return (
+                <g
+                  key={guid}
+                  id={guid}
+                  data-guid={guid}
+                  data-detached-guid={glb.kind === "_editor_detachedsyntax" ? guid : undefined}
+                  data-idx={idx}
+                  data-port-compatibility={
+                    glb.kind === "_editor_detachedsyntax" ? glb.syntaxKind : undefined
+                  }
+                  className={
+                    "draggable global " +
+                    (selected?.guid === guid ? "selected " : "") +
+                    (glb.kind === "declaration" ? glb.declaration.value.kind : glb.kind).toLowerCase()
+                  }
+                  transform={`translate(${x}, ${y})`}
+                >
+                  <Global global={glb} />
+                </g>
+              );
+            })}
+          </InteractionContext.Provider>
+        </svg>
       </svg>
-    </svg>
+      <InsertDrawer context={insertContext} onClose={clearInsertContext} />
+      {selected && (
+        <div className="selection-actions">
+          <button onClick={deleteSelected}>Delete</button>
+        </div>
+      )}
+    </div>
   );
 });

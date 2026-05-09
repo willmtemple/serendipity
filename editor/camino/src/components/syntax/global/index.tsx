@@ -9,6 +9,7 @@ import BoundingBox from "../../layout/BoundingBox";
 import SvgFlex from "../../layout/SvgFlex";
 import Expression from "../expression";
 import Statement from "../statement";
+import { useInteractionState } from "../../../interaction";
 
 function getColor(kind: string) {
   return {
@@ -72,7 +73,10 @@ function DeclarationBody(props: { declaration: ParseNode<Declaration>; onDelete(
             <Binder bind={declaration.identifier} bindKey="value" />
             <text className="punctuation-token">(</text>
             {declaration.parameters.value.map((param, idx) => (
-              <Binder key={idx} bind={param.value.name} bindKey="value" />
+              <React.Fragment key={idx}>
+                <Binder bind={param.value.name} bindKey="value" />
+                {idx < declaration.parameters.value.length - 1 ? <text className="punctuation-token">,</text> : null}
+              </React.Fragment>
             ))}
             <text className="punctuation-token">)</text>
             <text className="operator-token">{"->"}</text>
@@ -121,6 +125,7 @@ function DeclarationBody(props: { declaration: ParseNode<Declaration>; onDelete(
 const Global = observer(
   React.forwardRef<any, { global: EditorGlobal }>((props, ref) => {
     const { Project } = useStores();
+    const interaction = useInteractionState();
     const onDelete = () => Project.rmNodeByGUID(Project.metadataFor(props.global).guid);
 
     if (props.global.kind === "_editor_detachedsyntax") {
@@ -135,7 +140,14 @@ const Global = observer(
       <BoundingBox
         ref={ref}
         color={getColor(declaration.value.kind)}
-        containerProps={{ id: guid, className: "syntax global " + declaration.value.kind.toLowerCase() }}
+        containerProps={{
+          id: guid,
+          className:
+            "syntax global " +
+            declaration.value.kind.toLowerCase() +
+            (interaction.selectedGuid === guid ? " selected" : "") +
+            (interaction.snapParentGuid === guid ? " snap-parent" : ""),
+        }}
       >
         <g>
           <DeclarationBody declaration={declaration} onDelete={onDelete} />
